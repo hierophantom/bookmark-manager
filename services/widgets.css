@@ -1,6 +1,6 @@
 /* 
 File name & path: services/widgets.css
-Role: Widget-specific content styles
+Role: Widget-specific content styles including modal gallery
 */
 
 /* –––––––––––––––––––––––––––
@@ -27,17 +27,134 @@ Role: Widget-specific content styles
 }
 
 /* –––––––––––––––––––––––––––
+  WIDGET GALLERY (IN MODAL)
+––––––––––––––––––––––––––– */
+
+.widget-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.widget-template {
+  background-color: var(--container-bright-20);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 20px 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.widget-template:hover {
+  background-color: var(--container-bright-30);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.widget-template.selected {
+  background-color: var(--content-bright-10);
+  border-color: var(--content-bright-70);
+  color: var(--content-bright-100);
+}
+
+.widget-template.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  background: var(--content-bright-70);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.widget-template-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.widget-template-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--content-bright-90);
+}
+
+.widget-template.selected .widget-template-title {
+  color: var(--content-bright-100);
+}
+
+/* –––––––––––––––––––––––––––
+  WIDGET SELECTION INFO
+––––––––––––––––––––––––––– */
+
+.widget-selection-info {
+  text-align: center;
+  padding: 15px;
+  background: var(--container-bright-10);
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.widget-selection-info p {
+  margin: 0;
+  color: var(--content-dim-70);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* –––––––––––––––––––––––––––
   RESPONSIVE DESIGN
 ––––––––––––––––––––––––––– */
 
-@media (max-width: 900px) {
-  .widget-placeholder {
-    font-size: 1rem;
+@media (max-width: 768px) {
+  .widget-gallery {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .widget-template {
+    padding: 15px 10px;
+  }
+  
+  .widget-template-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  
+  .widget-template-title {
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 680px) {
-  .widget-placeholder {
-    font-size: 0.9rem;
+@media (max-width: 480px) {
+  .widget-gallery {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
+}
+
+/* –––––––––––––––––––––––––––
+  DARK THEME ADJUSTMENTS
+––––––––––––––––––––––––––– */
+
+.dark-theme .widget-template {
+  background-color: var(--container-dim-10);
+}
+
+.dark-theme .widget-template:hover {
+  background-color: var(--container-dim-20);
+}
+
+.dark-theme .widget-template.selected {
+  background-color: var(--content-bright-5);
 }

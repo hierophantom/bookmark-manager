@@ -8,12 +8,14 @@ Role: The main view of the extension with separated slot/widget systems
 
 <head>
     <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="../services/slots.css">
+    <link rel="stylesheet" href="../slots-system/slots.css">
+    <link rel="stylesheet" href="../slots-system/modal.css">
     <link rel="stylesheet" href="../services/widgets.css">
     <link rel="stylesheet" href="../services/shortcuts.css">
     
     <script src="../libs/interact.min.js"></script>
-    <script type="module" src="../services/slots.js"></script>
+    <script type="module" src="../slots-system/modal.js"></script>
+    <script type="module" src="../slots-system/slots.js"></script>
     <script type="module" src="../services/widgets.js"></script>
     <script type="module" src="../services/shortcuts.js"></script>
     <script type="module" src="main.js"></script>
@@ -100,43 +102,6 @@ Role: The main view of the extension with separated slot/widget systems
                             <div class="slot" data-slot-id="6"></div>
                             <div class="slot" data-slot-id="7"></div>
                             <div class="slot" data-slot-id="8"></div>
-                        </div>
-                    </div>
-
-                    <!-- Modal for adding widgets -->
-                    <div class="modal-overlay" id="add-widget-modal">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <div class="modal-title">Add Widgets</div>
-                                <button class="modal-close">&times;</button>
-                            </div>
-                            <div class="widget-gallery">
-                                <!-- Widget templates will be added here -->
-                                <div class="widget-template" data-widget-type="clock">
-                                    <div class="widget-template-icon">🕒</div>
-                                    <div class="widget-template-title">Clock</div>
-                                </div>
-                                <div class="widget-template" data-widget-type="weather">
-                                    <div class="widget-template-icon">🌤️</div>
-                                    <div class="widget-template-title">Weather</div>
-                                </div>
-                                <div class="widget-template" data-widget-type="notes">
-                                    <div class="widget-template-icon">📝</div>
-                                    <div class="widget-template-title">Notes</div>
-                                </div>
-                                <div class="widget-template" data-widget-type="calendar">
-                                    <div class="widget-template-icon">📅</div>
-                                    <div class="widget-template-title">Calendar</div>
-                                </div>
-                                <div class="widget-template" data-widget-type="todo">
-                                    <div class="widget-template-icon">✓</div>
-                                    <div class="widget-template-title">To-Do List</div>
-                                </div>
-                                <div class="widget-template" data-widget-type="links">
-                                    <div class="widget-template-icon">🔗</div>
-                                    <div class="widget-template-title">Quick Links</div>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

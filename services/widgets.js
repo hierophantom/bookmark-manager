@@ -1,7 +1,9 @@
 /*
 File name & path: services/widgets.js
-Role: Generic widget instances and content management
+Role: Generic widget instances and content management using generic modal
 */
+
+import { ModalContentProvider } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   WIDGET FACTORY
@@ -20,13 +22,13 @@ class WidgetFactory {
     WIDGET TYPE REGISTRATION
   ––––––––––––––––––––––––––– */
   
-registerDefaultWidgets() {
-  // Register all widget types to use the same generic class
-  const widgetTypes = ['clock', 'weather', 'notes', 'calendar', 'todo', 'links'];
-  widgetTypes.forEach(type => {
-    this.registerWidget(type, GenericWidget);
-  });
-}
+  registerDefaultWidgets() {
+    // Register all widget types to use the same generic class
+    const widgetTypes = ['clock', 'weather', 'notes', 'calendar', 'todo', 'links'];
+    widgetTypes.forEach(type => {
+      this.registerWidget(type, GenericWidget);
+    });
+  }
   
   registerWidget(type, widgetClass) {
     this.widgetTypes.set(type, widgetClass);
@@ -161,10 +163,143 @@ class GenericWidget extends BaseWidget {
 }
 
 /* –––––––––––––––––––––––––––
+  WIDGETS MODAL CONTENT PROVIDER
+––––––––––––––––––––––––––– */
+
+class WidgetsContentProvider extends ModalContentProvider {
+  constructor(slotSystem) {
+    super();
+    this.slotSystem = slotSystem;
+    this.selectedWidgetType = null;
+    this.availableWidgets = [
+      { type: 'clock', icon: '🕒', title: 'Clock' },
+      { type: 'weather', icon: '🌤️', title: 'Weather' },
+      { type: 'notes', icon: '📝', title: 'Notes' },
+      { type: 'calendar', icon: '📅', title: 'Calendar' },
+      { type: 'todo', icon: '✓', title: 'To-Do List' },
+      { type: 'links', icon: '🔗', title: 'Quick Links' }
+    ];
+  }
+  
+  getContent() {
+    const widgetOptions = this.availableWidgets.map(widget => `
+      <div class="widget-template" data-widget-type="${widget.type}">
+        <div class="widget-template-icon">${widget.icon}</div>
+        <div class="widget-template-title">${widget.title}</div>
+      </div>
+    `).join('');
+    
+    return `
+      <div class="widget-gallery">
+        ${widgetOptions}
+      </div>
+      <div class="widget-selection-info">
+        <p>Select a widget type to add to your dashboard</p>
+      </div>
+    `;
+  }
+  
+  onModalOpen(bodyElement) {
+    // Reset selection
+    this.selectedWidgetType = null;
+    
+    // Get widget templates
+    const widgetTemplates = bodyElement.querySelectorAll('.widget-template');
+    
+    // Add click handlers
+    widgetTemplates.forEach(template => {
+      template.addEventListener('click', () => {
+        // Remove previous selection
+        widgetTemplates.forEach(t => t.classList.remove('selected'));
+        
+        // Select current template
+        template.classList.add('selected');
+        this.selectedWidgetType = template.dataset.widgetType;
+        
+        // Update info text
+        const infoElement = bodyElement.querySelector('.widget-selection-info p');
+        const selectedWidget = this.availableWidgets.find(w => w.type === this.selectedWidgetType);
+        if (infoElement && selectedWidget) {
+          infoElement.textContent = `Selected: ${selectedWidget.title}`;
+        }
+      });
+    });
+  }
+  
+  async validate() {
+    if (!this.selectedWidgetType) {
+      // Show error in modal
+      const errorMessage = 'Please select a widget type';
+      
+      // Find or create error element
+      let errorElement = document.querySelector('.modal-error');
+      if (!errorElement) {
+        errorElement = document.createElement('div');
+        errorElement.className = 'modal-error';
+        const modalBody = document.getElementById('sac-modal-body');
+        modalBody.insertBefore(errorElement, modalBody.firstChild);
+      }
+      errorElement.textContent = errorMessage;
+      
+      return false;
+    }
+    
+    // Remove error if exists
+    const errorElement = document.querySelector('.modal-error');
+    if (errorElement) {
+      errorElement.remove();
+    }
+    
+    return true;
+  }
+  
+  async onSave() {
+    try {
+      // Add widget to slot system
+      await this.slotSystem.addItem(this.selectedWidgetType);
+      return true; // Allow modal to close
+    } catch (error) {
+      console.error('Failed to add widget:', error);
+      return false; // Prevent modal from closing
+    }
+  }
+  
+  onCancel() {
+    // Reset selection
+    this.selectedWidgetType = null;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  WIDGETS MODAL MANAGER
+––––––––––––––––––––––––––– */
+
+class WidgetsModalManager {
+  constructor(slotSystem, modalManager) {
+    this.slotSystem = slotSystem;
+    this.modalManager = modalManager;
+    this.contentProvider = new WidgetsContentProvider(slotSystem);
+  }
+  
+  openModal() {
+    // Open modal with widgets content
+    this.modalManager.open({
+      title: 'Add Widget',
+      content: this.contentProvider.getContent(),
+      saveLabel: 'Add Widget',
+      cancelLabel: 'Cancel',
+      contentProvider: this.contentProvider
+    });
+  }
+}
+
+/* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
 export { 
   WidgetFactory, 
   BaseWidget,
-  GenericWidget
+  GenericWidget,
+  WidgetsContentProvider,
+  WidgetsModalManager
 };

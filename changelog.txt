@@ -1,3 +1,6 @@
+0.9.1
+Fixed all shortcuts issues
+
 0.9
 Shortcuts just landed! Some minor bugs but works nicely
 

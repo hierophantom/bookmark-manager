@@ -1,7 +1,9 @@
 /*
 File name & path: services/shortcuts.js
-Role: Pinned URLs shortcuts system
+Role: Pinned URLs shortcuts system using generic modal
 */
+
+import { ModalContentProvider } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   SHORTCUTS FACTORY
@@ -125,28 +127,35 @@ class BaseShortcut {
 ––––––––––––––––––––––––––– */
 
 class PinnedUrlShortcut extends BaseShortcut {
-  getContent() {
-    if (!this.data || !this.data.url) {
-      return `<div class="shortcut-placeholder">Empty Slot</div>`;
-    }
-    
-    const { name, url } = this.data;
-    const hostname = this.extractHostname(url);
-    const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-    
-    return `
-      <div class="shortcut-link">
-        <div class="shortcut-favicon">
-          <img src="${faviconUrl}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><path d=%22M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3%22/><path d=%22M12 17h.01%22/></svg>'">
-        </div>
-        <div class="shortcut-info">
-          <div class="shortcut-name">${name}</div>
-          <div class="shortcut-url">${hostname}</div>
-        </div>
-      </div>
-    `;
+getContent() {
+  if (!this.data || !this.data.url) {
+    return `<div class="shortcut-placeholder">Empty Slot</div>`;
   }
   
+  const { name, url } = this.data;
+  const hostname = this.extractHostname(url);
+  
+  // Only fetch favicon for valid hostnames
+  let faviconUrl;
+  if (hostname === 'invalid-url') {
+    faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
+  } else {
+    faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+  }
+  
+  return `
+    <div class="shortcut-link">
+      <div class="shortcut-favicon">
+        <img src="${faviconUrl}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><path d=%22M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3%22/><path d=%22M12 17h.01%22/></svg>'">
+      </div>
+      <div class="shortcut-info">
+        <div class="shortcut-name">${name}</div>
+        <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
+      </div>
+    </div>
+  `;
+}
+
   bindEvents() {
     if (this.data && this.data.url) {
       // Make the shortcut clickable
@@ -161,7 +170,31 @@ class PinnedUrlShortcut extends BaseShortcut {
       this.element.style.cursor = 'pointer';
     }
   }
-  
+  extractHostname(url) {
+  try {
+    // First, try to create a proper URL
+    let testUrl;
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      testUrl = url;
+    } else {
+      testUrl = `https://${url}`;
+    }
+    
+    const urlObj = new URL(testUrl);
+    
+    // Additional validation - check if hostname is valid
+    const hostname = urlObj.hostname.replace('www.', '');
+    
+    // Basic hostname validation (must contain at least one dot and valid characters)
+    if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
+      return hostname;
+    } else {
+      return 'invalid-url'; // This will show a default icon
+    }
+  } catch (e) {
+    return 'invalid-url'; // This will show a default icon
+  }
+}
   extractHostname(url) {
     try {
       const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
@@ -173,146 +206,103 @@ class PinnedUrlShortcut extends BaseShortcut {
 }
 
 /* –––––––––––––––––––––––––––
-  SHORTCUTS MODAL MANAGER
+  SHORTCUTS MODAL CONTENT PROVIDER
 ––––––––––––––––––––––––––– */
 
-class ShortcutsModalManager {
+class ShortcutsContentProvider extends ModalContentProvider {
   constructor(slotSystem) {
+    super();
     this.slotSystem = slotSystem;
     this.currentSlot = null;
-    this.initModal();
+    this.nameInput = null;
+    this.urlInput = null;
   }
   
-  initModal() {
-    // Create modal HTML if it doesn't exist
-    if (!document.getElementById('shortcuts-modal')) {
-      const modalHTML = `
-        <div class="modal-overlay" id="shortcuts-modal">
-          <div class="modal-content">
-            <div class="modal-header">
-              <div class="modal-title">Add Pinned URL</div>
-              <button class="modal-close" id="shortcuts-modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="shortcut-name">Name:</label>
-                <input type="text" id="shortcut-name" placeholder="Enter a name for this shortcut" maxlength="50">
-              </div>
-              <div class="form-group">
-                <label for="shortcut-url">URL:</label>
-                <input type="url" id="shortcut-url" placeholder="https://example.com">
-                <div class="url-error" id="url-error" style="display: none;">Please enter a valid URL</div>
-              </div>
-              <div class="modal-actions">
-                <button id="shortcuts-save" class="btn-primary">Save</button>
-                <button id="shortcuts-cancel" class="btn-secondary">Cancel</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.insertAdjacentHTML('beforeend', modalHTML);
-    }
-    
-    // Get modal elements
-    this.modal = document.getElementById('shortcuts-modal');
-    this.nameInput = document.getElementById('shortcut-name');
-    this.urlInput = document.getElementById('shortcut-url');
-    this.urlError = document.getElementById('url-error');
-    this.saveBtn = document.getElementById('shortcuts-save');
-    this.cancelBtn = document.getElementById('shortcuts-cancel');
-    this.closeBtn = document.getElementById('shortcuts-modal-close');
-    
-    // Bind events
-    this.bindModalEvents();
+  getContent() {
+    return `
+      <div class="form-group">
+        <label for="shortcut-name">Name:</label>
+        <input 
+          type="text" 
+          id="shortcut-name" 
+          placeholder="Enter a name for this shortcut" 
+          maxlength="50">
+      </div>
+      <div class="form-group">
+        <label for="shortcut-url">URL:</label>
+        <input 
+          type="url" 
+          id="shortcut-url" 
+          placeholder="https://example.com or google.com">
+        <span class="field-error" id="url-error" style="display: none;">
+          Please enter a valid URL
+        </span>
+      </div>
+    `;
   }
   
-  bindModalEvents() {
-    // Save button
-    this.saveBtn.addEventListener('click', () => this.saveShortcut());
-    
-    // Cancel/Close buttons
-    this.cancelBtn.addEventListener('click', () => this.closeModal());
-    this.closeBtn.addEventListener('click', () => this.closeModal());
-    
-    // Enter key in inputs
-    [this.nameInput, this.urlInput].forEach(input => {
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') this.saveShortcut();
-      });
-    });
-    
-    // URL validation on input
-    this.urlInput.addEventListener('input', () => this.validateUrl());
-    
-    // Close modal when clicking outside
-    this.modal.addEventListener('click', (e) => {
-      if (e.target === this.modal) {
-        this.closeModal();
-      }
-    });
-  }
-  
-  openModal(slotElement) {
-    this.currentSlot = slotElement;
+  onModalOpen(bodyElement) {
+    // Get form elements
+    this.nameInput = bodyElement.querySelector('#shortcut-name');
+    this.urlInput = bodyElement.querySelector('#shortcut-url');
+    this.urlError = bodyElement.querySelector('#url-error');
     
     // Clear previous values
     this.nameInput.value = '';
     this.urlInput.value = '';
-    this.urlError.style.display = 'none';
+    this.hideUrlError();
     
-    // Show modal
-    this.modal.classList.add('active');
-    this.nameInput.focus();
+    // Set up real-time URL validation
+    this.urlInput.addEventListener('input', () => this.validateUrl());
+    
+    // Handle enter key in inputs
+    [this.nameInput, this.urlInput].forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          // Trigger save button click
+          const saveBtn = document.getElementById('sac-modal-save');
+          if (saveBtn) saveBtn.click();
+        }
+      });
+    });
+    
+    // Focus name input
+    setTimeout(() => this.nameInput.focus(), 100);
   }
   
-  closeModal() {
-    this.modal.classList.remove('active');
-    this.currentSlot = null;
-  }
-  
-  validateUrl() {
-    const url = this.urlInput.value.trim();
-    
-    if (!url) {
-      this.urlError.style.display = 'none';
-      return true;
-    }
-    
-    try {
-      // Try to create URL object (adds protocol if missing)
-      const testUrl = url.startsWith('http') ? url : `https://${url}`;
-      new URL(testUrl);
-      this.urlError.style.display = 'none';
-      return true;
-    } catch (e) {
-      this.urlError.style.display = 'block';
-      return false;
-    }
-  }
-  
-  async saveShortcut() {
+  async validate() {
     const name = this.nameInput.value.trim();
     const url = this.urlInput.value.trim();
     
-    // Basic validation
+    // Clear previous errors
+    this.hideUrlError();
+    this.nameInput.parentNode.classList.remove('has-error');
+    this.urlInput.parentNode.classList.remove('has-error');
+    
+    let isValid = true;
+    
+    // Validate name
     if (!name) {
-      alert('Please enter a name for the shortcut');
+      this.nameInput.parentNode.classList.add('has-error');
       this.nameInput.focus();
-      return;
+      isValid = false;
     }
     
+    // Validate URL
     if (!url) {
-      alert('Please enter a URL');
-      this.urlInput.focus();
-      return;
+      this.urlInput.parentNode.classList.add('has-error');
+      if (isValid) this.urlInput.focus(); // Only focus if name was valid
+      isValid = false;
+    } else if (!this.validateUrl()) {
+      isValid = false;
     }
     
-    if (!this.validateUrl()) {
-      this.urlInput.focus();
-      return;
-    }
+    return isValid;
+  }
+  
+  async onSave() {
+    const name = this.nameInput.value.trim();
+    const url = this.urlInput.value.trim();
     
     // Ensure URL has protocol
     const finalUrl = url.startsWith('http') ? url : `https://${url}`;
@@ -323,11 +313,80 @@ class ShortcutsModalManager {
       url: finalUrl
     };
     
-    // Add to slot system
-    await this.slotSystem.addItemWithData(shortcutData, this.currentSlot);
+    try {
+      // Add to slot system
+      await this.slotSystem.addItemWithData(shortcutData, this.currentSlot);
+      return true; // Allow modal to close
+    } catch (error) {
+      console.error('Failed to save shortcut:', error);
+      return false; // Prevent modal from closing
+    }
+  }
+  
+  onCancel() {
+    // Clear current slot reference
+    this.currentSlot = null;
+  }
+  
+  validateUrl() {
+    const url = this.urlInput.value.trim();
     
-    // Close modal
-    this.closeModal();
+    if (!url) {
+      this.hideUrlError();
+      return true;
+    }
+    
+    try {
+      // Try to create URL object (adds protocol if missing)
+      const testUrl = url.startsWith('http') ? url : `https://${url}`;
+      new URL(testUrl);
+      this.hideUrlError();
+      return true;
+    } catch (e) {
+      this.showUrlError();
+      return false;
+    }
+  }
+  
+  showUrlError() {
+    this.urlError.style.display = 'block';
+    this.urlInput.parentNode.classList.add('has-error');
+  }
+  
+  hideUrlError() {
+    this.urlError.style.display = 'none';
+    this.urlInput.parentNode.classList.remove('has-error');
+  }
+  
+  // Set the target slot for adding shortcut
+  setTargetSlot(slot) {
+    this.currentSlot = slot;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUTS MODAL MANAGER
+––––––––––––––––––––––––––– */
+
+class ShortcutsModalManager {
+  constructor(slotSystem, modalManager) {
+    this.slotSystem = slotSystem;
+    this.modalManager = modalManager;
+    this.contentProvider = new ShortcutsContentProvider(slotSystem);
+  }
+  
+  openModal(slotElement) {
+    // Set target slot
+    this.contentProvider.setTargetSlot(slotElement);
+    
+    // Open modal with shortcuts content
+    this.modalManager.open({
+      title: 'Add Pinned URL',
+      content: this.contentProvider.getContent(),
+      saveLabel: 'Save Shortcut',
+      cancelLabel: 'Cancel',
+      contentProvider: this.contentProvider
+    });
   }
 }
 
@@ -338,5 +397,6 @@ export {
   ShortcutsFactory,
   BaseShortcut,
   PinnedUrlShortcut,
+  ShortcutsContentProvider,
   ShortcutsModalManager
 };

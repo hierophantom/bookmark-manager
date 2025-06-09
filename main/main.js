@@ -1,6 +1,6 @@
 /*
 File name & path: main/main.js
-Role: The main JS file with separated slot/widget systems
+Role: The main JS file with both widget and shortcuts modals
 */
 
 /* –––––––––––––––––––––––––––
@@ -8,10 +8,10 @@ Role: The main JS file with separated slot/widget systems
 ––––––––––––––––––––––––––– */
 
 import { createSpriteSheet } from '../libs/icons.js';
-import { SlotSystem } from '../services/slots.js';
-import { WidgetFactory } from '../services/widgets.js';
+import { SlotSystem } from '../slots-system/slots.js';
+import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
-
+import { ModalManager } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
@@ -21,28 +21,56 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize sprite sheet
   createSpriteSheet();
 
+  // Initialize generic modal manager (shared by all systems)
+  const modalManager = new ModalManager();
+
   // Initialize widget factory
   const widgetFactory = new WidgetFactory();
 
-  // Initialize slot system with widget factory
-  const slotSystem = new SlotSystem({
-    storageKey: 'slotWidgets', // Keep same storage key for backward compatibility
+  // Initialize widget slot system
+  const widgetSlotSystem = new SlotSystem({
+    storageKey: 'slotWidgets',
     slotSelector: '.slot',
     containerSelector: '.slot-container',
     controlsSelector: '.slot-controls',
     addButtonSelector: '#add-widget-btn',
-    modalSelector: '#add-widget-modal',
+    modalSelector: null, // We'll handle this with generic modal
     itemClass: 'widget'
   });
 
-  // Connect the widget factory to the slot system
-  slotSystem.setItemFactory(widgetFactory);
+  // Connect the widget factory to the widget slot system
+  widgetSlotSystem.setItemFactory(widgetFactory);
 
-  // Initialize other managers
-  const pageManager = new PageManager();
-  const drawerManager = new DrawerManager();
+  // Initialize widgets modal manager with generic modal
+  const widgetsModal = new WidgetsModalManager(widgetSlotSystem, modalManager);
 
-    // Initialize shortcuts factory
+  // Override the default add widget behavior
+  const addWidgetBtn = document.getElementById('add-widget-btn');
+  if (addWidgetBtn) {
+    // Remove default event listeners
+    addWidgetBtn.replaceWith(addWidgetBtn.cloneNode(true));
+    
+    // Add custom event listener
+    const newAddWidgetBtn = document.getElementById('add-widget-btn');
+    newAddWidgetBtn.addEventListener('click', () => {
+      // Check if there are empty slots
+      const emptySlot = widgetSlotSystem.findEmptySlot();
+      if (emptySlot) {
+        widgetsModal.openModal();
+      } else {
+        // Use generic modal to show error
+        modalManager.open({
+          title: 'No Empty Slots',
+          content: '<p>All widget slots are full. Please remove some widgets first.</p>',
+          saveLabel: 'OK',
+          showActions: false,
+          onSave: () => true // Just close the modal
+        });
+      }
+    });
+  }
+
+  // Initialize shortcuts factory
   const shortcutsFactory = new ShortcutsFactory();
 
   // Initialize shortcuts slot system
@@ -52,17 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
     containerSelector: '.shortcuts-container',
     controlsSelector: '.shortcuts-controls',
     addButtonSelector: '#add-shortcut-btn',
-    modalSelector: null, // We'll handle this manually
+    modalSelector: null, // We'll handle this with generic modal
     itemClass: 'shortcut'
   });
 
   // Connect the shortcuts factory to the shortcuts slot system
   shortcutsSlotSystem.setItemFactory(shortcutsFactory);
 
-  // Initialize shortcuts modal manager
-  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem);
+  // Initialize shortcuts modal manager with generic modal
+  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem, modalManager);
 
-  // Override the default add item behavior for shortcuts
+  // Override the default add shortcut behavior
   const addShortcutBtn = document.getElementById('add-shortcut-btn');
   if (addShortcutBtn) {
     // Remove default event listeners
@@ -76,12 +104,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emptySlot) {
         shortcutsModal.openModal(emptySlot);
       } else {
-        alert('No empty slots available. Remove some shortcuts first.');
+        // Use generic modal to show error
+        modalManager.open({
+          title: 'No Empty Slots',
+          content: '<p>All shortcut slots are full. Please remove some shortcuts first.</p>',
+          saveLabel: 'OK',
+          showActions: false,
+          onSave: () => true // Just close the modal
+        });
       }
     });
   }
 
+  // Initialize other managers
+  const pageManager = new PageManager();
+  const drawerManager = new DrawerManager();
+  
+  // Initialize theme system
+  initializeThemeSystem();
+  
+  // Initialize main menu
+  initializeMainMenu();
 });
+
+/* –––––––––––––––––––––––––––
+  THEME SYSTEM
+––––––––––––––––––––––––––– */
 
 function initializeThemeSystem() {
   // Get current theme from localStorage
@@ -283,7 +331,26 @@ class DrawerManager {
     // Load saved states after a brief delay to ensure page is ready
     setTimeout(() => this.loadDrawerStates(), 0);
   }
-  
+
+  watchPageChanges() {
+  // Create a MutationObserver to watch for page changes
+  const observer = new MutationObserver(() => {
+    this.handlePageChange();
+  });
+
+  // Observe both homepage and bookmarks pages
+  const pages = document.querySelectorAll('#homepage, #bookmarks');
+  pages.forEach(page => {
+    observer.observe(page, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  });
+
+  // Initial check
+  this.handlePageChange();
+}
+
   setupPinButtons() {
     const pinButtons = document.querySelectorAll('.pin-button');
     
@@ -369,25 +436,6 @@ class DrawerManager {
         this.toggleRightDrawer();
       }
     });
-  }
-
-  watchPageChanges() {
-    // Create a MutationObserver to watch for page changes
-    const observer = new MutationObserver(() => {
-      this.handlePageChange();
-    });
-
-    // Observe both homepage and bookmarks pages
-    const pages = document.querySelectorAll('#homepage, #bookmarks');
-    pages.forEach(page => {
-      observer.observe(page, {
-        attributes: true,
-        attributeFilter: ['class']
-      });
-    });
-
-    // Initial check
-    this.handlePageChange();
   }
 
   handlePageChange() {
@@ -478,7 +526,6 @@ class DrawerManager {
   MAIN MENU INITIALIZATION
 ––––––––––––––––––––––––––– */
 
-// Initialize main menu separately to avoid duplication
 function initializeMainMenu() {
   const menuButton = document.querySelector('.action-button');
   const menu = document.querySelector('.action-menu');
@@ -499,10 +546,4 @@ function initializeMainMenu() {
       menuButton.setAttribute('aria-expanded', 'false');
     }
   });
-  
-  // Initialize theme system
-  initializeThemeSystem();
 }
-
-// Initialize main menu when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeMainMenu);

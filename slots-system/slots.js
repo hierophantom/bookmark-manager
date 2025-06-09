@@ -1,5 +1,5 @@
 /*
-File name & path: services/slots.js
+File name & path: slots-system/slots.js
 Role: Core slot system handling drag/drop, swap, add/remove mechanics
 */
 
@@ -249,38 +249,40 @@ class SlotSystem {
   }
 
   
-  setupItemControls(item, itemId) {
-    // Add drag handle if it doesn't exist
-    if (!item.querySelector('.widget-drag-handle')) {
-      const dragHandle = document.createElement('div');
-      dragHandle.className = 'widget-drag-handle';
-      dragHandle.innerHTML = '<svg width="16" height="16"><use href="#drag-icon" /></svg>';
-      item.appendChild(dragHandle);
-    }
-    
-    // Add controls if they don't exist
-    if (!item.querySelector('.widget-controls')) {
-      const controls = document.createElement('div');
-      controls.className = 'widget-controls';
-      controls.innerHTML = `
-        <button class="widget-close-btn widget-remove" data-widget-id="${itemId}">
-          <svg width="16" height="16"><use href="#close-icon" /></svg>
-        </button>
-      `;
-      item.appendChild(controls);
-    }
-    
-    // Add remove button event (use setTimeout to ensure DOM is ready)
-    setTimeout(() => {
-      const removeBtn = item.querySelector('.widget-remove');
-      if (removeBtn) {
-        removeBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.removeItem(itemId);
-        });
-      }
-    }, 0);
+ setupItemControls(item, itemId) {
+  const itemClass = this.config.itemClass; // Gets 'widget' or 'shortcut'
+  
+  // Add drag handle if it doesn't exist
+  if (!item.querySelector(`.${itemClass}-drag-handle`)) {
+    const dragHandle = document.createElement('div');
+    dragHandle.className = `${itemClass}-drag-handle`;
+    dragHandle.innerHTML = '<svg width="16" height="16"><use href="#drag-icon" /></svg>';
+    item.appendChild(dragHandle);
   }
+  
+  // Add controls if they don't exist
+  if (!item.querySelector(`.${itemClass}-controls`)) {
+    const controls = document.createElement('div');
+    controls.className = `${itemClass}-controls`;
+    controls.innerHTML = `
+      <button class="${itemClass}-close-btn ${itemClass}-remove" data-${itemClass}-id="${itemId}">
+        <svg width="16" height="16"><use href="#close-icon" /></svg>
+      </button>
+    `;
+    item.appendChild(controls);
+  }
+  
+  // Add remove button event (use setTimeout to ensure DOM is ready)
+  setTimeout(() => {
+    const removeBtn = item.querySelector(`.${itemClass}-remove`);
+    if (removeBtn) {
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeItem(itemId);
+      });
+    }
+  }, 0);
+}
   
   removeItem(itemId) {
     const item = document.getElementById(itemId);
@@ -422,7 +424,7 @@ class SlotSystem {
     interact(`.${this.config.itemClass}`)
       .draggable({
         // Only allow dragging from the handle
-        allowFrom: '.widget-drag-handle',
+        allowFrom: `.${this.config.itemClass}-drag-handle`,
         
         // Enable inertial throwing
         inertia: false,
