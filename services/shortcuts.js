@@ -38,8 +38,7 @@ class ShortcutsFactory {
     
     // Initialize the shortcut
     await shortcut.initialize();
-    this.setupItemControls(element, id);
-
+    
     return element;
   }
   
