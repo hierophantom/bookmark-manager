@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Manager",
+  "version": "1.0",
+  "description": "Advanced bookmark manager with widgets",
+  "permissions": [
+    "bookmarks",
+    "tabs",
+    "tabGroups"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "main/background.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "main/main.html"
+  },
+  "action": {
+    "default_title": "Open Bookmark Manager",
+    "default_icon": {
+      "48": "assets/ext_icons/icon48.png",
+      "128": "assets/ext_icons/icon128.png"
+    }
+  }
+}

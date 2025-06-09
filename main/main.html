@@ -1,0 +1,142 @@
+<!--
+File name & path: main/main.html
+Role: The main view of the extension with separated slot/widget systems
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="interact.min.js"></script>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../services/slot.css">
+    <link rel="stylesheet" href="../services/widgets.css">
+    <script type="module" src="../services/slot.js"></script>
+    <script type="module" src="../services/widgets.js"></script>
+    <script type="module" src="main.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Bookmark Visualizer</title>
+</head>
+
+<body>
+    <main>
+
+        <!-- Header -->
+        <header>
+            <button class="action-button" aria-expanded="false">
+                <svg width="16" height="16">
+                    <use href="#menu-icon" />
+                </svg>
+            </button>
+
+            <div class="action-menu">
+                <div class="menu-item">
+                    Theme
+                    <ul class="submenu">
+                        <li class="submenu-item theme-option" data-theme="light">Light</li>
+                        <li class="submenu-item theme-option" data-theme="dark">Dark</li>
+                        <li class="submenu-item theme-option" data-theme="auto">Auto</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p>"The only way to do great work is to love what you do." - Steve Jobs. </p>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            <div id="left-drawer" class="drawer drawer-left">
+                <button class="pin-button" data-drawer="left">📌</button>
+            </div>
+
+            <div class="pages-container">
+
+                <div id="homepage" class="page">
+
+                    <div class="slot-wrapper">
+                        <div class="slot-container">
+                            <div class="slot-controls">
+                                <span class="widget-btn" id="add-widget-btn">
+                                <svg width="16" height="16">
+                                    <use href="#add-icon" />
+                                </svg>
+                                </span>
+                            </div>
+                            <div class="slot" data-slot-id="1"></div>
+                            <div class="slot" data-slot-id="2"></div>
+                            <div class="slot" data-slot-id="3"></div>
+                            <div class="slot" data-slot-id="4"></div>
+                            <div class="slot" data-slot-id="5"></div>
+                            <div class="slot" data-slot-id="6"></div>
+                            <div class="slot" data-slot-id="7"></div>
+                            <div class="slot" data-slot-id="8"></div>
+                        </div>
+                    </div>
+
+                    <!-- Modal for adding widgets -->
+                    <div class="modal-overlay" id="add-widget-modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <div class="modal-title">Add Widgets</div>
+                                <button class="modal-close">&times;</button>
+                            </div>
+                            <div class="widget-gallery">
+                                <!-- Widget templates will be added here -->
+                                <div class="widget-template" data-widget-type="clock">
+                                    <div class="widget-template-icon">🕒</div>
+                                    <div class="widget-template-title">Clock</div>
+                                </div>
+                                <div class="widget-template" data-widget-type="weather">
+                                    <div class="widget-template-icon">🌤️</div>
+                                    <div class="widget-template-title">Weather</div>
+                                </div>
+                                <div class="widget-template" data-widget-type="notes">
+                                    <div class="widget-template-icon">📝</div>
+                                    <div class="widget-template-title">Notes</div>
+                                </div>
+                                <div class="widget-template" data-widget-type="calendar">
+                                    <div class="widget-template-icon">📅</div>
+                                    <div class="widget-template-title">Calendar</div>
+                                </div>
+                                <div class="widget-template" data-widget-type="todo">
+                                    <div class="widget-template-icon">✓</div>
+                                    <div class="widget-template-title">To-Do List</div>
+                                </div>
+                                <div class="widget-template" data-widget-type="links">
+                                    <div class="widget-template-icon">🔗</div>
+                                    <div class="widget-template-title">Quick Links</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="page" id="bookmarks">
+                    <h2>BOOKMARKS</h2>
+                    <div class="drawer-controls">
+                        <button data-action="toggle-folder-tree">Toggle Folder Tree</button>
+                        <button data-action="toggle-active-tabs">Toggle Active Tabs</button>
+                    </div>
+                </div>
+
+            </div>
+            <div id="right-drawer" class="drawer drawer-right">
+                <button class="pin-button" data-drawer="left">📌</button>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <button id="prev-page" class="page-nav-btn">Previous</button>
+            <button id="next-page" class="page-nav-btn">Next</button>
+        </footer>
+
+    </main>
+</body>
+
+</html>

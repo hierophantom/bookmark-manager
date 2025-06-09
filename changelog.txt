@@ -1,0 +1,80 @@
+0.8.1
+Separate slot and cube from content and instance.
+
+0.8
+Widgets are working nicely!
+
+07.8
+Simplified by removing editing mode. Editing is direct and dragging corner
+
+07.7
+Widgets are now swappable!
+
+07.6
+Widget box generlized
+
+07.5
+Edit box shows when hover
+
+07.4
+Slots revised and now working nicely
+
+0.7.3
+Slot is better with flex box.
+
+0.7.2
+Slot but better
+
+0.7.1
+Slot System full on!
+
+0.7
+Grid system Check!
+
+0.6.7
+Action menu and action button revamped and generalized
+
+0.6.6
+Revamped the menu button to use better elements... now need to redesign the button and such...
+Also design it first
+
+0.6.5
+Dropdown grid system with sizes. Not perfect but POC
+
+0.6.4
+Created menu and placed themes selector under menu
+Small transition when theme changing
+
+0.6.3
+Drawers are fully operational!
+
+0.6.2
+Drawers interact with mouse and work well
+
+0.6.1
+Drawers open by keyboard shortcut and button. Layout corresponds and selection is consistent.
+
+0.6
+Drawers are here, but with bugs
+
+0.5.1
+CSS alignment
+
+0.5
+Pages navigator. (Keyboard, mouse and buttons!)
+
+0.4
+Soem more folder structure changes. 
+Theme selector
+More generic styles!
+
+0.3
+Folder structure 
+
+0.2
+Ext Open in new tab
+Can take over "newtab"
+
+0.1
+Stable version allows to:
+View, delete, remove, edit bookmarks

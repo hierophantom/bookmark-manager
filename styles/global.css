@@ -1,0 +1,502 @@
+/*
+File name & path: styles/global.css
+Role: The index.html style source
+*/
+
+/* –––––––––––––––––––––––––––
+  RESET CSS
+––––––––––––––––––––––––––– */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* –––––––––––––––––––––––––––
+  THEMES
+––––––––––––––––––––––––––– */
+:root {
+  --white-100: rgba(255, 255, 255, 1);
+  --white-80: rgba(255, 255, 255, 0.8);
+  --white-70: rgba(255, 255, 255, 0.7);
+  --white-60: rgba(255, 255, 255, 0.6);
+  --white-30: rgba(255, 255, 255, 0.3);
+  --white-20: rgba(255, 255, 255, 0.2);
+  --white-10: rgba(255, 255, 255, 0.1);
+  --white-0: rgba(255, 255, 255, 0);
+
+  --black-10: rgba(0, 0, 0, 0.1);
+  --black-20: rgba(0, 0, 0, 0.2);
+  --black-30: rgba(0, 0, 0, 0.3);
+  --black-60: rgba(0, 0, 0, 0.6);
+  --black-70: rgba(0, 0, 0, 0.7);
+  --black-80: rgba(0, 0, 0, 0.8);
+  --black-100: rgba(0, 0, 0, 1);
+}
+
+:root {
+  --content-bright-100: var(--white-100);
+  --content-bright-80: var(--white-80);
+  --content-bright-30: var(--white-30);
+  --content-dim-30: var(--black-30);
+  --content-dim-100: var(--black-100);
+
+  --container-bright-100: var(--white-100);
+  --container-bright-80: var(--white-80);
+  --container-bright-60: var(--white-60);
+  --container-bright-30: var(--white-30);
+  --container-bright-20: var(--white-20);
+  --container-bright-10: var(--white-10);
+  --container-bright-0: rgba(255, 255, 255, 0);
+  --container-dim-10: var(--black-10);
+  --container-dim-20: var(--black-20);
+  --container-dim-30: var(--black-30);
+  --container-dim-60: var(--black-60);
+  --container-dim-80: var(--black-80);
+}
+
+:root.dark-theme {
+  --content-bright-100: var(--white-100);
+  --content-bright-80: var(--white-80);
+  --content-bright-30: var(--black-30);
+  --content-dim-30: var(--white-30);
+  --content-dim-100: var(--white-100);
+
+  --container-bright-100: var(--black-100);
+  --container-bright-80: var(--black-80);
+  --container-bright-60: var(--black-60);
+  --container-bright-30: var(--black-30);
+  --container-bright-20: var(--black-20);
+  --container-bright-10: var(--black-10);
+  --container-bright-0: var(--black-20);
+  --container-dim-10: var(--white-10);
+  --container-dim-20: var(--white-20);
+  --container-dim-30: var(--white-30);
+  --container-dim-60: var(--white-60);
+  --container-dim-80: var(--white-80);
+}
+
+:root {
+  transition: 
+    color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+/* –––––––––––––––––––––––––––
+  STRUCTURE
+––––––––––––––––––––––––––– */
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+main {
+  background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://fastly.picsum.photos/id/18/2500/1667.jpg?hmac=JR0Z_jRs9rssQHZJ4b7xKF82kOj8-4Ackq75D_9Wmz8");
+  background-repeat: no-repeat;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: "Nunito", sans-serif;
+  min-width: 800px;
+}
+
+header {
+  display: flex;
+  flex-direction: row;
+  height: auto;
+  padding: 12px 24px;
+  flex-shrink: 0; 
+  background-color: var(--container-bright-10);
+  border-bottom: 1px solid var(--container-bright-20);
+  color: var(--content-bright-100);
+  backdrop-filter: blur(7px);
+  gap: 20px;
+  align-items: center;
+}
+
+.content {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  align-content: normal;
+  flex: 1;
+  overflow-y: hidden;
+  color: var(--content-bright-100);
+}
+
+.pages-container {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  display: block;
+  flex-grow: 20;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  order: 0;
+}
+
+#homepage {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 40px;
+  justify-content: flex-start;
+}
+
+footer {
+  position: fixed;
+  bottom: 0px;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  height: 52px;
+  display: flex;
+  padding: 0px 24px;
+  flex-shrink: 0; 
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: flex-end;
+  align-content: normal;
+  background-color: var(--container-bright-10);
+  border-top: 1px solid var(--container-bright-20);
+  border-right: 1px solid var(--container-bright-20);
+  border-left: 1px solid var(--container-bright-20);
+  color: var(--content-bright-100);
+  backdrop-filter: blur(7px);
+  border-radius: 12px 12px 0px 0px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* –––––––––––––––––––––––––––
+  HEADER STYLES
+––––––––––––––––––––––––––– */
+header {
+  z-index: 9000;
+}
+
+/* –––––––––––––––––––––––––––
+  MENU BUTTTON & DROPDOWN
+––––––––––––––––––––––––––– */
+
+/* Button */
+.action-button svg {
+  margin-top: 3px;
+  transition: fill 0.2s
+}
+
+.action-button {
+  width: 36px;
+  height: 36px;
+  background-color: var(--container-bright-30);
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  fill: var(--content-bright-100);
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: var(--container-bright-80);
+}
+
+.action-button[aria-expanded="true"]:active svg {
+  fill: var(--content-dim-100);
+}
+
+.action-button[aria-expanded="true"] {
+  background-color: var(--container-dim-30);
+}
+
+/* Menu */
+.action-menu {
+  display: none;
+  min-width: 100px;
+  position: absolute;
+  margin-top: 4px;
+  padding: 8px;
+  background: var(--container-dim-60);
+  border-color: var(--container-dim-30);
+  border-radius: 8px;
+  top: 50px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.action-menu.show {
+  display: block;
+}
+
+/* Menu items */
+.menu-item {
+  position: relative;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--container-bright-80);
+  border-radius: 8px;
+}
+
+.menu-item:hover {
+  background: var(--container-dim-80);
+}
+
+/* Submenu */
+.submenu {
+  min-width: 100px;
+  display: none;
+  position: absolute;
+  top: -8px;
+  left: 100px;
+  background: var(--container-dim-60);
+  border-color: var(--container-dim-30);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.menu-item:hover .submenu {
+    display: block;
+}
+
+.submenu-item {
+  position: relative;
+  padding: 8px 16px;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--container-bright-80);
+  border-radius: 8px;
+}
+
+.submenu-item:hover {
+  background: var(--container-dim-80);
+}
+
+.submenu-item.selected,
+.submenu-item.active {
+  background-color: var(--container-dim-30);
+}
+
+.submenu-item.selected:hover,
+.submenu-item.active:hover {
+  background-color: var(--container-dim-80);
+}
+
+/* –––––––––––––––––––––––––––
+  PAGES POSITION CONTROLS
+––––––––––––––––––––––––––– */
+.page {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: opacity 1s ease 0.1s;
+}
+
+.page.active {
+  opacity: 1;
+  transform: translateX(0);
+  width: -webkit-fill-available;
+}
+
+.page.previous {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.page.next {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+/* –––––––––––––––––––––––––––
+  DRAWER
+––––––––––––––––––––––––––– */
+
+.drawer {
+    height: 100%;
+    width: 250px;
+    background-color: var(--container-bright-10);
+    backdrop-filter: blur(7px);
+    border-right: 1px solid var(--container-bright-20);
+    position: relative;
+    z-index: 1000;
+    transition: all 0.3s ease-in-out;
+    flex-shrink: 0;
+}
+
+.drawer.collapsed {
+    width: 0;
+    padding: 0;
+    border: none;
+    overflow: hidden;
+}
+
+.drawer-hover-zone {
+    position: fixed;
+    top: 40px;
+    width: 20px;
+    height: calc(100% - 92px);
+    z-index: 999;
+}
+
+.drawer-hover-zone.left { left: 0; }
+.drawer-hover-zone.right { right: 0; }
+
+.drawer.collapsed:hover,
+.drawer-hover-zone:hover + .drawer.collapsed,
+.drawer.collapsed.overlay-visible {
+    width: 250px;
+    padding: initial;
+    border-right: 1px solid var(--container-bright-20);
+    overflow: visible;
+}
+
+.pin-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--content-bright-100);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    z-index: 1001;
+}
+
+.pin-button:hover {
+    opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
+  NAVIGATION BUTTONS
+––––––––––––––––––––––––––– */
+.page-nav-btn {
+  padding: 8px 16px;
+  margin: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--container-bright-30);
+  color: var(--content-bright-100);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.5;
+}
+
+/* –––––––––––––––––––––––––––
+  THEME SELECTOR
+––––––––––––––––––––––––––– */
+.theme-selector {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: none;
+  outline: none;
+  background-color: var(--container-bright-30);
+  color: var(--container-bright-100);
+  cursor: pointer;
+}
+
+nav a,
+.main-menu,
+.menu-drop-down,
+.menu-drop-down a,
+.theme-option,
+.drawer,
+header,
+footer,
+.page-nav-btn,
+.theme-selector {
+  transition: 
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* For elements with backdrop-filter */
+header,
+footer,
+.drawer {
+  transition: 
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    backdrop-filter 0.3s ease;
+}
+
+/* For SVG icons */
+.menu-icon {
+  transition: 
+    color 0.3s ease,
+    transform 0.2s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease;
+}
+
+/* Optional: Add transition for text shadow if used */
+h1, h2, h3, h4, h5, h6 {
+  transition: 
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+}
+
+/* Optional: Smooth transition for gradient backgrounds if used */
+main {
+  transition: 
+    background-color 0.3s ease,
+    background-image 0.3s ease;
+}

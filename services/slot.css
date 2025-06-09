@@ -1,0 +1,348 @@
+/* 
+File name & path: services/slot.css
+Role: Core slot system styles (layout, drag/drop, animations)
+*/
+
+/* –––––––––––––––––––––––––––
+  SLOT CONTAINER
+––––––––––––––––––––––––––– */
+
+.slot-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.slot-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 40px;
+  width: 860px;
+  position: relative;
+}
+
+.slot-container:hover {
+  background-color: var(--container-dim-20);
+  border-color: var(--container-dim-30);
+  transition: background-color 0.3s, border-color 0.3s;  
+  border-radius: 16px;
+}
+
+.slot-container:hover .slot-controls{
+  visibility: visible;
+}
+
+/* –––––––––––––––––––––––––––
+  SLOTS
+––––––––––––––––––––––––––– */
+.slot {
+  display: flex;
+  border-radius: 8px;
+  width: 200px;
+  height: 200px;
+  transition: background-color 0.3s, border-color 0.3s;  
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.slot-container:hover .slot{
+  background-color: var(--container-bright-10);
+}
+
+.slot-container:hover .slot:hover{
+  background-color: var(--container-bright-30);
+}
+
+/* Slot states for drag and drop */
+.slot.drop-active {
+  border-color: var(--content-bright-80);
+}
+
+.slot.drop-target {
+  background-color: var(--container-bright-20);
+  border-style: solid;
+}
+
+/* –––––––––––––––––––––––––––
+  SLOT CONTROLS
+––––––––––––––––––––––––––– */
+
+.slot-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  visibility: hidden;
+  fill: var(--content-bright-30);
+}
+
+.slot-controls:hover svg {
+  fill: var(--content-bright-100);
+}
+
+.widget-btn {
+  color: var(--content-bright-30);
+  cursor: pointer;
+}
+
+.widget-btn:hover {
+  color: var(--content-bright-100);
+}
+
+/* –––––––––––––––––––––––––––
+  CORE ITEM STYLES
+––––––––––––––––––––––––––– */
+
+/* Base item styles - widgets inherit from this */
+.widget {
+  background-color: var(--container-bright-30);
+  border-radius: 6px;
+  padding: 15px;
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  transition: transform 0.1s, box-shadow 0.3s;
+}
+
+.widget:hover .widget-controls {
+  display: flex;
+}
+
+/* Drag and drop states */
+.widget.dragging {
+  opacity: 0.8;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+/* Swap target highlighting */
+.widget.swap-target {
+  outline: 2px dashed var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  ITEM CONTROLS
+––––––––––––––––––––––––––– */
+
+.widget-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.widget-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--white-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.widget-close-btn svg {
+  margin-left: 1px;
+}
+
+/* Drag handle */
+.widget-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.widget-drag-handle:hover {
+  opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.widget-enter {
+  animation: widgetEnter 0.5s ease-out;
+}
+
+@keyframes widgetEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+}
+
+/* Exit animation */
+.widget-exit {
+  animation: widgetExit 0.3s ease-in forwards;
+}
+
+@keyframes widgetExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Hover animations */
+.widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.widget.dragging:hover {
+  transform: none; /* Override hover transform when dragging */
+}
+
+/* –––––––––––––––––––––––––––
+  MODAL STYLES
+––––––––––––––––––––––––––– */
+
+.modal-overlay {
+  position: fixed;
+  top: -200px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background-color: var(--container-bright-100);
+  color: var(--content-dim-100);
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--content-dim-100);
+}
+
+/* –––––––––––––––––––––––––––
+  TEMPLATE GALLERY STYLES
+––––––––––––––––––––––––––– */
+
+.widget-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.widget-template {
+  background-color: var(--container-bright-20);
+  border-radius: 6px;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.widget-template:hover {
+  background-color: var(--container-bright-30);
+}
+
+.widget-template-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.widget-template-title {
+  font-weight: bold;
+}
+
+/* –––––––––––––––––––––––––––
+  RESPONSIVE DESIGN
+––––––––––––––––––––––––––– */
+
+@media (max-width: 900px) {
+  .slot-container {
+    width: 640px;
+    gap: 15px;
+    padding: 30px;
+  }
+  
+  .slot {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .widget-gallery {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .slot-container {
+    width: 420px;
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  .slot {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .widget-gallery {
+    grid-template-columns: 1fr;
+  }
+}
