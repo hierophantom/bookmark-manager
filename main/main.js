@@ -7,8 +7,8 @@ Role: The main JS file with separated slot/widget systems
   IMPORTS
 ––––––––––––––––––––––––––– */
 
-import { createSpriteSheet } from './icons.js';
-import { SlotSystem } from '../services/slot.js';
+import { createSpriteSheet } from '../libs/icons.js';
+import { SlotSystem } from '../services/slots.js';
 import { WidgetFactory } from '../services/widgets.js';
 
 /* –––––––––––––––––––––––––––

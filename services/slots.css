@@ -1,5 +1,5 @@
 /* 
-File name & path: services/slot.css
+File name & path: services/slots.css
 Role: Core slot system styles (layout, drag/drop, animations)
 */
 
@@ -307,42 +307,4 @@ Role: Core slot system styles (layout, drag/drop, animations)
 
 .widget-template-title {
   font-weight: bold;
-}
-
-/* –––––––––––––––––––––––––––
-  RESPONSIVE DESIGN
-––––––––––––––––––––––––––– */
-
-@media (max-width: 900px) {
-  .slot-container {
-    width: 640px;
-    gap: 15px;
-    padding: 30px;
-  }
-  
-  .slot {
-    width: 150px;
-    height: 150px;
-  }
-  
-  .widget-gallery {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 680px) {
-  .slot-container {
-    width: 420px;
-    gap: 10px;
-    padding: 20px;
-  }
-  
-  .slot {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .widget-gallery {
-    grid-template-columns: 1fr;
-  }
 }

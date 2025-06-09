@@ -1,5 +1,5 @@
 /*
-File name & path: main/icons.js
+File name & path: libs/icons.js
 Role: The icon store
 */
 

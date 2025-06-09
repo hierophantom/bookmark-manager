@@ -1,5 +1,5 @@
 /*
-File name & path: services/slot.js
+File name & path: services/slots.js
 Role: Core slot system handling drag/drop, swap, add/remove mechanics
 */
 
