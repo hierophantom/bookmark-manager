@@ -1,0 +1,442 @@
+/* 
+File name & path: services/shortcuts.css
+Role: Pinned URLs shortcuts styles
+*/
+
+/* –––––––––––––––––––––––––––
+  SHORTCUTS CONTAINER
+––––––––––––––––––––––––––– */
+
+.shortcuts-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.shortcuts-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 30px;
+  width: 860px;
+  position: relative;
+  background: var(--container-bright-10);
+  border-radius: 12px;
+  border: 1px solid var(--container-dim-20);
+}
+
+.shortcuts-container:hover {
+  background-color: var(--container-dim-20);
+  border-color: var(--container-dim-30);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.shortcuts-container:hover .shortcuts-controls {
+  visibility: visible;
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUT SLOTS
+––––––––––––––––––––––––––– */
+
+.shortcut-slot {
+  display: flex;
+  border-radius: 8px;
+  width: 200px;
+  height: 80px;
+  transition: background-color 0.3s, border-color 0.3s;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border: 2px dashed transparent;
+}
+
+.shortcuts-container:hover .shortcut-slot {
+  background-color: var(--container-bright-10);
+  border-color: var(--container-dim-30);
+}
+
+.shortcuts-container:hover .shortcut-slot:hover {
+  background-color: var(--container-bright-30);
+}
+
+/* Slot states for drag and drop */
+.shortcut-slot.drop-active {
+  border-color: var(--content-bright-80);
+}
+
+.shortcut-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border-style: solid;
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUTS CONTROLS
+––––––––––––––––––––––––––– */
+
+.shortcuts-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  visibility: hidden;
+  fill: var(--content-bright-30);
+}
+
+.shortcuts-controls:hover svg {
+  fill: var(--content-bright-100);
+}
+
+.shortcuts-btn {
+  color: var(--content-bright-30);
+  cursor: pointer;
+}
+
+.shortcuts-btn:hover {
+  color: var(--content-bright-100);
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUT ITEMS
+––––––––––––––––––––––––––– */
+
+.shortcut {
+  background-color: var(--container-bright-30);
+  border-radius: 6px;
+  padding: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  transition: transform 0.1s, box-shadow 0.3s;
+}
+
+.shortcut:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.shortcut:hover .shortcut-controls {
+  display: flex;
+}
+
+.shortcut.dragging {
+  opacity: 0.8;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.shortcut.dragging:hover {
+  transform: none; /* Override hover transform when dragging */
+}
+
+/* Swap target highlighting */
+.shortcut.swap-target {
+  outline: 2px dashed var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUT CONTENT
+––––––––––––––––––––––––––– */
+
+.shortcut-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.shortcut-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--content-dim-60);
+  font-size: 0.85rem;
+  border: 2px dashed var(--container-dim-30);
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.shortcut-slot:hover .shortcut-placeholder {
+  border-color: var(--content-bright-50);
+  color: var(--content-bright-70);
+}
+
+.shortcut-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+.shortcut-favicon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--container-bright-20);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.shortcut-favicon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.shortcut-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shortcut-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--content-bright-100);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shortcut-url {
+  font-size: 0.75rem;
+  color: var(--content-dim-70);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUT CONTROLS
+––––––––––––––––––––––––––– */
+
+.shortcut-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.shortcut-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--container-bright-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shortcut-close-btn svg {
+  margin-left: 1px;
+}
+
+/* Drag handle */
+.shortcut-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.shortcut-drag-handle:hover {
+  opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.shortcut-enter {
+  animation: shortcutEnter 0.5s ease-out;
+}
+
+@keyframes shortcutEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+}
+
+/* Exit animation */
+.shortcut-exit {
+  animation: shortcutExit 0.3s ease-in forwards;
+}
+
+@keyframes shortcutExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUTS MODAL
+––––––––––––––––––––––––––– */
+
+#shortcuts-modal .modal-content {
+  max-width: 500px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--content-bright-90);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--container-dim-30);
+  border-radius: 6px;
+  background: var(--container-bright-10);
+  color: var(--content-bright-90);
+  font-size: 0.9rem;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--content-bright-70);
+}
+
+.form-group input::placeholder {
+  color: var(--content-dim-50);
+}
+
+.url-error {
+  margin-top: 6px;
+  color: #ff6b6b;
+  font-size: 0.8rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-primary {
+  background: var(--content-bright-80);
+  color: var(--container-bright-100);
+}
+
+.btn-primary:hover {
+  background: var(--content-bright-90);
+}
+
+.btn-secondary {
+  background: var(--container-dim-30);
+  color: var(--content-bright-80);
+}
+
+.btn-secondary:hover {
+  background: var(--container-dim-40);
+}
+
+/* –––––––––––––––––––––––––––
+  RESPONSIVE DESIGN
+––––––––––––––––––––––––––– */
+
+@media (max-width: 900px) {
+  .shortcuts-container {
+    width: 640px;
+    gap: 12px;
+    padding: 25px;
+  }
+  
+  .shortcut-slot {
+    width: 150px;
+    height: 70px;
+  }
+  
+  .shortcut-name {
+    font-size: 0.8rem;
+  }
+  
+  .shortcut-url {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .shortcuts-container {
+    width: 420px;
+    gap: 10px;
+    padding: 20px;
+  }
+  
+  .shortcut-slot {
+    width: 120px;
+    height: 60px;
+  }
+  
+  .shortcut-favicon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .shortcut-favicon img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .shortcut-name {
+    font-size: 0.75rem;
+  }
+  
+  .shortcut-url {
+    font-size: 0.65rem;
+  }
+}

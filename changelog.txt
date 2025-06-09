@@ -1,3 +1,6 @@
+0.9
+Shortcuts just landed! Some minor bugs but works nicely
+
 0.8.1
 Separate slot and cube from content and instance.
 

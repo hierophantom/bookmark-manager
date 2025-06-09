@@ -10,6 +10,8 @@ Role: The main JS file with separated slot/widget systems
 import { createSpriteSheet } from '../libs/icons.js';
 import { SlotSystem } from '../services/slots.js';
 import { WidgetFactory } from '../services/widgets.js';
+import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
+
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
@@ -39,6 +41,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize other managers
   const pageManager = new PageManager();
   const drawerManager = new DrawerManager();
+
+    // Initialize shortcuts factory
+  const shortcutsFactory = new ShortcutsFactory();
+
+  // Initialize shortcuts slot system
+  const shortcutsSlotSystem = new SlotSystem({
+    storageKey: 'slotShortcuts',
+    slotSelector: '.shortcut-slot',
+    containerSelector: '.shortcuts-container',
+    controlsSelector: '.shortcuts-controls',
+    addButtonSelector: '#add-shortcut-btn',
+    modalSelector: null, // We'll handle this manually
+    itemClass: 'shortcut'
+  });
+
+  // Connect the shortcuts factory to the shortcuts slot system
+  shortcutsSlotSystem.setItemFactory(shortcutsFactory);
+
+  // Initialize shortcuts modal manager
+  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem);
+
+  // Override the default add item behavior for shortcuts
+  const addShortcutBtn = document.getElementById('add-shortcut-btn');
+  if (addShortcutBtn) {
+    // Remove default event listeners
+    addShortcutBtn.replaceWith(addShortcutBtn.cloneNode(true));
+    
+    // Add custom event listener
+    const newAddShortcutBtn = document.getElementById('add-shortcut-btn');
+    newAddShortcutBtn.addEventListener('click', () => {
+      // Find first empty slot
+      const emptySlot = shortcutsSlotSystem.findEmptySlot();
+      if (emptySlot) {
+        shortcutsModal.openModal(emptySlot);
+      } else {
+        alert('No empty slots available. Remove some shortcuts first.');
+      }
+    });
+  }
 
 });
 

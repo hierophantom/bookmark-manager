@@ -7,13 +7,17 @@ Role: The main view of the extension with separated slot/widget systems
 <html>
 
 <head>
-    <script src="../libs/interact.min.js"></script>
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="../services/slots.css">
     <link rel="stylesheet" href="../services/widgets.css">
+    <link rel="stylesheet" href="../services/shortcuts.css">
+    
+    <script src="../libs/interact.min.js"></script>
     <script type="module" src="../services/slots.js"></script>
     <script type="module" src="../services/widgets.js"></script>
+    <script type="module" src="../services/shortcuts.js"></script>
     <script type="module" src="main.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
@@ -55,6 +59,29 @@ Role: The main view of the extension with separated slot/widget systems
             <div class="pages-container">
 
                 <div id="homepage" class="page">
+
+                    <!-- Pinned URLs Section -->
+                    <div class="shortcuts-wrapper">
+                        <div class="shortcuts-container">
+                            <div class="shortcuts-controls">
+                                <span class="shortcuts-btn" id="add-shortcut-btn">
+                                    <svg width="16" height="16">
+                                        <use href="#add-icon" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div class="shortcut-slot" data-slot-id="s1"></div>
+                            <div class="shortcut-slot" data-slot-id="s2"></div>
+                            <div class="shortcut-slot" data-slot-id="s3"></div>
+                            <div class="shortcut-slot" data-slot-id="s4"></div>
+                            <div class="shortcut-slot" data-slot-id="s5"></div>
+                            <div class="shortcut-slot" data-slot-id="s6"></div>
+                            <div class="shortcut-slot" data-slot-id="s7"></div>
+                            <div class="shortcut-slot" data-slot-id="s8"></div>
+                        </div>
+                    </div>
+
+                    <!-- Widgets Section -->
 
                     <div class="slot-wrapper">
                         <div class="slot-container">

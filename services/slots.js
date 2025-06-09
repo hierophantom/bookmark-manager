@@ -195,6 +195,60 @@ class SlotSystem {
     return item;
   }
   
+  async addItemWithData(data, targetSlot) {
+    if (!targetSlot) {
+      const emptySlot = this.findEmptySlot();
+      if (!emptySlot) {
+        alert('No empty slots available. Remove some items first.');
+        return;
+      }
+      targetSlot = emptySlot;
+    }
+    
+    if (!this.itemFactory) {
+      console.error('No item factory registered. Please set itemFactory before adding items.');
+      return;
+    }
+    
+    const itemId = `${this.config.itemClass}-${this.nextItemId++}`;
+    const item = await this.itemFactory.createItem(itemId, data, targetSlot.dataset.slotId);
+    
+    if (!item) {
+      console.error('Failed to create item');
+      return;
+    }
+    
+    // Add core slot system attributes and classes
+    item.id = itemId;
+    item.className = this.config.itemClass;
+    item.dataset.slotId = targetSlot.dataset.slotId;
+    
+    // Add remove button functionality
+    this.setupItemControls(item, itemId);
+    
+    targetSlot.appendChild(item);
+    
+    // Add to items array
+    this.items.push({
+      id: itemId,
+      data: data, // Store the data instead of type
+      slotId: targetSlot.dataset.slotId,
+      position: { x: 0, y: 0 }
+    });
+    
+    // Save items to localStorage
+    this.saveItems();
+    
+    // Add animation class for entrance
+    item.classList.add('widget-enter');
+    setTimeout(() => {
+      item.classList.remove('widget-enter');
+    }, 500);
+    
+    return item;
+  }
+
+  
   setupItemControls(item, itemId) {
     // Add drag handle if it doesn't exist
     if (!item.querySelector('.widget-drag-handle')) {
@@ -289,64 +343,66 @@ class SlotSystem {
   }
   
   async loadItems() {
-    const savedItems = localStorage.getItem(this.config.storageKey);
-    if (savedItems && this.itemFactory) {
-      try {
-        const items = JSON.parse(savedItems);
-        
-        // Find the highest item ID to continue from
-        let maxId = 0;
-        items.forEach(item => {
-          const idNum = parseInt(item.id.replace(`${this.config.itemClass}-`, ''));
-          if (idNum > maxId) maxId = idNum;
-        });
-        this.nextItemId = maxId + 1;
-        
-        // Create each item
-        for (const item of items) {
-          const slot = document.querySelector(`${this.config.slotSelector}[data-slot-id="${item.slotId}"]`);
-          if (slot) {
-            const itemElement = await this.itemFactory.createItem(
-              item.id, 
-              item.type, 
-              item.slotId, 
-              item.position || { x: 0, y: 0 }
-            );
+  const savedItems = localStorage.getItem(this.config.storageKey);
+  if (savedItems && this.itemFactory) {
+    try {
+      const items = JSON.parse(savedItems);
+      
+      // Find the highest item ID to continue from
+      let maxId = 0;
+      items.forEach(item => {
+        const idNum = parseInt(item.id.replace(`${this.config.itemClass}-`, ''));
+        if (idNum > maxId) maxId = idNum;
+      });
+      this.nextItemId = maxId + 1;
+      
+      // Create each item
+      for (const item of items) {
+        const slot = document.querySelector(`${this.config.slotSelector}[data-slot-id="${item.slotId}"]`);
+        if (slot) {
+          // Use data if available, otherwise fall back to type for backward compatibility
+          const itemData = item.data || item.type;
+          
+          const itemElement = await this.itemFactory.createItem(
+            item.id, 
+            itemData, 
+            item.slotId, 
+            item.position || { x: 0, y: 0 }
+          );
+          
+          if (itemElement) {
+            // Add core slot system attributes
+            itemElement.id = item.id;
+            itemElement.className = this.config.itemClass;
+            itemElement.dataset.slotId = item.slotId;
             
-            if (itemElement) {
-              // Add core slot system attributes
-              itemElement.id = item.id;
-              itemElement.className = this.config.itemClass;
-              itemElement.dataset.itemType = item.type;
-              itemElement.dataset.slotId = item.slotId;
-              
-              // Apply saved position
-              if (item.position) {
-                itemElement.style.transform = `translate(${item.position.x}px, ${item.position.y}px)`;
-                itemElement.setAttribute('data-x', item.position.x);
-                itemElement.setAttribute('data-y', item.position.y);
-              }
-              
-              // Setup controls
-              this.setupItemControls(itemElement, item.id);
-              
-              slot.appendChild(itemElement);
-              
-              // Add to items array
-              this.items.push({
-                id: item.id,
-                type: item.type,
-                slotId: item.slotId,
-                position: item.position || { x: 0, y: 0 }
-              });
+            // Apply saved position
+            if (item.position) {
+              itemElement.style.transform = `translate(${item.position.x}px, ${item.position.y}px)`;
+              itemElement.setAttribute('data-x', item.position.x);
+              itemElement.setAttribute('data-y', item.position.y);
             }
+            
+            // Setup controls
+            this.setupItemControls(itemElement, item.id);
+            
+            slot.appendChild(itemElement);
+            
+            // Add to items array
+            this.items.push({
+              id: item.id,
+              data: itemData,
+              slotId: item.slotId,
+              position: item.position || { x: 0, y: 0 }
+            });
           }
         }
-      } catch (e) {
-        console.error('Error loading items:', e);
       }
+    } catch (e) {
+      console.error('Error loading items:', e);
     }
   }
+}
   
   /* –––––––––––––––––––––––––––
     DRAG AND DROP
