@@ -37,8 +37,6 @@ Role: Pinned URLs shortcuts styles
   transition: transform 0.1s, box-shadow 0.3s;
 }
 
-
-
 .shortcut:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -111,6 +109,7 @@ Role: Pinned URLs shortcuts styles
   justify-content: center;
   background: var(--container-bright-20);
   border-radius: 6px;
+  padding: 8px;
   overflow: hidden;
 }
 
