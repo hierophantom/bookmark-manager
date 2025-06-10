@@ -4,6 +4,22 @@ Role: Widget-specific content styles including modal gallery
 */
 
 /* –––––––––––––––––––––––––––
+  WIDGET SLOTS
+––––––––––––––––––––––––––– */
+
+.slot {
+  display: flex;
+  border-radius: 8px;
+  width: 200px;
+  height: 80px;
+  transition: background-color 0.3s, border-color 0.3s;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border: 2px dashed transparent;
+}
+
+/* –––––––––––––––––––––––––––
   WIDGET CONTENT BASE
 ––––––––––––––––––––––––––– */
 
@@ -24,48 +40,6 @@ Role: Widget-specific content styles including modal gallery
   font-size: 1.1rem;
   font-weight: 500;
   text-transform: capitalize;
-}
-
-
-/* –––––––––––––––––––––––––––
-  WIDGETS SLOTS
-––––––––––––––––––––––––––– */
-
-.widgets-slot {
-  display: flex;
-  border-radius: 8px;
-  width: 200px;
-  height: 80px;
-  transition: background-color 0.3s, border-color 0.3s;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  border: 2px dashed transparent;
-}
-
-
-.widget-placeholder:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.widget-placeholder:hover .widget-controls {
-  display: flex;
-}
-
-.widget-placeholder.dragging {
-  opacity: 0.8;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
-
-.widget-placeholder.dragging:hover {
-  transform: none;
-}
-
-.widget-placeholder.swap-target {
-  outline: 2px dashed var(--content-bright-80);
-  outline-offset: 2px;
 }
 
 /* –––––––––––––––––––––––––––

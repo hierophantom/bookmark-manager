@@ -187,9 +187,9 @@ class SlotSystem {
     this.saveItems();
     
     // Add animation class for entrance
-    item.classList.add(this.config.itemClass + '-enter');
+    item.classList.add('widget-enter');
     setTimeout(() => {
-      item.classList.remove(this.config.itemClass + '-enter');
+      item.classList.remove('widget-enter');
     }, 500);
     
     return item;
@@ -248,32 +248,33 @@ class SlotSystem {
     return item;
   }
 
-setupItemControls(item, itemId) {
-  const itemClass = this.config.itemClass;
   
-  // Add drag handle if it doesn't exist (check both generic and legacy)
-  if (!item.querySelector('.item-drag-handle') && !item.querySelector(`.${itemClass}-drag-handle`)) {
+ setupItemControls(item, itemId) {
+  const itemClass = this.config.itemClass; // Gets 'widget' or 'shortcut'
+  
+  // Add drag handle if it doesn't exist
+  if (!item.querySelector(`.${itemClass}-drag-handle`)) {
     const dragHandle = document.createElement('div');
-    dragHandle.className = `item-drag-handle ${itemClass}-drag-handle`;
+    dragHandle.className = `${itemClass}-drag-handle`;
     dragHandle.innerHTML = '<svg width="16" height="16"><use href="#drag-icon" /></svg>';
     item.appendChild(dragHandle);
   }
   
-  // Add controls if they don't exist (check both generic and legacy)
-  if (!item.querySelector('.item-controls') && !item.querySelector(`.${itemClass}-controls`)) {
+  // Add controls if they don't exist
+  if (!item.querySelector(`.${itemClass}-controls`)) {
     const controls = document.createElement('div');
-    controls.className = `item-controls ${itemClass}-controls`;
+    controls.className = `${itemClass}-controls`;
     controls.innerHTML = `
-      <button class="item-close-btn ${itemClass}-close-btn item-remove ${itemClass}-remove" data-item-id="${itemId}" data-${itemClass}-id="${itemId}">
+      <button class="${itemClass}-close-btn ${itemClass}-remove" data-${itemClass}-id="${itemId}">
         <svg width="16" height="16"><use href="#close-icon" /></svg>
       </button>
     `;
     item.appendChild(controls);
   }
   
-  // Add remove button event (try both selectors)
+  // Add remove button event (use setTimeout to ensure DOM is ready)
   setTimeout(() => {
-    const removeBtn = item.querySelector('.item-remove') || item.querySelector(`.${itemClass}-remove`);
+    const removeBtn = item.querySelector(`.${itemClass}-remove`);
     if (removeBtn) {
       removeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -282,16 +283,41 @@ setupItemControls(item, itemId) {
     }
   }, 0);
 }
-
-
-findEmptySlot() {
-  for (const slot of this.slots) {
-    if (!slot.querySelector(`.${this.config.itemClass}`)) {
-      return slot;
+  
+  removeItem(itemId) {
+    const item = document.getElementById(itemId);
+    if (item) {
+      // Add exit animation
+      item.classList.add('widget-exit');
+      
+      // Wait for animation to complete before removing
+      setTimeout(() => {
+        // Notify item factory of removal for cleanup
+        if (this.itemFactory && this.itemFactory.removeItem) {
+          this.itemFactory.removeItem(item);
+        }
+        
+        // Remove the item element
+        item.remove();
+        
+        // Remove from items array
+        this.items = this.items.filter(w => w.id !== itemId);
+        
+        // Save items to localStorage
+        this.saveItems();
+      }, 300);
     }
   }
-  return null;
-}
+  
+  findEmptySlot() {
+    for (const slot of this.slots) {
+      if (!slot.querySelector(`.${this.config.itemClass}`)) {
+        return slot;
+      }
+    }
+    return null;
+  }
+  
   /* –––––––––––––––––––––––––––
     PERSISTENCE
   ––––––––––––––––––––––––––– */
@@ -398,8 +424,7 @@ findEmptySlot() {
     interact(`.${this.config.itemClass}`)
       .draggable({
         // Only allow dragging from the handle
-        allowFrom: '.item-drag-handle',
-
+        allowFrom: `.${this.config.itemClass}-drag-handle`,
         
         // Enable inertial throwing
         inertia: false,
