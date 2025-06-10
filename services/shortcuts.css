@@ -19,25 +19,6 @@ Role: Pinned URLs shortcuts styles
   border: 2px dashed transparent;
 }
 
-.shortcuts-container:hover .shortcut-slot {
-  background-color: var(--container-bright-10);
-  border-color: var(--container-dim-30);
-}
-
-.shortcuts-container:hover .shortcut-slot:hover {
-  background-color: var(--container-bright-30);
-}
-
-/* Slot states for drag and drop */
-.shortcut-slot.drop-active {
-  border-color: var(--content-bright-80);
-}
-
-.shortcut-slot.drop-target {
-  background-color: var(--container-bright-20);
-  border-style: solid;
-}
-
 /* –––––––––––––––––––––––––––
   SHORTCUTS CONTROLS
 ––––––––––––––––––––––––––– */
