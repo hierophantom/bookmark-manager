@@ -125,43 +125,50 @@ class BaseShortcut {
 /* –––––––––––––––––––––––––––
   PINNED URL SHORTCUT
 ––––––––––––––––––––––––––– */
-
 class PinnedUrlShortcut extends BaseShortcut {
-getContent() {
-  if (!this.data || !this.data.url) {
-    return `<div class="shortcut-placeholder">Empty Slot</div>`;
-  }
-  
-  const { name, url } = this.data;
-  const hostname = this.extractHostname(url);
-  
-  // Only fetch favicon for valid hostnames
-  let faviconUrl;
-  if (hostname === 'invalid-url') {
-    faviconUrl = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>';
-  } else {
-    faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-  }
-  
-  return `
-    <div class="shortcut-link">
-      <div class="shortcut-favicon">
-        <img src="${faviconUrl}" alt="${name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><path d=%22M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3%22/><path d=%22M12 17h.01%22/></svg>'">
+  getContent() {
+    if (!this.data || !this.data.url) {
+      return `<div class="shortcut-placeholder">Empty Slot</div>`;
+    }
+    
+    const { name, url } = this.data;
+    const hostname = this.extractHostname(url);
+    
+    // Only fetch favicon for valid hostnames
+    let faviconUrl;
+    let fallbackIcon;
+    
+    if (hostname === 'invalid-url') {
+      faviconUrl = null;
+      fallbackIcon = `<svg width="24" height="24"><use href="#globe-icon" /></svg>`;
+    } else {
+      faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+      fallbackIcon = `<svg width="16" height="16"><use href="#globe-icon" /></svg>`;
+    }
+    
+    return `
+      <div class="shortcut-link">
+        <div class="shortcut-favicon">
+          ${faviconUrl ? 
+            `<img src="${faviconUrl}" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+             <span style="display:none;">${fallbackIcon}</span>` :
+            fallbackIcon
+          }
+        </div>
+        <div class="shortcut-info">
+          <div class="shortcut-name">${name}</div>
+          <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
+        </div>
       </div>
-      <div class="shortcut-info">
-        <div class="shortcut-name">${name}</div>
-        <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
-      </div>
-    </div>
-  `;
-}
+    `;
+  }
 
   bindEvents() {
     if (this.data && this.data.url) {
       // Make the shortcut clickable
       this.element.addEventListener('click', (e) => {
         // Don't trigger if clicking on controls
-        if (!e.target.closest('.shortcut-controls')) {
+        if (!e.target.closest('.slot-controls')) {
           window.open(this.data.url, '_blank');
         }
       });
@@ -170,37 +177,30 @@ getContent() {
       this.element.style.cursor = 'pointer';
     }
   }
-  extractHostname(url) {
-  try {
-    // First, try to create a proper URL
-    let testUrl;
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      testUrl = url;
-    } else {
-      testUrl = `https://${url}`;
-    }
-    
-    const urlObj = new URL(testUrl);
-    
-    // Additional validation - check if hostname is valid
-    const hostname = urlObj.hostname.replace('www.', '');
-    
-    // Basic hostname validation (must contain at least one dot and valid characters)
-    if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
-      return hostname;
-    } else {
-      return 'invalid-url'; // This will show a default icon
-    }
-  } catch (e) {
-    return 'invalid-url'; // This will show a default icon
-  }
-}
+
   extractHostname(url) {
     try {
-      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
-      return urlObj.hostname.replace('www.', '');
+      // First, try to create a proper URL
+      let testUrl;
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        testUrl = url;
+      } else {
+        testUrl = `https://${url}`;
+      }
+      
+      const urlObj = new URL(testUrl);
+      
+      // Additional validation - check if hostname is valid
+      const hostname = urlObj.hostname.replace('www.', '');
+      
+      // Basic hostname validation (must contain at least one dot and valid characters)
+      if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
+        return hostname;
+      } else {
+        return 'invalid-url'; // This will show a default icon
+      }
     } catch (e) {
-      return url;
+      return 'invalid-url'; // This will show a default icon
     }
   }
 }

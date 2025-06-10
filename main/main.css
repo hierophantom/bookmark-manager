@@ -188,7 +188,7 @@ header {
   flex-direction: column;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 40px;
+  gap: 20px;
   justify-content: flex-start;
 }
 

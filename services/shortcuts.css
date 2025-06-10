@@ -20,34 +20,6 @@ Role: Pinned URLs shortcuts styles
 }
 
 /* –––––––––––––––––––––––––––
-  SHORTCUTS CONTROLS
-––––––––––––––––––––––––––– */
-
-.shortcuts-controls {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  visibility: hidden;
-  fill: var(--content-bright-30);
-}
-
-.shortcuts-controls:hover svg {
-  fill: var(--content-bright-100);
-}
-
-.shortcuts-btn {
-  color: var(--content-bright-30);
-  cursor: pointer;
-}
-
-.shortcuts-btn:hover {
-  color: var(--content-bright-100);
-}
-
-/* –––––––––––––––––––––––––––
   SHORTCUT ITEMS
 ––––––––––––––––––––––––––– */
 
@@ -64,6 +36,8 @@ Role: Pinned URLs shortcuts styles
   position: absolute;
   transition: transform 0.1s, box-shadow 0.3s;
 }
+
+
 
 .shortcut:hover {
   transform: translateY(-2px);
@@ -84,11 +58,11 @@ Role: Pinned URLs shortcuts styles
   transform: none; /* Override hover transform when dragging */
 }
 
-/* Swap target highlighting */
 .shortcut.swap-target {
   outline: 2px dashed var(--content-bright-80);
   outline-offset: 2px;
 }
+
 
 /* –––––––––––––––––––––––––––
   SHORTCUT CONTENT
@@ -140,10 +114,12 @@ Role: Pinned URLs shortcuts styles
   overflow: hidden;
 }
 
-.shortcut-favicon img {
+.shortcut-favicon svg {
   width: 24px;
   height: 24px;
-  object-fit: contain;
+  fill: var(--container-dim-100);
+  margin-left: 3px;
+  margin-top: 3px;
 }
 
 .shortcut-info {

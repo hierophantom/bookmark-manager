@@ -12,7 +12,7 @@ class SlotSystem {
     // Configuration
     this.config = {
       storageKey: options.storageKey || 'slotItems',
-      slotSelector: options.slotSelector || '.slot',
+      slotSelector: '.widget-slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',

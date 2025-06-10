@@ -7,7 +7,7 @@ Role: Widget-specific content styles including modal gallery
   WIDGET SLOTS
 ––––––––––––––––––––––––––– */
 
-.slot {
+.widget-slot {
   display: flex;
   border-radius: 8px;
   width: 200px;
@@ -22,6 +22,35 @@ Role: Widget-specific content styles including modal gallery
 /* –––––––––––––––––––––––––––
   WIDGET CONTENT BASE
 ––––––––––––––––––––––––––– */
+
+.widget {
+  background-color: var(--container-bright-30);
+  border-radius: 6px;
+  padding: 15px;
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  transition: transform 0.1s, box-shadow 0.3s;
+}
+
+.widget:hover .widget-controls {
+  display: flex;
+}
+
+.widget.dragging {
+  opacity: 0.8;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+}
+
+.widget.swap-target {
+  outline: 2px dashed var(--content-bright-80);
+  outline-offset: 2px;
+}
 
 .widget-content {
   width: 100%;

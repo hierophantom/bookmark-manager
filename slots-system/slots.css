@@ -39,8 +39,8 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .slot {
   display: flex;
   border-radius: 8px;
-  width: 200px;
-  height: 200px;
+  width: 400px;
+  height: 400px;
   transition: background-color 0.3s, border-color 0.3s;  
   justify-content: center;
   align-items: center;
@@ -65,11 +65,11 @@ Role: Core slot system styles (layout, drag/drop, animations)
   border-style: solid;
 }
 
-.shortcut-slot.drop-active {
+.shortcut-slot.drop-active, .widget-slot.drop-active {
   border-color: var(--content-bright-80);
 }
 
-.shortcut-slot.drop-target {
+.shortcut-slot.drop-target, .widget-slot.drop-target {
   background-color: var(--container-bright-20);
   border-style: solid;
 }
@@ -92,20 +92,10 @@ Role: Core slot system styles (layout, drag/drop, animations)
   fill: var(--content-bright-100);
 }
 
-.widget-btn {
-  color: var(--content-bright-30);
-  cursor: pointer;
-}
-
-.widget-btn:hover {
-  color: var(--content-bright-100);
-}
-
 /* –––––––––––––––––––––––––––
   CORE ITEM STYLES
 ––––––––––––––––––––––––––– */
 
-/* Base item styles - widgets inherit from this */
 .widget {
   background-color: var(--container-bright-30);
   border-radius: 6px;
@@ -124,14 +114,12 @@ Role: Core slot system styles (layout, drag/drop, animations)
   display: flex;
 }
 
-/* Drag and drop states */
 .widget.dragging {
   opacity: 0.8;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   z-index: 1000;
 }
 
-/* Swap target highlighting */
 .widget.swap-target {
   outline: 2px dashed var(--content-bright-80);
   outline-offset: 2px;
@@ -282,37 +270,4 @@ Role: Core slot system styles (layout, drag/drop, animations)
   font-size: 1.5rem;
   cursor: pointer;
   color: var(--content-dim-100);
-}
-
-/* –––––––––––––––––––––––––––
-  TEMPLATE GALLERY STYLES
-––––––––––––––––––––––––––– */
-
-.widget-gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.widget-template {
-  background-color: var(--container-bright-20);
-  border-radius: 6px;
-  padding: 15px;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.widget-template:hover {
-  background-color: var(--container-bright-30);
-}
-
-.widget-template-icon {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.widget-template-title {
-  font-weight: bold;
 }
