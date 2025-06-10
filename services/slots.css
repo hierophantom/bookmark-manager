@@ -133,7 +133,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
   ITEM CONTROLS
 ––––––––––––––––––––––––––– */
 
-.widget-controls {
+/*.widget-controls {
   position: absolute;
   top: -8px;
   right: -8px;
@@ -157,7 +157,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
   margin-left: 1px;
 }
 
-/* Drag handle */
 .widget-drag-handle {
   position: absolute;
   bottom: 4px;
@@ -172,7 +171,58 @@ Role: Core slot system styles (layout, drag/drop, animations)
 
 .widget-drag-handle:hover {
   opacity: 1;
+}*/
+
+
+.item-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
 }
+
+.item-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--white-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.item-close-btn svg {
+  margin-left: 1px;
+}
+
+.item-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.item-drag-handle:hover {
+  opacity: 1;
+}
+
+/* Show controls on hover for any item type */
+.widget:hover .item-controls,
+.shortcut:hover .item-controls {
+  display: flex;
+}
+
+
+
+
 
 /* –––––––––––––––––––––––––––
   ANIMATIONS
@@ -307,4 +357,62 @@ Role: Core slot system styles (layout, drag/drop, animations)
 
 .widget-template-title {
   font-weight: bold;
+}
+
+/* –––––––––––––––––––––––––––
+  SHORTCUT SUPPORT (extends widget styles)
+––––––––––––––––––––––––––– */
+
+
+.shortcut:hover .shortcut-controls {
+  display: flex;
+}
+
+.shortcut-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.shortcut-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--container-bright-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shortcut-close-btn svg {
+  margin-left: 1px;
+}
+
+.shortcut-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.shortcut-drag-handle:hover {
+  opacity: 1;
+}
+
+
+.shortcut-enter {
+  animation: widgetEnter 0.5s ease-out;
+}
+
+.shortcut-exit {
+  animation: widgetExit 0.3s ease-in forwards;
 }

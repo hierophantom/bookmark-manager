@@ -19,16 +19,6 @@ Role: Pinned URLs shortcuts styles
   border: 2px dashed transparent;
 }
 
-.shortcuts-container:hover .shortcut-slot {
-  background-color: var(--container-bright-10);
-  border-color: var(--container-dim-30);
-}
-
-.shortcuts-container:hover .shortcut-slot:hover {
-  background-color: var(--container-bright-30);
-}
-
-/* Slot states for drag and drop */
 .shortcut-slot.drop-active {
   border-color: var(--content-bright-80);
 }
@@ -72,13 +62,12 @@ Role: Pinned URLs shortcuts styles
 }
 
 .shortcut.dragging:hover {
-  transform: none; /* Override hover transform when dragging */
-}
+  transform: none;
 
 .shortcut.swap-target {
   outline: 2px dashed var(--content-bright-80);
   outline-offset: 2px;
-}*/
+}
 
 /* –––––––––––––––––––––––––––
   SHORTCUT CONTENT
