@@ -3,6 +3,64 @@ File name & path: slots-system/modal.css
 Role: Generic modal styles for all SAC systems
 */
 
+
+/* –––––––––––––––––––––––––––
+  MODAL STYLES
+––––––––––––––––––––––––––– */
+
+.modal-overlay {
+  position: fixed;
+  top: -200px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background-color: var(--container-bright-100);
+  color: var(--content-dim-100);
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--content-dim-100);
+}
+
+
 /* –––––––––––––––––––––––––––
   MODAL OVERLAY
 ––––––––––––––––––––––––––– */
@@ -296,47 +354,4 @@ Role: Generic modal styles for all SAC systems
 
 .modal-body::-webkit-scrollbar-thumb:hover {
   background: var(--container-dim-50);
-}
-
-/* –––––––––––––––––––––––––––
-  RESPONSIVE DESIGN
-––––––––––––––––––––––––––– */
-
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    max-height: 90vh;
-    margin: 20px;
-  }
-  
-  .modal-header,
-  .modal-body,
-  .modal-actions {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-  
-  .modal-actions {
-    flex-direction: column-reverse;
-  }
-  
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
-    margin: 0;
-  }
-}
-
-/* –––––––––––––––––––––––––––
-  DARK THEME ADJUSTMENTS
-––––––––––––––––––––––––––– */
-
-.dark-theme .modal-overlay {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.dark-theme .modal-error {
-  background: rgba(220, 38, 38, 0.1);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #fca5a5;
 }
