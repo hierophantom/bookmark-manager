@@ -80,6 +80,7 @@ Role: Widget-specific content styles including modal gallery
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
   margin-bottom: 20px;
+  height: auto;
 }
 
 .widget-template {
