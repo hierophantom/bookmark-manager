@@ -308,3 +308,19 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .widget-template-title {
   font-weight: bold;
 }
+
+
+
+/*review*/
+.shortcuts .slot-container {
+  gap: 15px;
+  padding: 30px;
+  background: var(--container-bright-10);
+  border-radius: 12px;
+  border: 1px solid var(--container-dim-20);
+}
+
+.shortcuts .slot {
+  width: 200px;
+  height: 80px;
+}

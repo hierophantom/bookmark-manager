@@ -4,39 +4,6 @@ Role: Pinned URLs shortcuts styles
 */
 
 /* –––––––––––––––––––––––––––
-  SHORTCUTS CONTAINER
-––––––––––––––––––––––––––– */
-
-.shortcuts-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.shortcuts-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  padding: 30px;
-  width: 860px;
-  position: relative;
-  background: var(--container-bright-10);
-  border-radius: 12px;
-  border: 1px solid var(--container-dim-20);
-}
-
-.shortcuts-container:hover {
-  background-color: var(--container-dim-20);
-  border-color: var(--container-dim-30);
-  transition: background-color 0.3s, border-color 0.3s;
-}
-
-.shortcuts-container:hover .shortcuts-controls {
-  visibility: visible;
-}
-
-/* –––––––––––––––––––––––––––
   SHORTCUT SLOTS
 ––––––––––––––––––––––––––– */
 
@@ -69,34 +36,6 @@ Role: Pinned URLs shortcuts styles
 .shortcut-slot.drop-target {
   background-color: var(--container-bright-20);
   border-style: solid;
-}
-
-/* –––––––––––––––––––––––––––
-  SHORTCUTS CONTROLS
-––––––––––––––––––––––––––– */
-
-.shortcuts-controls {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: flex;
-  flex-direction: row;
-  gap: 16px;
-  visibility: hidden;
-  fill: var(--content-bright-30);
-}
-
-.shortcuts-controls:hover svg {
-  fill: var(--content-bright-100);
-}
-
-.shortcuts-btn {
-  color: var(--content-bright-30);
-  cursor: pointer;
-}
-
-.shortcuts-btn:hover {
-  color: var(--content-bright-100);
 }
 
 /* –––––––––––––––––––––––––––
@@ -136,11 +75,10 @@ Role: Pinned URLs shortcuts styles
   transform: none; /* Override hover transform when dragging */
 }
 
-/* Swap target highlighting */
 .shortcut.swap-target {
   outline: 2px dashed var(--content-bright-80);
   outline-offset: 2px;
-}
+}*/
 
 /* –––––––––––––––––––––––––––
   SHORTCUT CONTENT
@@ -223,50 +161,6 @@ Role: Pinned URLs shortcuts styles
   text-overflow: ellipsis;
 }
 
-/* –––––––––––––––––––––––––––
-  SHORTCUT CONTROLS
-––––––––––––––––––––––––––– */
-
-.shortcut-controls {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  display: none;
-}
-
-.shortcut-close-btn {
-  width: 18px;
-  height: 18px;
-  background-color: var(--container-bright-100);
-  border: none;
-  border-radius: 999px;
-  padding: 4px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.shortcut-close-btn svg {
-  margin-left: 1px;
-}
-
-/* Drag handle */
-.shortcut-drag-handle {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  cursor: move;
-  opacity: 0.3;
-  transition: opacity 0.2s;
-  fill: var(--content-dim-100);
-}
-
-.shortcut-drag-handle:hover {
-  opacity: 1;
-}
 
 /* –––––––––––––––––––––––––––
   ANIMATIONS
@@ -385,38 +279,6 @@ Role: Pinned URLs shortcuts styles
   background: var(--container-dim-40);
 }
 
-/* –––––––––––––––––––––––––––
-  RESPONSIVE DESIGN
-––––––––––––––––––––––––––– */
-
-@media (max-width: 900px) {
-  .shortcuts-container {
-    width: 640px;
-    gap: 12px;
-    padding: 25px;
-  }
-  
-  .shortcut-slot {
-    width: 150px;
-    height: 70px;
-  }
-  
-  .shortcut-name {
-    font-size: 0.8rem;
-  }
-  
-  .shortcut-url {
-    font-size: 0.7rem;
-  }
-}
-
-@media (max-width: 680px) {
-  .shortcuts-container {
-    width: 420px;
-    gap: 10px;
-    padding: 20px;
-  }
-  
   .shortcut-slot {
     width: 120px;
     height: 60px;

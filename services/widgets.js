@@ -3,7 +3,7 @@ File name & path: services/widgets.js
 Role: Generic widget instances and content management using generic modal
 */
 
-import { ModalContentProvider } from '../slots-system/modal.js';
+import { ModalContentProvider } from './modal.js';
 
 /* –––––––––––––––––––––––––––
   WIDGET FACTORY
