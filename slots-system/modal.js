@@ -1,5 +1,5 @@
 /*
-File name & path: services/modal.js
+File name & path: slots-system/modal.js
 Role: Generic modal system for all SAC (Slots And Cubes) interactions
 */
 

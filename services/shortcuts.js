@@ -3,7 +3,7 @@ File name & path: services/shortcuts.js
 Role: Pinned URLs shortcuts system using generic modal
 */
 
-import { ModalContentProvider } from './modal.js';
+import { ModalContentProvider } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   SHORTCUTS FACTORY

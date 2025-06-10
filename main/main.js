@@ -8,10 +8,10 @@ Role: The main JS file with both widget and shortcuts modals
 ––––––––––––––––––––––––––– */
 
 import { createSpriteSheet } from '../libs/icons.js';
-import { SlotSystem } from '../services/slots.js';
+import { SlotSystem } from '../slots-system/slots.js';
 import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
-import { ModalManager } from '../services/modal.js';
+import { ModalManager } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
