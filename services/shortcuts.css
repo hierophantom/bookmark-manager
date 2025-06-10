@@ -278,27 +278,3 @@ Role: Pinned URLs shortcuts styles
 .btn-secondary:hover {
   background: var(--container-dim-40);
 }
-
-  .shortcut-slot {
-    width: 120px;
-    height: 60px;
-  }
-  
-  .shortcut-favicon {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .shortcut-favicon img {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .shortcut-name {
-    font-size: 0.75rem;
-  }
-  
-  .shortcut-url {
-    font-size: 0.65rem;
-  }
-}
