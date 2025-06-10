@@ -1,3 +1,6 @@
+0.9.3
+Yes some more CSS alignments
+
 0.9.2
 More styles alignment for SAC
 

@@ -27,15 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize widget factory
   const widgetFactory = new WidgetFactory();
 
-  // Initialize widget slot system
+  // Initialize widget slot system with dynamic slot generation
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
-    slotSelector: '.widget-slot',
+    slotSelector: '.slot',
     containerSelector: '.slot-container',
     controlsSelector: '.slot-controls',
     addButtonSelector: '#add-widget-btn',
-    modalSelector: null,
-    itemClass: 'widget'
+    modalSelector: null, // We'll handle this with generic modal
+    itemClass: 'widget',
+    slotCount: 8, // Number of widget slots to generate
+    slotIdPrefix: '', // Widget slots use numbers: 1, 2, 3, etc.
+    generateSlots: true // Enable dynamic slot generation
   });
 
   // Connect the widget factory to the widget slot system
@@ -73,16 +76,52 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize shortcuts factory
   const shortcutsFactory = new ShortcutsFactory();
 
-  // Initialize shortcuts slot system
+  // Initialize shortcuts slot system with dynamic slot generation
   const shortcutsSlotSystem = new SlotSystem({
     storageKey: 'slotShortcuts',
     slotSelector: '.shortcut-slot',
     containerSelector: '.shortcuts-container',
-    controlsSelector: '.slot-controls',
+    controlsSelector: '.shortcuts-controls',
     addButtonSelector: '#add-shortcut-btn',
     modalSelector: null, // We'll handle this with generic modal
-    itemClass: 'shortcut'
+    itemClass: 'shortcut',
+    slotCount: 8, // Number of shortcut slots to generate
+    slotIdPrefix: 's', // Shortcut slots use s prefix: s1, s2, s3, etc.
+    generateSlots: true // Enable dynamic slot generation
   });
+
+  // Connect the shortcuts factory to the shortcuts slot system
+  shortcutsSlotSystem.setItemFactory(shortcutsFactory);
+
+  // Initialize shortcuts modal manager with generic modal
+  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem, modalManager);
+
+  // Override the default add shortcut behavior
+  const addShortcutBtn = document.getElementById('add-shortcut-btn');
+  if (addShortcutBtn) {
+    // Remove default event listeners
+    addShortcutBtn.replaceWith(addShortcutBtn.cloneNode(true));
+    
+    // Add custom event listener
+    const newAddShortcutBtn = document.getElementById('add-shortcut-btn');
+    newAddShortcutBtn.addEventListener('click', () => {
+      // Find first empty slot
+      const emptySlot = shortcutsSlotSystem.findEmptySlot();
+      if (emptySlot) {
+        shortcutsModal.openModal(emptySlot);
+      } else {
+        // Use generic modal to show error
+        modalManager.open({
+          title: 'No Empty Slots',
+          content: '<p>All shortcut slots are full. Please remove some shortcuts first.</p>',
+          saveLabel: 'OK',
+          showActions: false,
+          onSave: () => true // Just close the modal
+        });
+      }
+    });
+  }
+
 
   // Connect the shortcuts factory to the shortcuts slot system
   shortcutsSlotSystem.setItemFactory(shortcutsFactory);

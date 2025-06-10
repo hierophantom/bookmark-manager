@@ -7,17 +7,24 @@ Role: Core slot system handling drag/drop, swap, add/remove mechanics
   CORE SLOT SYSTEM
 ––––––––––––––––––––––––––– */
 
+/* –––––––––––––––––––––––––––
+  CORE SLOT SYSTEM
+––––––––––––––––––––––––––– */
+
 class SlotSystem {
   constructor(options = {}) {
     // Configuration
     this.config = {
       storageKey: options.storageKey || 'slotItems',
-      slotSelector: '.widget-slot',
+      slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',
       modalSelector: options.modalSelector || '#add-widget-modal',
       itemClass: options.itemClass || 'widget',
+      slotCount: options.slotCount || 8,
+      slotIdPrefix: options.slotIdPrefix || '',
+      generateSlots: options.generateSlots !== false, // Default to true
       ...options
     };
     
@@ -30,11 +37,42 @@ class SlotSystem {
     // Initialize elements
     this.initElements();
     
+    // Generate slots if enabled
+    if (this.config.generateSlots) {
+      this.generateSlots();
+    }
+    
     // Bind core events
     this.bindEvents();
     
     // Load saved items
     this.loadItems();
+  }
+  
+  /* –––––––––––––––––––––––––––
+    SLOT GENERATION
+  ––––––––––––––––––––––––––– */
+  
+  generateSlots() {
+    if (!this.slotContainer) {
+      console.error('Slot container not found. Cannot generate slots.');
+      return;
+    }
+    
+    // Clear existing slots (but preserve controls)
+    const existingSlots = this.slotContainer.querySelectorAll(this.config.slotSelector);
+    existingSlots.forEach(slot => slot.remove());
+    
+    // Generate new slots
+    for (let i = 1; i <= this.config.slotCount; i++) {
+      const slot = document.createElement('div');
+      slot.className = this.config.slotSelector.replace('.', ''); // Remove the dot
+      slot.dataset.slotId = this.config.slotIdPrefix + i;
+      this.slotContainer.appendChild(slot);
+    }
+    
+    // Re-query slots after generation
+    this.slots = this.slotContainer.querySelectorAll(this.config.slotSelector);
   }
   
   /* –––––––––––––––––––––––––––
