@@ -7,10 +7,6 @@ Role: Core slot system handling drag/drop, swap, add/remove mechanics
   CORE SLOT SYSTEM
 ––––––––––––––––––––––––––– */
 
-/* –––––––––––––––––––––––––––
-  CORE SLOT SYSTEM
-––––––––––––––––––––––––––– */
-
 class SlotSystem {
   constructor(options = {}) {
     // Configuration
@@ -66,8 +62,14 @@ class SlotSystem {
     // Generate new slots
     for (let i = 1; i <= this.config.slotCount; i++) {
       const slot = document.createElement('div');
-      slot.className = this.config.slotSelector.replace('.', ''); // Remove the dot
+      
+      // Set the correct class name based on selector
+      const className = this.config.slotSelector.replace('.', ''); // Remove the dot
+      slot.className = className;
+      
+      // Set slot ID with prefix
       slot.dataset.slotId = this.config.slotIdPrefix + i;
+      
       this.slotContainer.appendChild(slot);
     }
     
@@ -119,7 +121,7 @@ class SlotSystem {
       this.slotControls.classList.remove('controls-visible');
     });
   }
-  
+
   /* –––––––––––––––––––––––––––
     EVENT BINDING
   ––––––––––––––––––––––––––– */

@@ -9,9 +9,8 @@ Role: The main JS file with both widget and shortcuts modals
 
 import { createSpriteSheet } from '../libs/icons.js';
 import { SlotSystem } from '../slots-system/slots.js';
-import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
+import { WidgetFactory } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
-import { ModalManager } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
@@ -20,9 +19,6 @@ import { ModalManager } from '../slots-system/modal.js';
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize sprite sheet
   createSpriteSheet();
-
-  // Initialize generic modal manager (shared by all systems)
-  const modalManager = new ModalManager();
 
   // Initialize widget factory
   const widgetFactory = new WidgetFactory();
@@ -34,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     containerSelector: '.slot-container',
     controlsSelector: '.slot-controls',
     addButtonSelector: '#add-widget-btn',
-    modalSelector: null, // We'll handle this with generic modal
+    modalSelector: '#add-widget-modal', // Use the existing modal
     itemClass: 'widget',
     slotCount: 8, // Number of widget slots to generate
     slotIdPrefix: '', // Widget slots use numbers: 1, 2, 3, etc.
@@ -43,35 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Connect the widget factory to the widget slot system
   widgetSlotSystem.setItemFactory(widgetFactory);
-
-  // Initialize widgets modal manager with generic modal
-  const widgetsModal = new WidgetsModalManager(widgetSlotSystem, modalManager);
-
-  // Override the default add widget behavior
-  const addWidgetBtn = document.getElementById('add-widget-btn');
-  if (addWidgetBtn) {
-    // Remove default event listeners
-    addWidgetBtn.replaceWith(addWidgetBtn.cloneNode(true));
-    
-    // Add custom event listener
-    const newAddWidgetBtn = document.getElementById('add-widget-btn');
-    newAddWidgetBtn.addEventListener('click', () => {
-      // Check if there are empty slots
-      const emptySlot = widgetSlotSystem.findEmptySlot();
-      if (emptySlot) {
-        widgetsModal.openModal();
-      } else {
-        // Use generic modal to show error
-        modalManager.open({
-          title: 'No Empty Slots',
-          content: '<p>All widget slots are full. Please remove some widgets first.</p>',
-          saveLabel: 'OK',
-          showActions: false,
-          onSave: () => true // Just close the modal
-        });
-      }
-    });
-  }
 
   // Initialize shortcuts factory
   const shortcutsFactory = new ShortcutsFactory();
@@ -83,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     containerSelector: '.shortcuts-container',
     controlsSelector: '.shortcuts-controls',
     addButtonSelector: '#add-shortcut-btn',
-    modalSelector: null, // We'll handle this with generic modal
+    modalSelector: null, // ShortcutsModalManager handles its own modal
     itemClass: 'shortcut',
     slotCount: 8, // Number of shortcut slots to generate
     slotIdPrefix: 's', // Shortcut slots use s prefix: s1, s2, s3, etc.
@@ -93,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Connect the shortcuts factory to the shortcuts slot system
   shortcutsSlotSystem.setItemFactory(shortcutsFactory);
 
-  // Initialize shortcuts modal manager with generic modal
-  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem, modalManager);
+  // Initialize shortcuts modal manager
+  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem);
 
   // Override the default add shortcut behavior
   const addShortcutBtn = document.getElementById('add-shortcut-btn');
@@ -110,47 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emptySlot) {
         shortcutsModal.openModal(emptySlot);
       } else {
-        // Use generic modal to show error
-        modalManager.open({
-          title: 'No Empty Slots',
-          content: '<p>All shortcut slots are full. Please remove some shortcuts first.</p>',
-          saveLabel: 'OK',
-          showActions: false,
-          onSave: () => true // Just close the modal
-        });
-      }
-    });
-  }
-
-
-  // Connect the shortcuts factory to the shortcuts slot system
-  shortcutsSlotSystem.setItemFactory(shortcutsFactory);
-
-  // Initialize shortcuts modal manager with generic modal
-  const shortcutsModal = new ShortcutsModalManager(shortcutsSlotSystem, modalManager);
-
-  // Override the default add shortcut behavior
-  const addShortcutBtn = document.getElementById('add-shortcut-btn');
-  if (addShortcutBtn) {
-    // Remove default event listeners
-    addShortcutBtn.replaceWith(addShortcutBtn.cloneNode(true));
-    
-    // Add custom event listener
-    const newAddShortcutBtn = document.getElementById('add-shortcut-btn');
-    newAddShortcutBtn.addEventListener('click', () => {
-      // Find first empty slot
-      const emptySlot = shortcutsSlotSystem.findEmptySlot();
-      if (emptySlot) {
-        shortcutsModal.openModal(emptySlot);
-      } else {
-        // Use generic modal to show error
-        modalManager.open({
-          title: 'No Empty Slots',
-          content: '<p>All shortcut slots are full. Please remove some shortcuts first.</p>',
-          saveLabel: 'OK',
-          showActions: false,
-          onSave: () => true // Just close the modal
-        });
+        alert('All shortcut slots are full. Please remove some shortcuts first.');
       }
     });
   }
@@ -171,8 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
 ––––––––––––––––––––––––––– */
 
 function initializeThemeSystem() {
-  // Get current theme from localStorage
-  const currentTheme = localStorage.getItem('theme') || 'auto';
+  // Get current theme from localStorage with error handling
+  let currentTheme = 'auto';
+  try {
+    currentTheme = localStorage.getItem('theme') || 'auto';
+  } catch (e) {
+    console.warn('localStorage not available for theme, using default:', e);
+  }
   
   // Initialize theme manager
   const themeManager = new ThemeManager();
@@ -198,7 +130,11 @@ function initializeThemeSystem() {
       
       // Set the theme
       const theme = option.dataset.theme;
-      localStorage.setItem('theme', theme);
+      try {
+        localStorage.setItem('theme', theme);
+      } catch (err) {
+        console.warn('Could not save theme to localStorage:', err);
+      }
       
       // Update theme
       themeManager.setTheme(theme);
@@ -213,6 +149,8 @@ function initializeThemeSystem() {
     });
   });
 }
+
+
 
 /* –––––––––––––––––––––––––––
   THEME SELECTION
