@@ -23,48 +23,42 @@ class ModalManager {
   ––––––––––––––––––––––––––– */
   
   createModal() {
-    // Check if modal already exists
-    if (document.getElementById(this.modalId)) {
-      this.modal = document.getElementById(this.modalId);
-      return;
-    }
-    
-    // Create modal HTML
+    // Create modal HTML structure
     const modalHTML = `
-      <div class="modal-overlay" id="${this.modalId}">
+      <div class="modal-overlay" id="sac-modal">
         <div class="modal-content">
           <div class="modal-header">
-            <div class="modal-title" id="${this.modalId}-title">Modal</div>
-            <button class="modal-close" id="${this.modalId}-close">&times;</button>
+            <div class="modal-title" id="sac-modal-title">Modal Title</div>
+            <button class="modal-close" id="sac-modal-close">&times;</button>
           </div>
-          <div class="modal-body" id="${this.modalId}-body">
-            <!-- Content will be inserted here -->
+          <div class="modal-body" id="sac-modal-body">
+            <!-- Content will be injected here -->
           </div>
-          <div class="modal-actions" id="${this.modalId}-actions">
-            <button id="${this.modalId}-save" class="btn-primary">Save</button>
-            <button id="${this.modalId}-cancel" class="btn-secondary">Cancel</button>
+          <div class="modal-actions" id="sac-modal-actions">
+            <button id="sac-modal-save" class="btn-primary">Save</button>
+            <button id="sac-modal-cancel" class="btn-secondary">Cancel</button>
           </div>
         </div>
       </div>
     `;
     
-    // Insert modal into document
+    // Remove existing modal if it exists
+    const existingModal = document.getElementById('sac-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
     // Get modal elements
-    this.modal = document.getElementById(this.modalId);
-    this.title = document.getElementById(`${this.modalId}-title`);
-    this.body = document.getElementById(`${this.modalId}-body`);
-    this.actions = document.getElementById(`${this.modalId}-actions`);
-    this.saveBtn = document.getElementById(`${this.modalId}-save`);
-    this.cancelBtn = document.getElementById(`${this.modalId}-cancel`);
-    this.closeBtn = document.getElementById(`${this.modalId}-close`);
-    
-    // Bind events
-    this.bindEvents();
+    this.modal = document.getElementById('sac-modal');
+    this.modalTitle = document.getElementById('sac-modal-title');
+    this.modalBody = document.getElementById('sac-modal-body');
+    this.modalActions = document.getElementById('sac-modal-actions');
+    this.saveBtn = document.getElementById('sac-modal-save');
+    this.cancelBtn = document.getElementById('sac-modal-cancel');
+    this.closeBtn = document.getElementById('sac-modal-close');
   }
-  
-
   
   /* –––––––––––––––––––––––––––
     EVENT BINDING

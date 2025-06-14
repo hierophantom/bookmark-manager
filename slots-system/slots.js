@@ -4,7 +4,84 @@ Role: Core slot system handling drag/drop, swap, add/remove mechanics
 */
 
 /* –––––––––––––––––––––––––––
-  CORE SLOT SYSTEM
+  SLOT FACTORY
+––––––––––––––––––––––––––– */
+
+class SlotFactory {
+  static createSlots(config) {
+    const { 
+      containerSelector, 
+      name, 
+      numberOfSlots, 
+      cssClass, 
+      slotIdPrefix = '',
+      slotIdFormat = (index) => `${slotIdPrefix}${index}`
+    } = config;
+    
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container not found: ${containerSelector}`);
+      return;
+    }
+    
+    // Clear existing slots (but keep controls)
+    const existingSlots = container.querySelectorAll(`.${cssClass}`);
+    existingSlots.forEach(slot => slot.remove());
+    
+    // Create new slots
+    for (let i = 1; i <= numberOfSlots; i++) {
+      const slot = document.createElement('div');
+      slot.className = cssClass;
+      slot.dataset.slotId = slotIdFormat(i);
+      container.appendChild(slot);
+    }
+    
+    console.log(`Created ${numberOfSlots} ${name} slots with class "${cssClass}"`);
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  SLOT CONFIGURATIONS
+––––––––––––––––––––––––––– */
+
+const SLOT_CONFIGS = [
+  {
+    name: 'Widget Slots',
+    containerSelector: '.shortcuts-container',
+    numberOfSlots: 8,
+    cssClass: 'shortcuts-slot',
+    slotIdPrefix: '',
+    slotIdFormat: (index) => `s${index}`
+  },
+  {
+    name: 'Shortcut Slots', 
+    containerSelector: '.widget-container',
+    numberOfSlots: 8,
+    cssClass: 'widgets-slot',
+    slotIdPrefix: 's',
+    slotIdFormat: (index) => `w${index}`
+  }
+];
+
+/* –––––––––––––––––––––––––––
+  INITIALIZE SLOTS ON DOM READY
+––––––––––––––––––––––––––– */
+
+function initializeSlots() {
+  SLOT_CONFIGS.forEach(config => {
+    SlotFactory.createSlots(config);
+  });
+}
+
+// Initialize when DOM is loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeSlots);
+} else {
+  initializeSlots();
+}
+
+/* –––––––––––––––––––––––––––
+  EXISTING SLOT SYSTEM CLASS
 ––––––––––––––––––––––––––– */
 
 class SlotSystem {
@@ -18,9 +95,6 @@ class SlotSystem {
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',
       modalSelector: options.modalSelector || '#add-widget-modal',
       itemClass: options.itemClass || 'widget',
-      slotCount: options.slotCount || 8,
-      slotIdPrefix: options.slotIdPrefix || '',
-      generateSlots: options.generateSlots !== false, // Default to true
       ...options
     };
     
@@ -30,57 +104,25 @@ class SlotSystem {
     this.draggedItem = null;
     this.itemFactory = null; // Will be set by widget system
     
-    // Initialize elements
-    this.initElements();
-    
-    // Generate slots if enabled
-    if (this.config.generateSlots) {
-      this.generateSlots();
-    }
-    
-    // Bind core events
-    this.bindEvents();
-    
-    // Load saved items
-    this.loadItems();
+    // Wait for slots to be created, then initialize
+    this.waitForSlotsAndInitialize();
   }
   
-  /* –––––––––––––––––––––––––––
-    SLOT GENERATION
-  ––––––––––––––––––––––––––– */
-  
-  generateSlots() {
-    if (!this.slotContainer) {
-      console.error('Slot container not found. Cannot generate slots.');
-      return;
-    }
-    
-    // Clear existing slots (but preserve controls)
-    const existingSlots = this.slotContainer.querySelectorAll(this.config.slotSelector);
-    existingSlots.forEach(slot => slot.remove());
-    
-    // Generate new slots
-    for (let i = 1; i <= this.config.slotCount; i++) {
-      const slot = document.createElement('div');
-      
-      // Set the correct class name based on selector
-      const className = this.config.slotSelector.replace('.', ''); // Remove the dot
-      slot.className = className;
-      
-      // Set slot ID with prefix
-      slot.dataset.slotId = this.config.slotIdPrefix + i;
-      
-      this.slotContainer.appendChild(slot);
-    }
-    
-    // Re-query slots after generation
-    this.slots = this.slotContainer.querySelectorAll(this.config.slotSelector);
+  waitForSlotsAndInitialize() {
+    const checkSlots = () => {
+      const slots = document.querySelectorAll(this.config.slotSelector);
+      if (slots.length > 0) {
+        this.initElements();
+        this.bindEvents();
+        this.loadItems();
+      } else {
+        setTimeout(checkSlots, 10); // Check again in 10ms
+      }
+    };
+    checkSlots();
   }
   
-  /* –––––––––––––––––––––––––––
-    INITIALIZATION
-  ––––––––––––––––––––––––––– */
-  
+  // ... rest of the SlotSystem class remains exactly the same ...
   initElements() {
     this.slotContainer = document.querySelector(this.config.containerSelector);
     this.slots = document.querySelectorAll(this.config.slotSelector);
@@ -121,7 +163,7 @@ class SlotSystem {
       this.slotControls.classList.remove('controls-visible');
     });
   }
-
+  
   /* –––––––––––––––––––––––––––
     EVENT BINDING
   ––––––––––––––––––––––––––– */
@@ -719,4 +761,4 @@ class SlotSystem {
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-export { SlotSystem };
+export { SlotSystem, SlotFactory };
