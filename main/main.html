@@ -62,33 +62,50 @@ Role: The main view of the extension with separated slot/widget systems
 
                 <div id="homepage" class="page">
 
-<!-- Pinned URLs Section -->
-                    <div class="shortcuts-wrapper">
-                        <div class="shortcuts-container">
-                            <div class="shortcuts-controls">
-                                <span class="shortcuts-btn" id="add-shortcut-btn">
+                    <!-- Pinned URLs Section -->
+                    <div class="slot-wrapper">
+                        <div class="slot-container">
+                            <div class="slot-controls">
+                                <span class="slot-btn" id="add-shortcut-btn">
                                     <svg width="16" height="16">
                                         <use href="#add-icon" />
                                     </svg>
                                 </span>
                             </div>
-                            <!-- Shortcut slots will be dynamically created here -->
+                            <div class="shortcut-slot" data-slot-id="s1"></div>
+                            <div class="shortcut-slot" data-slot-id="s2"></div>
+                            <div class="shortcut-slot" data-slot-id="s3"></div>
+                            <div class="shortcut-slot" data-slot-id="s4"></div>
+                            <div class="shortcut-slot" data-slot-id="s5"></div>
+                            <div class="shortcut-slot" data-slot-id="s6"></div>
+                            <div class="shortcut-slot" data-slot-id="s7"></div>
+                            <div class="shortcut-slot" data-slot-id="s8"></div>
                         </div>
                     </div>
 
-<!-- Widgets Section -->
+                    <!-- Widgets Section -->
+
                     <div class="slot-wrapper">
                         <div class="slot-container">
                             <div class="slot-controls">
-                                <span class="widget-btn" id="add-widget-btn">
+                                <span class="slot-btn" id="add-widget-btn">
                                 <svg width="16" height="16">
                                     <use href="#add-icon" />
                                 </svg>
                                 </span>
                             </div>
-                            <!-- Widget slots will be dynamically created here -->
+                            <div class="widget-slot" data-slot-id="1"></div>
+                            <div class="widget-slot" data-slot-id="2"></div>
+                            <div class="widget-slot" data-slot-id="3"></div>
+                            <div class="widget-slot" data-slot-id="4"></div>
+                            <div class="widget-slot" data-slot-id="5"></div>
+                            <div class="widget-slot" data-slot-id="6"></div>
+                            <div class="widget-slot" data-slot-id="7"></div>
+                            <div class="widget-slot" data-slot-id="8"></div>
                         </div>
                     </div>
+
+                </div>
 
                 <div class="page" id="bookmarks">
                     <h2>BOOKMARKS</h2>

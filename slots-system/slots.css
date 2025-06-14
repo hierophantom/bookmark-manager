@@ -39,8 +39,8 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .slot {
   display: flex;
   border-radius: 8px;
-  width: 200px;
-  height: 200px;
+  width: 400px;
+  height: 400px;
   transition: background-color 0.3s, border-color 0.3s;  
   justify-content: center;
   align-items: center;
