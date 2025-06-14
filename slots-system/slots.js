@@ -46,20 +46,20 @@ class SlotFactory {
 
 const SLOT_CONFIGS = [
   {
-    name: 'Widget Slots',
+    name: 'shortcuts',
     containerSelector: '.shortcuts-container',
     numberOfSlots: 8,
-    cssClass: 'shortcuts-slot',
-    slotIdPrefix: '',
+    cssClass: 'shortcut-slot',
+    slotIdPrefix: 's',
     slotIdFormat: (index) => `s${index}`
   },
   {
-    name: 'Shortcut Slots', 
-    containerSelector: '.widget-container',
+    name: 'widgets', 
+    containerSelector: '.slot-container',
     numberOfSlots: 8,
-    cssClass: 'widgets-slot',
-    slotIdPrefix: 's',
-    slotIdFormat: (index) => `w${index}`
+    cssClass: 'slot',
+    slotIdPrefix: '',
+    slotIdFormat: (index) => `${index}`
   }
 ];
 
@@ -81,7 +81,7 @@ if (document.readyState === 'loading') {
 }
 
 /* –––––––––––––––––––––––––––
-  EXISTING SLOT SYSTEM CLASS
+  CORE SLOT SYSTEM
 ––––––––––––––––––––––––––– */
 
 class SlotSystem {
@@ -122,7 +122,10 @@ class SlotSystem {
     checkSlots();
   }
   
-  // ... rest of the SlotSystem class remains exactly the same ...
+  /* –––––––––––––––––––––––––––
+    INITIALIZATION
+  ––––––––––––––––––––––––––– */
+  
   initElements() {
     this.slotContainer = document.querySelector(this.config.containerSelector);
     this.slots = document.querySelectorAll(this.config.slotSelector);
