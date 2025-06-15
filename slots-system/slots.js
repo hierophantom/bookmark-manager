@@ -35,7 +35,7 @@ class SlotSystem {
     
     // Load saved items
     this.loadItems();
-  }}
+  }
   
   /* –––––––––––––––––––––––––––
     INITIALIZATION
@@ -81,50 +81,7 @@ class SlotSystem {
       this.slotControls.classList.remove('controls-visible');
     });
   }
-
-  refreshSlots() {
-    this.slots = document.querySelectorAll(this.config.slotSelector);
-  }
-
-/* –––––––––––––––––––––––––––
-  SLOT FACTORY
-––––––––––––––––––––––––––– */
-class SlotFactory {
-  static createSlots(config) {
-    const name = config.name;
-    const count = config.count;
-    const cssClass = config.cssClass;
-    const containerSelector = config.containerSelector;
-    const idPrefix = config.idPrefix || name;
-    const dataAttributes = config.dataAttributes || {};
-    
-    const container = document.querySelector(containerSelector);
-    if (!container) {
-      console.error(`Container not found: ${containerSelector}`);
-      return;
-    }
-    
-    // Clear existing slots if any
-    container.querySelectorAll(`.${cssClass}`).forEach(slot => slot.remove());
-    
-    // Create slots
-    for (let i = 1; i <= count; i++) {
-      const slot = document.createElement('div');
-      slot.className = cssClass;
-      slot.dataset.slotId = `${idPrefix}${i}`;
-      
-      // Add any additional data attributes
-      Object.keys(dataAttributes).forEach(key => {
-        slot.dataset[key] = dataAttributes[key];
-      });
-      
-      container.appendChild(slot);
-    }
-    
-    console.log(`Created ${count} ${name} slots`);
-  }
-}
-
+  
   /* –––––––––––––––––––––––––––
     EVENT BINDING
   ––––––––––––––––––––––––––– */
@@ -717,10 +674,9 @@ class SlotFactory {
   removeItemProgrammatically(itemId) {
     this.removeItem(itemId);
   }
-
+}
 
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-
-export { SlotSystem, SlotFactory };
+export { SlotSystem };

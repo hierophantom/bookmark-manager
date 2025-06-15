@@ -8,7 +8,7 @@ Role: The main JS file with both widget and shortcuts modals
 ––––––––––––––––––––––––––– */
 
 import { createSpriteSheet } from '../libs/icons.js';
-import { SlotSystem, SlotFactory } from '../slots-system/slots.js';
+import { SlotSystem } from '../slots-system/slots.js';
 import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
 import { ModalManager } from '../slots-system/modal.js';
@@ -38,29 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     itemClass: 'widget'
   });
 
-
-    // Create slots dynamically
-    SlotFactory.createSlots({
-      name: 'shortcuts',
-      count: 8,
-      cssClass: 'shortcut-slot',
-      containerSelector: '.shortcuts-container',
-      idPrefix: 's'
-    });
-
-    SlotFactory.createSlots({
-      name: 'widgets', 
-      count: 8,
-      cssClass: 'widget-slot',
-      containerSelector: '.slot-container',
-      idPrefix: ''
-    });
-
-    shortcutsSlotSystem.refreshSlots();
-    widgetSlotSystem.refreshSlots();
-
   // Connect the widget factory to the widget slot system
-  widgetSlotSystem.setItemFactory(widgetFactory); 
+  widgetSlotSystem.setItemFactory(widgetFactory);
 
   // Initialize widgets modal manager with generic modal
   const widgetsModal = new WidgetsModalManager(widgetSlotSystem, modalManager);
