@@ -737,7 +737,7 @@ function initializeSlotsFromConfig() {
     count: 8,
     cssClass: 'slot',
     containerSelector: '.slot-container',
-    idPrefix: ''
+    idPrefix: 'w'
   });
   
   // Shortcut slots configuration  
