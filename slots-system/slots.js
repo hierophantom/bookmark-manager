@@ -33,12 +33,10 @@ class SlotSystem {
     // Bind core events
     this.bindEvents();
     
-    refreshSlots() {
-    this.slots = document.querySelectorAll(this.config.slotSelector);}
-    
     // Load saved items
     this.loadItems();
   }
+}
   
   /* –––––––––––––––––––––––––––
     INITIALIZATION
@@ -50,7 +48,9 @@ class SlotSystem {
     this.addButton = document.querySelector(this.config.addButtonSelector);
     this.modal = document.querySelector(this.config.modalSelector);
     this.slotControls = document.querySelector(this.config.controlsSelector);
-    
+    refreshSlots() {
+      this.slots = document.querySelectorAll(this.config.slotSelector);
+    }
     if (this.modal) {
       this.modalClose = this.modal.querySelector('.modal-close');
       this.itemTemplates = this.modal.querySelectorAll('.widget-template');
@@ -127,6 +127,7 @@ class SlotFactory {
     console.log(`Created ${count} ${name} slots`);
   }
 }
+
 
   /* –––––––––––––––––––––––––––
     EVENT BINDING
@@ -720,7 +721,7 @@ class SlotFactory {
   removeItemProgrammatically(itemId) {
     this.removeItem(itemId);
   }
-}
+
 
 /* –––––––––––––––––––––––––––
   EXPORTS
