@@ -8,10 +8,11 @@ Role: The main JS file with both widget and shortcuts modals
 ––––––––––––––––––––––––––– */
 
 import { createSpriteSheet } from '../libs/icons.js';
-import { SlotSystem } from '../slots-system/slots.js';
+import { SlotSystem, SlotFactory } from '../slots-system/slots.js';
 import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
 import { ModalManager } from '../slots-system/modal.js';
+
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
@@ -20,6 +21,23 @@ import { ModalManager } from '../slots-system/modal.js';
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize sprite sheet
   createSpriteSheet();
+
+ SlotFactory.createSlots({
+    name: 'shortcuts',
+    count: 8,
+    cssClass: 'shortcut-slot',
+    containerSelector: '.shortcuts-container',
+    idPrefix: 's'
+  });
+
+  SlotFactory.createSlots({
+    name: 'widgets', 
+    count: 8,
+    cssClass: 'widget-slot',
+    containerSelector: '.slot-container',
+    idPrefix: ''
+  });
+
 
   // Initialize generic modal manager (shared by all systems)
   const modalManager = new ModalManager();
@@ -37,6 +55,26 @@ document.addEventListener('DOMContentLoaded', () => {
     modalSelector: null,
     itemClass: 'widget'
   });
+
+
+    SlotFactory.createSlots({
+      name: 'shortcuts',
+      count: 8,
+      cssClass: 'shortcut-slot',
+      containerSelector: '.shortcuts-container',
+      idPrefix: 's'
+    });
+
+    SlotFactory.createSlots({
+      name: 'widgets', 
+      count: 8,
+      cssClass: 'widget-slot',
+      containerSelector: '.slot-container',
+      idPrefix: ''
+    });
+
+  shortcutsSlotSystem.refreshSlots();
+  widgetSlotSystem.refreshSlots();
 
   // Connect the widget factory to the widget slot system
   widgetSlotSystem.setItemFactory(widgetFactory);
@@ -126,6 +164,48 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize main menu
   initializeMainMenu();
 });
+
+/* –––––––––––––––––––––––––––
+  SLOT FACTORY
+––––––––––––––––––––––––––– */
+
+class SlotFactory {
+  static createSlots(config) {
+    const {
+      name,
+      count,
+      cssClass,
+      containerSelector,
+      idPrefix = name,
+      dataAttributes = {}
+    } = config;
+    
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container not found: ${containerSelector}`);
+      return;
+    }
+    
+    // Clear existing slots if any
+    container.querySelectorAll(`.${cssClass}`).forEach(slot => slot.remove());
+    
+    // Create slots
+    for (let i = 1; i <= count; i++) {
+      const slot = document.createElement('div');
+      slot.className = cssClass;
+      slot.dataset.slotId = `${idPrefix}${i}`;
+      
+      // Add any additional data attributes
+      Object.keys(dataAttributes).forEach(key => {
+        slot.dataset[key] = dataAttributes[key];
+      });
+      
+      container.appendChild(slot);
+    }
+    
+    console.log(`Created ${count} ${name} slots`);
+  }
+}
 
 /* –––––––––––––––––––––––––––
   THEME SYSTEM
@@ -330,6 +410,10 @@ class DrawerManager {
 
     // Load saved states after a brief delay to ensure page is ready
     setTimeout(() => this.loadDrawerStates(), 0);
+  }
+  
+  refreshSlots() {
+    this.slots = document.querySelectorAll(this.config.slotSelector);
   }
 
   watchPageChanges() {

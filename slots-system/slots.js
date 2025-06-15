@@ -29,9 +29,12 @@ class SlotSystem {
     
     // Initialize elements
     this.initElements();
-    
+
     // Bind core events
     this.bindEvents();
+    
+    refreshSlots() {
+    this.slots = document.querySelectorAll(this.config.slotSelector);}
     
     // Load saved items
     this.loadItems();
@@ -82,6 +85,49 @@ class SlotSystem {
     });
   }
   
+  
+/* –––––––––––––––––––––––––––
+  SLOT FACTORY
+––––––––––––––––––––––––––– */
+
+class SlotFactory {
+  static createSlots(config) {
+    const {
+      name,
+      count,
+      cssClass,
+      containerSelector,
+      idPrefix = name,
+      dataAttributes = {}
+    } = config;
+    
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container not found: ${containerSelector}`);
+      return;
+    }
+    
+    // Clear existing slots if any
+    container.querySelectorAll(`.${cssClass}`).forEach(slot => slot.remove());
+    
+    // Create slots
+    for (let i = 1; i <= count; i++) {
+      const slot = document.createElement('div');
+      slot.className = cssClass;
+      slot.dataset.slotId = `${idPrefix}${i}`;
+      
+      // Add any additional data attributes
+      Object.keys(dataAttributes).forEach(key => {
+        slot.dataset[key] = dataAttributes[key];
+      });
+      
+      container.appendChild(slot);
+    }
+    
+    console.log(`Created ${count} ${name} slots`);
+  }
+}
+
   /* –––––––––––––––––––––––––––
     EVENT BINDING
   ––––––––––––––––––––––––––– */
@@ -679,4 +725,5 @@ class SlotSystem {
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-export { SlotSystem };
+export { SlotSystem, SlotFactory };
+
