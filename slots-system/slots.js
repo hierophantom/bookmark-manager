@@ -1,7 +1,47 @@
 /*
 File name & path: slots-system/slots.js
-Role: Core slot system handling drag/drop, swap, add/remove mechanics
+Role: Core slot system handling drag/drop, swap, add/remove mechanics with dynamic slot creation
 */
+
+/* –––––––––––––––––––––––––––
+  SLOT FACTORY
+––––––––––––––––––––––––––– */
+
+class SlotFactory {
+  static createSlots(config) {
+    const {
+      container,
+      name,
+      count,
+      cssClass,
+      idPrefix = '',
+      startIndex = 1,
+      additionalAttributes = {}
+    } = config;
+    
+    // Clear existing slots
+    const existingSlots = container.querySelectorAll(`.${cssClass}`);
+    existingSlots.forEach(slot => slot.remove());
+    
+    // Create new slots
+    const slots = [];
+    for (let i = 0; i < count; i++) {
+      const slot = document.createElement('div');
+      slot.className = cssClass;
+      slot.dataset.slotId = `${idPrefix}${startIndex + i}`;
+      
+      // Add any additional attributes
+      Object.entries(additionalAttributes).forEach(([key, value]) => {
+        slot.setAttribute(key, value);
+      });
+      
+      container.appendChild(slot);
+      slots.push(slot);
+    }
+    
+    return slots;
+  }
+}
 
 /* –––––––––––––––––––––––––––
   CORE SLOT SYSTEM
@@ -12,12 +52,13 @@ class SlotSystem {
     // Configuration
     this.config = {
       storageKey: options.storageKey || 'slotItems',
-      slotSelector: '.widget-slot',
+      slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',
       modalSelector: options.modalSelector || '#add-widget-modal',
       itemClass: options.itemClass || 'widget',
+      slotConfig: options.slotConfig || null, // New: slot factory config
       ...options
     };
     
@@ -30,11 +71,38 @@ class SlotSystem {
     // Initialize elements
     this.initElements();
     
+    // Create slots if config provided
+    if (this.config.slotConfig) {
+      this.createSlots();
+    }
+    
     // Bind core events
     this.bindEvents();
     
     // Load saved items
     this.loadItems();
+  }
+  
+  /* –––––––––––––––––––––––––––
+    SLOT CREATION
+  ––––––––––––––––––––––––––– */
+  
+  createSlots() {
+    const container = document.querySelector(this.config.containerSelector);
+    if (!container) return;
+    
+    const { slotConfig } = this.config;
+    
+    // Create slots using the factory
+    this.slots = SlotFactory.createSlots({
+      container: container,
+      name: slotConfig.name,
+      count: slotConfig.count,
+      cssClass: slotConfig.cssClass || this.config.slotSelector.replace('.', ''),
+      idPrefix: slotConfig.idPrefix || '',
+      startIndex: slotConfig.startIndex || 1,
+      additionalAttributes: slotConfig.additionalAttributes || {}
+    });
   }
   
   /* –––––––––––––––––––––––––––
@@ -310,6 +378,9 @@ class SlotSystem {
   }
   
   findEmptySlot() {
+    // Re-query slots in case they were dynamically created
+    this.slots = document.querySelectorAll(this.config.slotSelector);
+    
     for (const slot of this.slots) {
       if (!slot.querySelector(`.${this.config.itemClass}`)) {
         return slot;
@@ -674,9 +745,23 @@ class SlotSystem {
   removeItemProgrammatically(itemId) {
     this.removeItem(itemId);
   }
+  
+  // Update slot count dynamically
+  updateSlotCount(newCount) {
+    if (!this.config.slotConfig) return;
+    
+    this.config.slotConfig.count = newCount;
+    this.createSlots();
+    
+    // Re-initialize interact.js for new slots
+    this.initInteract();
+    
+    // Reload items to place them in the new slots
+    this.loadItems();
+  }
 }
 
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-export { SlotSystem };
+export { SlotSystem, SlotFactory };

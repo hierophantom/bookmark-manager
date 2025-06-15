@@ -1,6 +1,6 @@
 /*
 File name & path: main/main.js
-Role: The main JS file with both widget and shortcuts modals
+Role: The main JS file with slot factory implementation
 */
 
 /* –––––––––––––––––––––––––––
@@ -27,15 +27,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize widget factory
   const widgetFactory = new WidgetFactory();
 
-  // Initialize widget slot system
+  // Initialize widget slot system with slot factory config
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
-    slotSelector: '.widget-slot',
+    slotSelector: '.slot',
     containerSelector: '.slot-container',
     controlsSelector: '.slot-controls',
     addButtonSelector: '#add-widget-btn',
-    modalSelector: null,
-    itemClass: 'widget'
+    modalSelector: null, // We'll handle this with generic modal
+    itemClass: 'widget',
+    slotConfig: {
+      name: 'widget-slots',
+      count: 8, // Variable number of slots
+      cssClass: 'slot',
+      idPrefix: '', // Will create slot IDs as "1", "2", "3", etc.
+      startIndex: 1,
+      additionalAttributes: {} // Any additional attributes can be added here
+    }
   });
 
   // Connect the widget factory to the widget slot system
@@ -73,15 +81,23 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize shortcuts factory
   const shortcutsFactory = new ShortcutsFactory();
 
-  // Initialize shortcuts slot system
+  // Initialize shortcuts slot system with slot factory config
   const shortcutsSlotSystem = new SlotSystem({
     storageKey: 'slotShortcuts',
     slotSelector: '.shortcut-slot',
     containerSelector: '.shortcuts-container',
-    controlsSelector: '.slot-controls',
+    controlsSelector: '.shortcuts-controls',
     addButtonSelector: '#add-shortcut-btn',
     modalSelector: null, // We'll handle this with generic modal
-    itemClass: 'shortcut'
+    itemClass: 'shortcut',
+    slotConfig: {
+      name: 'shortcut-slots',
+      count: 8, // Variable number of slots
+      cssClass: 'shortcut-slot',
+      idPrefix: 's', // Will create slot IDs as "s1", "s2", "s3", etc.
+      startIndex: 1,
+      additionalAttributes: {} // Any additional attributes can be added here
+    }
   });
 
   // Connect the shortcuts factory to the shortcuts slot system
