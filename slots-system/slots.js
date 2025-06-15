@@ -4,7 +4,7 @@ Role: Core slot system handling drag/drop, swap, add/remove mechanics
 */
 
 /* –––––––––––––––––––––––––––
-  CORE SLOT SYSTEM
+  SLOT FACTORY
 ––––––––––––––––––––––––––– */
 
 class SlotFactory {
@@ -53,12 +53,16 @@ class SlotFactory {
   }
 }
 
+/* –––––––––––––––––––––––––––
+  CORE SLOT SYSTEM
+––––––––––––––––––––––––––– */
+
 class SlotSystem {
   constructor(options = {}) {
     // Configuration
     this.config = {
       storageKey: options.storageKey || 'slotItems',
-      slotSelector: '.widget-slot',
+      slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',
@@ -66,27 +70,7 @@ class SlotSystem {
       itemClass: options.itemClass || 'widget',
       ...options
     };
-
-        function initializeSlotsFromConfig() {
-      // Widget slots configuration
-      SlotFactory.createSlots({
-        name: 'widgets',
-        count: 8,
-        cssClass: 'slot',
-        containerSelector: '.slot-container',
-        idPrefix: ''
-      });
-      
-      // Shortcut slots configuration  
-      SlotFactory.createSlots({
-        name: 'shortcuts',
-        count: 8,
-        cssClass: 'shortcut-slot', 
-        containerSelector: '.shortcuts-container',
-        idPrefix: 's'
-      });
-    }
-
+    
     // Core state
     this.items = [];
     this.nextItemId = 1;
@@ -122,10 +106,6 @@ class SlotSystem {
     // Set up hover behavior for controls
     this.setupControlsVisibility();
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeSlotsFromConfig);
-  } else {
-    initializeSlotsFromConfig();
 
   setupControlsVisibility() {
     if (!this.slotContainer || !this.slotControls) return;
@@ -745,6 +725,7 @@ class SlotSystem {
     this.removeItem(itemId);
   }
 }
+
 /* –––––––––––––––––––––––––––
   SLOT INITIALIZATION
 ––––––––––––––––––––––––––– */
@@ -775,5 +756,4 @@ document.addEventListener('DOMContentLoaded', initializeSlotsFromConfig);
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-
 export { SlotSystem, SlotFactory };
