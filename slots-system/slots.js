@@ -35,7 +35,7 @@ class SlotSystem {
     
     // Load saved items
     this.loadItems();
-  }
+  }}
   
   /* –––––––––––––––––––––––––––
     INITIALIZATION
@@ -82,6 +82,10 @@ class SlotSystem {
     });
   }
 
+  refreshSlots() {
+    this.slots = document.querySelectorAll(this.config.slotSelector);
+  }
+
 /* –––––––––––––––––––––––––––
   SLOT FACTORY
 ––––––––––––––––––––––––––– */
@@ -120,7 +124,6 @@ class SlotFactory {
     console.log(`Created ${count} ${name} slots`);
   }
 }
-
 
   /* –––––––––––––––––––––––––––
     EVENT BINDING
@@ -714,10 +717,10 @@ class SlotFactory {
   removeItemProgrammatically(itemId) {
     this.removeItem(itemId);
   }
-}
+
 
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-export { SlotSystem, SlotFactory };
 
+export { SlotSystem, SlotFactory };
