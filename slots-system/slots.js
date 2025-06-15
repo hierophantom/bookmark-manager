@@ -106,7 +106,11 @@ class SlotSystem {
     // Set up hover behavior for controls
     this.setupControlsVisibility();
   }
-
+    refreshSlots() {
+      // Re-query for slots after they've been dynamically created
+      this.slots = document.querySelectorAll(this.config.slotSelector);
+      console.log(`Found ${this.slots.length} slots for ${this.config.slotSelector}`);
+    }
   setupControlsVisibility() {
     if (!this.slotContainer || !this.slotControls) return;
     
