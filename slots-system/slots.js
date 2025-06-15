@@ -7,6 +7,52 @@ Role: Core slot system handling drag/drop, swap, add/remove mechanics
   CORE SLOT SYSTEM
 ––––––––––––––––––––––––––– */
 
+class SlotFactory {
+  static createSlots(config) {
+    const { 
+      name, 
+      count, 
+      cssClass, 
+      containerSelector,
+      idPrefix = '',
+      ...attributes 
+    } = config;
+    
+    const container = document.querySelector(containerSelector);
+    if (!container) {
+      console.error(`Container not found: ${containerSelector}`);
+      return;
+    }
+    
+    // Clear existing slots (keep controls if they exist)
+    const controlsElement = container.querySelector('.slot-controls, .shortcuts-controls');
+    container.innerHTML = '';
+    if (controlsElement) {
+      container.appendChild(controlsElement);
+    }
+    
+    // Create slots
+    for (let i = 1; i <= count; i++) {
+      const slot = document.createElement('div');
+      slot.className = cssClass;
+      slot.dataset.slotId = `${idPrefix}${i}`;
+      
+      // Add any additional attributes
+      Object.entries(attributes).forEach(([key, value]) => {
+        if (key.startsWith('data-')) {
+          slot.dataset[key.replace('data-', '')] = value;
+        } else {
+          slot.setAttribute(key, value);
+        }
+      });
+      
+      container.appendChild(slot);
+    }
+    
+    console.log(`Created ${count} ${cssClass} slots in ${containerSelector}`);
+  }
+}
+
 class SlotSystem {
   constructor(options = {}) {
     // Configuration
@@ -80,7 +126,7 @@ class SlotSystem {
     document.addEventListener('DOMContentLoaded', initializeSlotsFromConfig);
   } else {
     initializeSlotsFromConfig();
-    
+
   setupControlsVisibility() {
     if (!this.slotContainer || !this.slotControls) return;
     
@@ -699,58 +745,35 @@ class SlotSystem {
     this.removeItem(itemId);
   }
 }
-
 /* –––––––––––––––––––––––––––
-  SLOTS FACTORY
+  SLOT INITIALIZATION
 ––––––––––––––––––––––––––– */
 
-  class SlotFactory {
-  static createSlots(config) {
-    const { 
-      name, 
-      count, 
-      cssClass, 
-      containerSelector,
-      idPrefix = '',
-      ...attributes 
-    } = config;
-    
-    const container = document.querySelector(containerSelector);
-    if (!container) {
-      console.error(`Container not found: ${containerSelector}`);
-      return;
-    }
-    
-    // Clear existing slots (keep controls if they exist)
-    const controlsElement = container.querySelector('.slot-controls, .shortcuts-controls');
-    container.innerHTML = '';
-    if (controlsElement) {
-      container.appendChild(controlsElement);
-    }
-    
-    // Create slots
-    for (let i = 1; i <= count; i++) {
-      const slot = document.createElement('div');
-      slot.className = cssClass;
-      slot.dataset.slotId = `${idPrefix}${i}`;
-      
-      // Add any additional attributes
-      Object.entries(attributes).forEach(([key, value]) => {
-        if (key.startsWith('data-')) {
-          slot.dataset[key.replace('data-', '')] = value;
-        } else {
-          slot.setAttribute(key, value);
-        }
-      });
-      
-      container.appendChild(slot);
-    }
-    
-    console.log(`Created ${count} ${cssClass} slots in ${containerSelector}`);
-  }
+function initializeSlotsFromConfig() {
+  // Widget slots configuration
+  SlotFactory.createSlots({
+    name: 'widgets',
+    count: 8,
+    cssClass: 'slot',
+    containerSelector: '.slot-container',
+    idPrefix: ''
+  });
+  
+  // Shortcut slots configuration  
+  SlotFactory.createSlots({
+    name: 'shortcuts',
+    count: 8,
+    cssClass: 'shortcut-slot', 
+    containerSelector: '.shortcuts-container',
+    idPrefix: 's'
+  });
 }
+
+// Initialize slots when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializeSlotsFromConfig);
 
 /* –––––––––––––––––––––––––––
   EXPORTS
 ––––––––––––––––––––––––––– */
-export { SlotSystem, SlotFactory};
+
+export { SlotSystem, SlotFactory };
