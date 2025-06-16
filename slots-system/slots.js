@@ -56,9 +56,9 @@ class SlotSystem {
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
       addButtonSelector: options.addButtonSelector || '.add-slot-btn',
-      modalSelector: options.modalSelector || '#add-slot-modal',
+      modalSelector: options.modalSelector || '.add-slot-modal',
       itemClass: options.itemClass || 'slot',
-      slotConfig: options.slotConfig || null, // New: slot factory config
+      slotConfig: options.slotConfig || null,
       ...options
     };
     
@@ -66,7 +66,7 @@ class SlotSystem {
     this.items = [];
     this.nextItemId = 1;
     this.draggedItem = null;
-    this.itemFactory = null; // Will be set by widget system
+    this.itemFactory = null;
     
     // Initialize elements
     this.initElements();
@@ -299,7 +299,7 @@ class SlotSystem {
     // Add to items array
     this.items.push({
       id: itemId,
-      data: data, // Store the data instead of type
+      data: data,
       slotId: targetSlot.dataset.slotId,
       position: { x: 0, y: 0 }
     });
