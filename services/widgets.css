@@ -20,6 +20,25 @@ Role: Widget-specific content styles including modal gallery
 }
 
 /* –––––––––––––––––––––––––––
+  SLOT CONTROLS
+––––––––––––––––––––––––––– */
+
+.widgets-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  visibility: hidden;
+  fill: var(--content-bright-30);
+}
+
+.widgets-controls:hover svg {
+  fill: var(--content-bright-100);
+}
+
+/* –––––––––––––––––––––––––––
   WIDGET CONTENT BASE
 ––––––––––––––––––––––––––– */
 

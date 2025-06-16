@@ -39,8 +39,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .slot {
   display: flex;
   border-radius: 8px;
-  width: 100px;
-  height: 100px;
   transition: background-color 0.3s, border-color 0.3s;  
   justify-content: center;
   align-items: center;
@@ -55,7 +53,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
   background-color: var(--container-bright-30);
 }
 
-/* Slot states for drag and drop */
 .slot.drop-active {
   border-color: var(--content-bright-80);
 }
@@ -73,6 +70,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
   background-color: var(--container-bright-20);
   border-style: solid;
 }
+
 /* –––––––––––––––––––––––––––
   SLOT CONTROLS
 ––––––––––––––––––––––––––– */

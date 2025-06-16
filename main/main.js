@@ -31,15 +31,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
     slotSelector: '.slot',
-    containerSelector: '.slot-container',
-    controlsSelector: '.slot-controls',
+    containerSelector: '.widgets-container',
+    controlsSelector: '.widgets-controls',
     addButtonSelector: '#add-widget-btn',
     modalSelector: null, // We'll handle this with generic modal
     itemClass: 'widget',
     slotConfig: {
       name: 'widget-slots',
       count: 8, // Variable number of slots
-      cssClass: 'slot',
+      cssClass: 'widget-slot slot',
       idPrefix: '', // Will create slot IDs as "1", "2", "3", etc.
       startIndex: 1,
       additionalAttributes: {} // Any additional attributes can be added here
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     slotConfig: {
       name: 'shortcut-slots',
       count: 8, // Variable number of slots
-      cssClass: 'shortcut-slot',
+      cssClass: 'shortcut-slot slot',
       idPrefix: 's', // Will create slot IDs as "s1", "s2", "s3", etc.
       startIndex: 1,
       additionalAttributes: {} // Any additional attributes can be added here
