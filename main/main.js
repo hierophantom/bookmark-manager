@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
     slotSelector: '.slot',
-    containerSelector: '.slot-container',
-    controlsSelector: '.slot-controls',
+    containerSelector: '#widgets-container',
+    controlsSelector: '#widget-controls',
     addButtonSelector: '#add-widget-btn',
     modalSelector: null, // We'll handle this with generic modal
     itemClass: 'widget',
@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const shortcutsSlotSystem = new SlotSystem({
     storageKey: 'slotShortcuts',
     slotSelector: '.shortcut-slot',
-    containerSelector: '.shortcuts-container',
-    controlsSelector: '.shortcuts-controls',
+    containerSelector: '#shortcuts-container',
+    controlsSelector: '#shortcuts-controls',
     addButtonSelector: '#add-shortcut-btn',
     modalSelector: null, // We'll handle this with generic modal
     itemClass: 'shortcut',

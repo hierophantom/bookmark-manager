@@ -55,9 +55,9 @@ class SlotSystem {
       slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
-      addButtonSelector: options.addButtonSelector || '#add-widget-btn',
-      modalSelector: options.modalSelector || '#add-widget-modal',
-      itemClass: options.itemClass || 'widget',
+      addButtonSelector: options.addButtonSelector || '#add-slot-btn',
+      modalSelector: options.modalSelector || '#add-slot-modal',
+      itemClass: options.itemClass || 'slot',
       slotConfig: options.slotConfig || null, // New: slot factory config
       ...options
     };
