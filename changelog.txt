@@ -1,3 +1,5 @@
+Slots factory works
+
 0.9.3
 Yes some more CSS alignments
 
