@@ -22,6 +22,7 @@ Role: Widget-specific content styles including modal gallery
 /* –––––––––––––––––––––––––––
   WIDGET ITEMS
 ––––––––––––––––––––––––––– */
+
 .widget {
   background-color: var(--container-bright-30);
   border-radius: 6px;
@@ -35,7 +36,10 @@ Role: Widget-specific content styles including modal gallery
   position: absolute;
   transition: transform 0.1s, box-shadow 0.3s;
 }
-
+.widget-slot:hover {
+  border-color: var(--content-bright-50);
+  color: var(--content-bright-70);
+}
 /*.widget:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
