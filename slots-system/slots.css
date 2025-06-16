@@ -11,6 +11,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: red;
 }
 
 .slot-container {
@@ -32,14 +33,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .slot-container:hover .slot-controls{
   visibility: visible;
 }
-  .shortcuts-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 40px;
-  width: 860px;
-  position: relative;
-}
+
 /* –––––––––––––––––––––––––––
   SLOTS
 ––––––––––––––––––––––––––– */

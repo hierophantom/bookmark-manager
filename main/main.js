@@ -30,9 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize widget slot system with slot factory config
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
-    slotSelector: '.slot',
-    containerSelector: '.slot-container',
-    controlsSelector: '.slot-controls',
+    slotSelector: '.widget-slot',
+    containerSelector: '#widgets-container',
+    controlsSelector: '#widget-controls',
     addButtonSelector: '#add-widget-btn',
     modalSelector: null, // We'll handle this with generic modal
     itemClass: 'widget',
@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const shortcutsSlotSystem = new SlotSystem({
     storageKey: 'slotShortcuts',
     slotSelector: '.shortcut-slot',
-    containerSelector: '.shortcuts-container',
-    controlsSelector: '.shortcuts-controls',
+    containerSelector: '#shortcuts-container',
+    controlsSelector: '#shortcut-controls',
     addButtonSelector: '#add-shortcut-btn',
     modalSelector: null, // We'll handle this with generic modal
     itemClass: 'shortcut',
