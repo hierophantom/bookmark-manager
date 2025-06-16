@@ -23,51 +23,6 @@ Role: Widget-specific content styles including modal gallery
   WIDGET ITEMS
 ––––––––––––––––––––––––––– */
 
-.widget {
-  background-color: var(--container-bright-30);
-  border-radius: 6px;
-  padding: 12px;
-  width: calc(100% - 24px);
-  height: calc(100% - 24px);
-  cursor: pointer;
-  user-select: none;
-  touch-action: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  transition: transform 0.1s, box-shadow 0.3s;
-}
-.widget-slot:hover {
-  border-color: var(--content-bright-50);
-  color: var(--content-bright-70);
-}
-/*.widget:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.widget:hover .widget-controls {
-  display: flex;
-}
-
-.widget.dragging {
-  opacity: 0.8;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-}
-
-.widget.dragging:hover {
-  transform: none;
-}
-
-.widget.swap-target {
-  outline: 2px dashed var(--content-bright-80);
-  outline-offset: 2px;
-}*/
-
-/* –––––––––––––––––––––––––––
-  WIDGET ITEMS
-––––––––––––––––––––––––––– */
-/*
 .widget-controls {
   position: absolute;
   top: -8px;
@@ -143,13 +98,14 @@ Role: Widget-specific content styles including modal gallery
 
 .widget-drag-handle:hover {
   opacity: 1;
-}*/
+}
 
 /* –––––––––––––––––––––––––––
   WIDGET CONTENT BASE
 ––––––––––––––––––––––––––– */
 
-/*.widget-placeholder {
+WIDGET INNER CONTENT
+.widget-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,7 +114,7 @@ Role: Widget-specific content styles including modal gallery
   font-size: 1.1rem;
   font-weight: 500;
   text-transform: capitalize;
-}*/
+}
 
 /* –––––––––––––––––––––––––––
   WIDGET GALLERY (IN MODAL)
