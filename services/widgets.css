@@ -157,3 +157,49 @@ Role: Widget-specific content styles including modal gallery
 .widget-template.selected .widget-template-title {
   color: var(--content-bright-100);
 }
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.widget-enter {
+  animation: widgetEnter 0.5s ease-out;
+}
+
+@keyframes widgetEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(var(--start-x, 0), var(--start-y, 0));
+  }
+}
+
+/* Exit animation */
+.widget-exit {
+  animation: widgetExit 0.3s ease-in forwards;
+}
+
+@keyframes widgetExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Hover animations */
+.widget:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.widget.dragging:hover {
+  transform: none; /* Override hover transform when dragging */
+}

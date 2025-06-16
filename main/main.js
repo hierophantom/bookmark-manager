@@ -29,22 +29,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize widget slot system with slot factory config
   const widgetSlotSystem = new SlotSystem({
-    storageKey: 'slotWidgets',
-    slotSelector: '.slot',
-    containerSelector: '.widgets-container',
-    controlsSelector: '.widgets-controls',
-    addButtonSelector: '#add-widget-btn',
-    modalSelector: null, // We'll handle this with generic modal
-    itemClass: 'widget',
-    slotConfig: {
-      name: 'widget-slots',
-      count: 8, // Variable number of slots
-      cssClass: 'widget-slot slot',
-      idPrefix: '', // Will create slot IDs as "1", "2", "3", etc.
-      startIndex: 1,
-      additionalAttributes: {} // Any additional attributes can be added here
-    }
-  });
+  storageKey: 'slotWidgets',
+  slotSelector: '.widget-slot',
+  containerSelector: '.widgets-container',
+  controlsSelector: '#widgets-controls',
+  addButtonSelector: '#add-widget-btn',
+  modalSelector: null,
+  itemClass: 'widget',
+  slotConfig: {
+    name: 'widget-slots',
+    count: 8,
+    cssClass: 'slot',
+    idPrefix: 'w',
+    startIndex: 1,
+    additionalAttributes: {}
+  }
+});
+
 
   // Connect the widget factory to the widget slot system
   widgetSlotSystem.setItemFactory(widgetFactory);
@@ -82,23 +83,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const shortcutsFactory = new ShortcutsFactory();
 
   // Initialize shortcuts slot system with slot factory config
-  const shortcutsSlotSystem = new SlotSystem({
-    storageKey: 'slotShortcuts',
-    slotSelector: '.shortcut-slot',
-    containerSelector: '.shortcuts-container',
-    controlsSelector: '.shortcuts-controls',
-    addButtonSelector: '#add-shortcut-btn',
-    modalSelector: null, // We'll handle this with generic modal
-    itemClass: 'shortcut',
-    slotConfig: {
-      name: 'shortcut-slots',
-      count: 8, // Variable number of slots
-      cssClass: 'shortcut-slot slot',
-      idPrefix: 's', // Will create slot IDs as "s1", "s2", "s3", etc.
-      startIndex: 1,
-      additionalAttributes: {} // Any additional attributes can be added here
-    }
-  });
+const shortcutsSlotSystem = new SlotSystem({
+  storageKey: 'slotShortcuts',
+  slotSelector: '.shortcut-slot',
+  containerSelector: '.shortcuts-container',
+  controlsSelector: '#shortcuts-controls', // Changed from '.shortcuts-controls' to '#shortcuts-controls'
+  addButtonSelector: '#add-shortcut-btn',
+  modalSelector: null,
+  itemClass: 'shortcut',
+  slotConfig: {
+    name: 'shortcut-slots',
+    count: 8,
+    cssClass: 'shortcut-slot',
+    idPrefix: 's',
+    startIndex: 1,
+    additionalAttributes: {}
+  }
+});
 
   // Connect the shortcuts factory to the shortcuts slot system
   shortcutsSlotSystem.setItemFactory(shortcutsFactory);

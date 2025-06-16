@@ -54,11 +54,11 @@ class SlotSystem {
       storageKey: options.storageKey || 'slotItems',
       slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
-      controlsSelector: options.controlsSelector || '.slot-controls',
+      controlsSelector: options.controlsSelector,
       addButtonSelector: options.addButtonSelector || '#add-widget-btn',
       modalSelector: options.modalSelector || '#add-widget-modal',
       itemClass: options.itemClass || 'widget',
-      slotConfig: options.slotConfig || null, // New: slot factory config
+      slotConfig: options.slotConfig || null,
       ...options
     };
     
