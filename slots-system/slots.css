@@ -33,51 +33,9 @@ Role: Core slot system styles (layout, drag/drop, animations)
   visibility: visible;
 }
 
-.shortcuts-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 40px;
-  width: 860px;
-  position: relative;
-}
-.shortcuts-container:hover {
-    background-color: var(--container-dim-20);
-  border-color: var(--container-dim-30);
-  transition: background-color 0.3s, border-color 0.3s;  
-  border-radius: 16px;}
-  
 /* –––––––––––––––––––––––––––
-  SLOTS
+  SLOTS DROP
 ––––––––––––––––––––––––––– */
-
-.slot {
-  display: flex;
-  border-radius: 8px;
-  width: 100px;
-  height: 100px;
-  transition: background-color 0.3s, border-color 0.3s;  
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.slot-container:hover .slot{
-  background-color: var(--container-bright-10);
-}
-
-.slot-container:hover .slot:hover{
-  background-color: var(--container-bright-30);
-}
-
-.slot.drop-active {
-  border-color: var(--content-bright-80);
-}
-
-.slot.drop-target {
-  background-color: var(--container-bright-20);
-  border-style: solid;
-}
 
 .shortcut-slot.drop-active, .widget-slot.drop-active {
   border-color: var(--content-bright-80);

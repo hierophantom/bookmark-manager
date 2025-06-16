@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize widget slot system with slot factory config
   const widgetSlotSystem = new SlotSystem({
     storageKey: 'slotWidgets',
-    slotSelector: '.slot',
+    slotSelector: '.widget-slot',
     containerSelector: '#widgets-container',
     controlsSelector: '#widget-controls',
     addButtonSelector: '#add-widget-btn',
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     slotConfig: {
       name: 'widget-slots',
       count: 8, // Variable number of slots
-      cssClass: 'slot',
+      cssClass: 'widget-slot',
       idPrefix: '', // Will create slot IDs as "1", "2", "3", etc.
       startIndex: 1,
       additionalAttributes: {} // Any additional attributes can be added here
