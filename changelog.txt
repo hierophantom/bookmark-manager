@@ -1,4 +1,5 @@
-Slots factory works
+0.9.4
+Separated slotFactory works. Now need to generalize styles and other definitions 
 
 0.9.3
 Yes some more CSS alignments

@@ -48,7 +48,7 @@ class WidgetFactory {
     
     // Create the widget element
     const element = document.createElement('div');
-    element.id = id;
+    element.id = 'widget';
     element.className = 'widget';
     element.dataset.widgetType = type;
     element.dataset.slotId = slotId;

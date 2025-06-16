@@ -20,8 +20,32 @@ Role: Widget-specific content styles including modal gallery
 }
 
 /* –––––––––––––––––––––––––––
-  WIDGET CONTENT BASE
+  WIDGET ITEMS
 ––––––––––––––––––––––––––– */
+
+.widget-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.widget-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--white-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.widget-close-btn svg {
+  margin-left: 1px;
+}
 
 .widget {
   background-color: var(--container-bright-30);
@@ -60,6 +84,27 @@ Role: Widget-specific content styles including modal gallery
   overflow: hidden;
 }
 
+.widget-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.widget-drag-handle:hover {
+  opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
+  WIDGET CONTENT BASE
+––––––––––––––––––––––––––– */
+
+WIDGET INNER CONTENT
 .widget-placeholder {
   display: flex;
   align-items: center;

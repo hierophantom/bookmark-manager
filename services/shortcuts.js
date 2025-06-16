@@ -21,7 +21,7 @@ class ShortcutsFactory {
   async createItem(id, data, slotId, position = { x: 0, y: 0 }) {
     // Create the shortcut element
     const element = document.createElement('div');
-    element.id = id;
+    element.id = 'shortcut';
     element.className = 'shortcut';
     element.dataset.slotId = slotId;
     

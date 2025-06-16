@@ -255,9 +255,9 @@ class SlotSystem {
     this.saveItems();
     
     // Add animation class for entrance
-    item.classList.add('widget-enter');
+    item.classList.add('slot-enter');
     setTimeout(() => {
-      item.classList.remove('widget-enter');
+      item.classList.remove('slot-enter');
     }, 500);
     
     return item;
@@ -308,9 +308,9 @@ class SlotSystem {
     this.saveItems();
     
     // Add animation class for entrance
-    item.classList.add('widget-enter');
+    item.classList.add('slot-enter');
     setTimeout(() => {
-      item.classList.remove('widget-enter');
+      item.classList.remove('slot-enter');
     }, 500);
     
     return item;
@@ -318,7 +318,7 @@ class SlotSystem {
 
   
  setupItemControls(item, itemId) {
-  const itemClass = this.config.itemClass; // Gets 'widget' or 'shortcut'
+  const itemClass = this.config.itemClass;
   
   // Add drag handle if it doesn't exist
   if (!item.querySelector(`.${itemClass}-drag-handle`)) {
@@ -356,7 +356,7 @@ class SlotSystem {
     const item = document.getElementById(itemId);
     if (item) {
       // Add exit animation
-      item.classList.add('widget-exit');
+      item.classList.add('slot-exit');
       
       // Wait for animation to complete before removing
       setTimeout(() => {
