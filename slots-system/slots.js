@@ -55,9 +55,9 @@ class SlotSystem {
       slotSelector: options.slotSelector || '.slot',
       containerSelector: options.containerSelector || '.slot-container',
       controlsSelector: options.controlsSelector || '.slot-controls',
-      addButtonSelector: options.addButtonSelector || '#add-widget-btn',
-      modalSelector: options.modalSelector || '#add-widget-modal',
-      itemClass: options.itemClass || 'widget',
+      addButtonSelector: options.addButtonSelector || '.add-item-btn',
+      modalSelector: options.modalSelector || '.add-item-modal', 
+      itemClass: options.itemClass || 'slot-item',
       slotConfig: options.slotConfig || null, // New: slot factory config
       ...options
     };
@@ -66,7 +66,7 @@ class SlotSystem {
     this.items = [];
     this.nextItemId = 1;
     this.draggedItem = null;
-    this.itemFactory = null; // Will be set by widget system
+    this.itemFactory = null;
     
     // Initialize elements
     this.initElements();
@@ -118,7 +118,7 @@ class SlotSystem {
     
     if (this.modal) {
       this.modalClose = this.modal.querySelector('.modal-close');
-      this.itemTemplates = this.modal.querySelectorAll('.widget-template');
+      this.itemTemplates = this.modal.querySelectorAll('.item-template');
     }
     
     // Set up hover behavior for controls
@@ -173,7 +173,7 @@ class SlotSystem {
       // Item templates
       this.itemTemplates.forEach(template => {
         template.addEventListener('click', () => {
-          const itemType = template.dataset.widgetType;
+          const itemType = template.dataset.itemType;
           this.addItem(itemType);
           this.closeModal();
         });

@@ -32,9 +32,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
 .slot-container:hover .slot-controls{
   visibility: visible;
 }
-
-
-.shortcuts-container {
+  .shortcuts-container {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
@@ -42,12 +40,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
   width: 860px;
   position: relative;
 }
-.shortcuts-container:hover {
-    background-color: var(--container-dim-20);
-  border-color: var(--container-dim-30);
-  transition: background-color 0.3s, border-color 0.3s;  
-  border-radius: 16px;}
-  
 /* –––––––––––––––––––––––––––
   SLOTS
 ––––––––––––––––––––––––––– */
@@ -71,14 +63,14 @@ Role: Core slot system styles (layout, drag/drop, animations)
   background-color: var(--container-bright-30);
 }
 
-.slot.drop-active {
+/*.slot.drop-active {
   border-color: var(--content-bright-80);
 }
 
 .slot.drop-target {
   background-color: var(--container-bright-20);
   border-style: solid;
-}
+}*/
 
 .shortcut-slot.drop-active, .widget-slot.drop-active {
   border-color: var(--content-bright-80);
@@ -113,7 +105,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
   ANIMATIONS
 ––––––––––––––––––––––––––– */
 
-/* Entry animation */
 .slot-enter {
   animation: slotEnter 0.5s ease-out;
 }
@@ -129,7 +120,6 @@ Role: Core slot system styles (layout, drag/drop, animations)
   }
 }
 
-/* Exit animation */
 .slot-exit {
   animation: slotExit 0.3s ease-in forwards;
 }
@@ -144,13 +134,3 @@ Role: Core slot system styles (layout, drag/drop, animations)
     transform: scale(0.8);
   }
 }
-/*
-.slot:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.slot.dragging:hover {
-  transform: none;
-}
-*/

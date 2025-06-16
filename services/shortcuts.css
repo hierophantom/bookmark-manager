@@ -37,7 +37,7 @@ Role: Pinned URLs shortcuts styles
   transition: transform 0.1s, box-shadow 0.3s;
 }
 
-.shortcut:hover {
+/*.shortcut:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -53,13 +53,13 @@ Role: Pinned URLs shortcuts styles
 }
 
 .shortcut.dragging:hover {
-  transform: none; /* Override hover transform when dragging */
+  transform: none;
 }
 
 .shortcut.swap-target {
   outline: 2px dashed var(--content-bright-80);
   outline-offset: 2px;
-}
+}*/
 
 
 /* –––––––––––––––––––––––––––
