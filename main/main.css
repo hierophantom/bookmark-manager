@@ -139,7 +139,7 @@ body {
 }
 
 main {
-  background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://fastly.picsum.photos/id/18/2500/1667.jpg?hmac=JR0Z_jRs9rssQHZJ4b7xKF82kOj8-4Ackq75D_9Wmz8");
+  background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://picsum.photos/1920/1080");
   background-repeat: no-repeat;
   background-size: cover;
   width: 100%;

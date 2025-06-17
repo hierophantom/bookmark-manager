@@ -61,6 +61,46 @@ Role: Pinned URLs shortcuts styles
   outline-offset: 2px;
 }
 
+.shortcut-controls {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+}
+
+.shortcut-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--container-bright-100);
+  border: none;
+  border-radius: 999px;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.shortcut-close-btn svg {
+  margin-left: 1px;
+}
+
+/* Drag handle */
+.shortcut-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.shortcut-drag-handle:hover {
+  opacity: 1;
+}
 
 /* –––––––––––––––––––––––––––
   SHORTCUT CONTENT
@@ -144,49 +184,4 @@ Role: Pinned URLs shortcuts styles
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* –––––––––––––––––––––––––––
-  SHORTCUT CONTROLS
-––––––––––––––––––––––––––– */
-
-.shortcut-controls {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  display: none;
-}
-
-.shortcut-close-btn {
-  width: 18px;
-  height: 18px;
-  background-color: var(--container-bright-100);
-  border: none;
-  border-radius: 999px;
-  padding: 4px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.shortcut-close-btn svg {
-  margin-left: 1px;
-}
-
-/* Drag handle */
-.shortcut-drag-handle {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  cursor: move;
-  opacity: 0.3;
-  transition: opacity 0.2s;
-  fill: var(--content-dim-100);
-}
-
-.shortcut-drag-handle:hover {
-  opacity: 1;
 }
