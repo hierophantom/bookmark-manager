@@ -39,11 +39,20 @@ Role: Core slot system styles (layout, drag/drop, animations)
   SLOTS DROP
 ––––––––––––––––––––––––––– */
 
-.shortcut-slot.drop-active, .widget-slot.drop-active {
+/*.shortcut-slot.drop-active, .widget-slot.drop-active {
   border-color: var(--content-bright-80);
 }
 
 .shortcut-slot.drop-target, .widget-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border-style: solid;
+}*/
+
+.slot.drop-active {
+  border-color: var(--content-bright-80);
+}
+
+.slot.drop-target {
   background-color: var(--container-bright-20);
   border-style: solid;
 }
