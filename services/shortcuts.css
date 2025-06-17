@@ -8,8 +8,7 @@ Role: Pinned URLs shortcuts styles
 ––––––––––––––––––––––––––– */
 
 #shortcuts-container {
-  width: fit-content;
-  max-width: 1212px;
+  width: 1132px;
 }
 
 .shortcut-slot {
@@ -24,6 +23,16 @@ Role: Pinned URLs shortcuts styles
   border: 2px dashed transparent;
 }
 
+.shortcut-slot.drop-active {
+  border-color: var(--content-bright-80);
+}
+
+.shortcut-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border-style: solid;
+}
+
+
 /* –––––––––––––––––––––––––––
   SHORTCUT ITEMS
 ––––––––––––––––––––––––––– */
@@ -37,7 +46,7 @@ Role: Pinned URLs shortcuts styles
   user-select: none;
   touch-action: none;
   position: absolute;
-  background-color: var(--container-bright-20);
+  background-color: var(--container-bright-80);
   transition: transform 0.1s, box-shadow 0.3s;
 }
 
@@ -103,7 +112,7 @@ Role: Pinned URLs shortcuts styles
   cursor: move;
   opacity: 0;
   transition: opacity 0.2s;
-  fill: var(--content-dim-100);
+  fill: var(--content-dim-30);
 }
 
 .shortcut-drag-handle:hover {
@@ -156,7 +165,6 @@ Role: Pinned URLs shortcuts styles
   display: flex;
   align-items: center;
   justify-content: center;
-  /*background: var(--black-20);*/
   border-radius: 6px;
   padding: 8px;
   overflow: hidden;
@@ -165,7 +173,7 @@ Role: Pinned URLs shortcuts styles
 .shortcut-favicon svg {
   width: 40px;
   height: 40px;
-  fill: var(--white-100);
+  fill: var(--content-dim-100);
   margin-left: 3px;
   margin-top: 3px;
 }
@@ -182,7 +190,7 @@ Role: Pinned URLs shortcuts styles
 .shortcut-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--content-dim-80);
+  color: var(--content-dim-30);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

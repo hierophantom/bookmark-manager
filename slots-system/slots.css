@@ -20,7 +20,10 @@ Role: Core slot system styles (layout, drag/drop, animations)
   padding: 40px;
   width: 860px;
   position: relative;
+  background-color: var(--container-dim-10);
   outline: 0px solid var(--container-dim-30);
+  backdrop-filter: blur(3px);
+  border-radius: 16px;
 }
 
 .slot-container:hover {
@@ -28,33 +31,11 @@ Role: Core slot system styles (layout, drag/drop, animations)
   outline: 2px solid var(--container-dim-30);
   border-radius: 16px;
   backdrop-filter: blur(7px);
-  transition: background-color 0.1s, backdrop-filter 0.1s;
+  transition: background-color 0.3s, backdrop-filter 0.3s;
 }
 
 .slot-container:hover .slot-controls{
   visibility: visible;
-}
-
-/* –––––––––––––––––––––––––––
-  SLOTS DROP
-––––––––––––––––––––––––––– */
-
-/*.shortcut-slot.drop-active, .widget-slot.drop-active {
-  border-color: var(--content-bright-80);
-}
-
-.shortcut-slot.drop-target, .widget-slot.drop-target {
-  background-color: var(--container-bright-20);
-  border-style: solid;
-}*/
-
-.slot.drop-active {
-  border-color: var(--content-bright-80);
-}
-
-.slot.drop-target {
-  background-color: var(--container-bright-20);
-  border-style: solid;
 }
 
 /* –––––––––––––––––––––––––––

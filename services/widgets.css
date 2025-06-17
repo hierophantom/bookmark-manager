@@ -7,16 +7,29 @@ Role: Widget-specific content styles including modal gallery
   WIDGET SLOTS
 ––––––––––––––––––––––––––– */
 
+#widgets-container {
+  width: 876px;
+}
+
 .widget-slot {
   display: flex;
   border-radius: 8px;
   width: 200px;
-  height: 80px;
+  height: 200px;
   transition: background-color 0.3s, border-color 0.3s;
   justify-content: center;
   align-items: center;
   position: relative;
   border: 2px dashed transparent;
+}
+
+.widget-slot.drop-active {
+  border-color: var(--content-bright-80);
+}
+
+.widget-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border-style: solid;
 }
 
 /* –––––––––––––––––––––––––––
@@ -96,9 +109,9 @@ Role: Widget-specific content styles including modal gallery
   width: 16px;
   height: 16px;
   cursor: move;
-  opacity: 0.3;
+  opacity: 0;
   transition: opacity 0.2s;
-  fill: var(--content-dim-100);
+  fill: var(--content-dim-30);
 }
 
 .widget-drag-handle:hover {
