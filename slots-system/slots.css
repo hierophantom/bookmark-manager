@@ -20,13 +20,15 @@ Role: Core slot system styles (layout, drag/drop, animations)
   padding: 40px;
   width: 860px;
   position: relative;
+  outline: 0px solid var(--container-dim-30);
 }
 
 .slot-container:hover {
   background-color: var(--container-dim-20);
-  border-color: var(--container-dim-30);
-  transition: background-color 0.3s, border-color 0.3s;  
+  outline: 2px solid var(--container-dim-30);
   border-radius: 16px;
+  backdrop-filter: blur(7px);
+  transition: background-color 0.1s, backdrop-filter 0.1s;
 }
 
 .slot-container:hover .slot-controls{

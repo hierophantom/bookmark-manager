@@ -1,3 +1,6 @@
+1.0
+Shortcuts css done. And ready for use! First value delivered!!!
+
 0.9.4
 Separated slotFactory works. Now need to generalize styles and other definitions 
 
