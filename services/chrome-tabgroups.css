@@ -564,6 +564,203 @@ Role: Tab groups visualization styles and interaction states
   border-left-color: #FF9800;
 }
 
+/* –––––––––––––––––––––––––––
+  TAB GROUP STATUS INDICATORS
+––––––––––––––––––––––––––– */
+
+.tab-group-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.group-status {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.group-status.active {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.group-status.saved {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #2196F3;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP VISUAL STATES
+––––––––––––––––––––––––––– */
+
+.tab-group.saved-group {
+  opacity: 0.85;
+  border: 1px dashed var(--container-bright-50);
+}
+
+.tab-group.saved-group:hover {
+  opacity: 1;
+  border-style: solid;
+}
+
+.tab-group.active-group {
+  border: 1px solid var(--container-bright-50);
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP ACTIONS
+––––––––––––––––––––––––––– */
+
+.tab-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-action-btn {
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  opacity: 0.6;
+}
+
+.group-action-btn:hover {
+  background-color: var(--container-bright-20);
+  opacity: 1;
+}
+
+.group-action-btn svg {
+  stroke: var(--content-bright-70);
+}
+
+.restore-btn:hover {
+  background-color: rgba(76, 175, 80, 0.2);
+}
+
+.restore-btn:hover svg {
+  stroke: #4CAF50;
+}
+
+.delete-btn:hover {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+.delete-btn:hover svg {
+  stroke: #F44336;
+}
+
+.save-btn:hover {
+  background-color: rgba(33, 150, 243, 0.2);
+}
+
+.save-btn:hover svg {
+  stroke: #2196F3;
+}
+
+/* –––––––––––––––––––––––––––
+  SAVED TAB ITEMS
+––––––––––––––––––––––––––– */
+
+.saved-group .tab-item {
+  cursor: pointer;
+  position: relative;
+}
+
+.saved-group .tab-item::after {
+  content: '↗';
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: var(--content-bright-50);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.saved-group .tab-item:hover::after {
+  opacity: 1;
+}
+
+.saved-group .tab-item:hover {
+  background-color: var(--container-bright-25);
+}
+
+/* –––––––––––––––––––––––––––
+  SECTION IMPROVEMENTS
+––––––––––––––––––––––––––– */
+
+.tab-groups-section + .tab-groups-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid var(--container-bright-20);
+}
+
+/* –––––––––––––––––––––––––––
+  ENHANCED HEADER LAYOUT
+––––––––––––––––––––––––––– */
+
+.tab-group-header {
+  padding: 10px 0;
+}
+
+.tab-group-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tab-group-title {
+  margin-bottom: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  COLOR THEME VARIATIONS
+––––––––––––––––––––––––––– */
+
+.tab-group[data-color="blue"] .tab-group-header {
+  border-left-color: #2196F3;
+}
+
+.tab-group[data-color="red"] .tab-group-header {
+  border-left-color: #F44336;
+}
+
+.tab-group[data-color="green"] .tab-group-header {
+  border-left-color: #4CAF50;
+}
+
+.tab-group[data-color="yellow"] .tab-group-header {
+  border-left-color: #FFEB3B;
+}
+
+.tab-group[data-color="purple"] .tab-group-header {
+  border-left-color: #9C27B0;
+}
+
+.tab-group[data-color="pink"] .tab-group-header {
+  border-left-color: #E91E63;
+}
+
+.tab-group[data-color="cyan"] .tab-group-header {
+  border-left-color: #00BCD4;
+}
+
+.tab-group[data-color="orange"] .tab-group-header {
+  border-left-color: #FF9800;
+}
+
 .tab-group[data-color="grey"] .tab-group-header {
   border-left-color: #9E9E9E;
 }

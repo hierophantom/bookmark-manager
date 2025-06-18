@@ -1,6 +1,6 @@
 /*
 File name & path: services/chrome-tabgroups.js
-Role: Chrome Tab Groups API service layer and tab group visualization components
+Role: Chrome Tab Groups API service with persistent saved groups
 */
 
 /* –––––––––––––––––––––––––––
@@ -11,11 +11,9 @@ class ChromeTabGroupsService {
   constructor() {
     this.isExtensionContext = this.checkExtensionContext();
     this.listeners = new Map();
+    this.storageKey = 'persistentTabGroups';
+    this.setupAutoSave();
   }
-
-  /* –––––––––––––––––––––––––––
-    CONTEXT VALIDATION
-  ––––––––––––––––––––––––––– */
 
   checkExtensionContext() {
     try {
@@ -26,9 +24,88 @@ class ChromeTabGroupsService {
     }
   }
 
-  /* –––––––––––––––––––––––––––
-    CORE TAB GROUP OPERATIONS
-  ––––––––––––––––––––––––––– */
+  setupAutoSave() {
+    if (!this.isExtensionContext) return;
+
+    // Save groups periodically
+    setInterval(() => {
+      this.saveCurrentActiveGroups();
+    }, 15000); // Every 15 seconds
+
+    // Save when page unloads
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.saveCurrentActiveGroups();
+      });
+    }
+  }
+
+  async saveCurrentActiveGroups() {
+    try {
+      const activeGroups = await this.getAllTabGroups();
+      
+      for (const group of activeGroups) {
+        const tabs = await this.getTabsInGroup(group.id);
+        if (tabs.length > 0) {
+          await this.updateSavedGroup(group, tabs);
+        }
+      }
+    } catch (error) {
+      console.error('Auto-save error:', error);
+    }
+  }
+
+  async updateSavedGroup(group, tabs) {
+    try {
+      const savedGroups = await this.getSavedTabGroups();
+      
+      const savedGroup = {
+        id: `persistent-${group.id}`,
+        originalId: group.id,
+        title: group.title || 'Untitled Group',
+        color: group.color || 'grey',
+        collapsed: group.collapsed || false,
+        dateCreated: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        isCurrentlyActive: true,
+        tabs: tabs.map(tab => ({
+          title: tab.title,
+          url: tab.url,
+          favIconUrl: tab.favIconUrl,
+          index: tab.index,
+          active: tab.active
+        }))
+      };
+
+      // Update or add the group
+      const existingIndex = savedGroups.findIndex(g => g.originalId === group.id);
+      if (existingIndex >= 0) {
+        savedGroups[existingIndex] = savedGroup;
+      } else {
+        savedGroups.push(savedGroup);
+      }
+
+      await chrome.storage.local.set({ [this.storageKey]: savedGroups });
+    } catch (error) {
+      console.error('Error updating saved group:', error);
+    }
+  }
+
+  async markGroupAsClosed(groupId) {
+    try {
+      const savedGroups = await this.getSavedTabGroups();
+      const group = savedGroups.find(g => g.originalId === groupId);
+      
+      if (group) {
+        group.isCurrentlyActive = false;
+        group.dateClosed = new Date().toISOString();
+        await chrome.storage.local.set({ [this.storageKey]: savedGroups });
+        console.log('Marked group as closed:', group.title);
+      }
+    } catch (error) {
+      console.error('Error marking group as closed:', error);
+    }
+  }
 
   async getAllTabGroups() {
     if (!this.isExtensionContext) {
@@ -44,17 +121,67 @@ class ChromeTabGroupsService {
     }
   }
 
-  async getTabGroup(groupId) {
-    if (!this.isExtensionContext) {
-      throw new Error('Chrome tab groups API not available');
-    }
-    
+  async getAllTabGroupsWithHistory() {
     try {
-      const group = await chrome.tabGroups.get(groupId);
-      return group;
+      // Get currently active groups
+      let activeGroups = [];
+      if (this.isExtensionContext) {
+        activeGroups = await this.getAllTabGroups();
+      }
+
+      // Get saved groups
+      const savedGroups = await this.getSavedTabGroups();
+
+      // Mark which saved groups are currently active
+      const enhancedSavedGroups = savedGroups.map(savedGroup => {
+        const isCurrentlyActive = activeGroups.some(active => 
+          active.id === savedGroup.originalId
+        );
+        
+        return {
+          ...savedGroup,
+          isCurrentlyActive,
+          displayType: isCurrentlyActive ? 'active' : 'saved',
+          isActive: isCurrentlyActive,
+          isSaved: !isCurrentlyActive
+        };
+      });
+
+      // Add any active groups that aren't in saved groups yet
+      activeGroups.forEach(activeGroup => {
+        const existsInSaved = savedGroups.some(saved => 
+          saved.originalId === activeGroup.id
+        );
+        
+        if (!existsInSaved) {
+          enhancedSavedGroups.push({
+            ...activeGroup,
+            id: `temp-${activeGroup.id}`,
+            originalId: activeGroup.id,
+            isCurrentlyActive: true,
+            displayType: 'active',
+            isActive: true,
+            isSaved: false,
+            tabs: [] // Will be loaded when displayed
+          });
+        }
+      });
+
+      console.log('All tab groups with history:', enhancedSavedGroups);
+      return enhancedSavedGroups;
     } catch (error) {
-      console.error('Error fetching tab group:', error);
-      throw error;
+      console.error('Error getting all tab groups with history:', error);
+      return [];
+    }
+  }
+
+  async getSavedTabGroups() {
+    try {
+      const result = await chrome.storage.local.get(this.storageKey);
+      return result[this.storageKey] || [];
+    } catch (error) {
+      console.error('Error getting saved groups:', error);
+      return [];
     }
   }
 
@@ -72,97 +199,84 @@ class ChromeTabGroupsService {
     }
   }
 
-  async getAllActiveTabs() {
+  async restoreTabGroup(savedGroup) {
     if (!this.isExtensionContext) {
       throw new Error('Chrome tabs API not available');
     }
     
     try {
-      const tabs = await chrome.tabs.query({});
-      return tabs;
-    } catch (error) {
-      console.error('Error fetching active tabs:', error);
-      throw error;
-    }
-  }
-
-  async createTabGroup(tabIds, options = {}) {
-    if (!this.isExtensionContext) {
-      throw new Error('Chrome tabs API not available');
-    }
-    
-    try {
-      // First group the tabs
-      const groupId = await chrome.tabs.group({ tabIds });
+      console.log('Restoring tab group:', savedGroup);
       
-      // Then update the group properties if provided
-      if (options.title || options.color || options.collapsed !== undefined) {
-        await chrome.tabGroups.update(groupId, options);
+      if (!savedGroup.tabs || savedGroup.tabs.length === 0) {
+        console.warn('No tabs to restore for group:', savedGroup.title);
+        return;
+      }
+
+      // Create tabs for the saved group
+      const createdTabs = [];
+      
+      for (const savedTab of savedGroup.tabs) {
+        const tab = await chrome.tabs.create({
+          url: savedTab.url,
+          active: false
+        });
+        createdTabs.push(tab);
       }
       
-      return groupId;
+      if (createdTabs.length > 0) {
+        // Group the tabs
+        const groupId = await chrome.tabs.group({ 
+          tabIds: createdTabs.map(t => t.id) 
+        });
+        
+        // Update group properties
+        await chrome.tabGroups.update(groupId, {
+          title: savedGroup.title,
+          color: savedGroup.color,
+          collapsed: false
+        });
+        
+        console.log('Tab group restored:', savedGroup.title);
+        this.emit('tabGroupRestored', { group: savedGroup, newGroupId: groupId });
+        
+        return groupId;
+      }
     } catch (error) {
-      console.error('Error creating tab group:', error);
+      console.error('Error restoring tab group:', error);
       throw error;
     }
   }
 
-  async updateTabGroup(groupId, options) {
-    if (!this.isExtensionContext) {
-      throw new Error('Chrome tab groups API not available');
-    }
-    
+  async deleteSavedTabGroup(savedGroupId) {
     try {
-      const group = await chrome.tabGroups.update(groupId, options);
-      return group;
-    } catch (error) {
-      console.error('Error updating tab group:', error);
-      throw error;
-    }
-  }
-
-  async ungroupTabs(tabIds) {
-    if (!this.isExtensionContext) {
-      throw new Error('Chrome tabs API not available');
-    }
-    
-    try {
-      await chrome.tabs.ungroup(tabIds);
+      const savedGroups = await this.getSavedTabGroups();
+      const filteredGroups = savedGroups.filter(g => g.id !== savedGroupId);
+      
+      await chrome.storage.local.set({ [this.storageKey]: filteredGroups });
+      
+      this.emit('savedTabGroupDeleted', { groupId: savedGroupId });
+      console.log('Deleted saved tab group:', savedGroupId);
       return true;
     } catch (error) {
-      console.error('Error ungrouping tabs:', error);
+      console.error('Error deleting saved tab group:', error);
       throw error;
     }
   }
-
-  async moveTabsToGroup(tabIds, groupId) {
-    if (!this.isExtensionContext) {
-      throw new Error('Chrome tabs API not available');
-    }
-    
-    try {
-      await chrome.tabs.group({ tabIds, groupId });
-      return true;
-    } catch (error) {
-      console.error('Error moving tabs to group:', error);
-      throw error;
-    }
-  }
-
-  /* –––––––––––––––––––––––––––
-    EVENT LISTENERS
-  ––––––––––––––––––––––––––– */
 
   startListening() {
     if (!this.isExtensionContext) return;
 
     // Listen for tab group events
     chrome.tabGroups.onCreated.addListener((group) => {
+      console.log('Tab group created:', group);
       this.emit('tabGroupCreated', { group });
     });
 
-    chrome.tabGroups.onRemoved.addListener((group) => {
+    chrome.tabGroups.onRemoved.addListener(async (group) => {
+      console.log('Tab group removed:', group);
+      await this.markGroupAsClosed(group.id);
       this.emit('tabGroupRemoved', { group });
+      this.emit('tabGroupClosed', { group });
     });
 
     chrome.tabGroups.onUpdated.addListener((group) => {
@@ -185,7 +299,7 @@ class ChromeTabGroupsService {
     });
 
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (tab.groupId !== -1) {
+      if (tab.groupId !== -1 && (changeInfo.title || changeInfo.url || changeInfo.favIconUrl)) {
         this.emit('tabInGroupUpdated', { tabId, changeInfo, tab });
       }
     });
@@ -202,10 +316,6 @@ class ChromeTabGroupsService {
     chrome.tabs.onRemoved.removeListener();
     chrome.tabs.onUpdated.removeListener();
   }
-
-  /* –––––––––––––––––––––––––––
-    EVENT EMITTER METHODS
-  ––––––––––––––––––––––––––– */
 
   on(event, callback) {
     if (!this.listeners.has(event)) {
@@ -231,10 +341,6 @@ class ChromeTabGroupsService {
       });
     }
   }
-
-  /* –––––––––––––––––––––––––––
-    UTILITY METHODS
-  ––––––––––––––––––––––––––– */
 
   getColorHex(colorName) {
     const colorMap = {
@@ -281,39 +387,31 @@ class TabGroupFactory {
     this.activeTabGroups = new Map();
   }
 
-  /* –––––––––––––––––––––––––––
-    TAB GROUP CREATION
-  ––––––––––––––––––––––––––– */
-
   async createItem(id, data, slotId, position = { x: 0, y: 0 }) {
-    // Create the tab group element
     const element = document.createElement('div');
     element.id = id;
     element.className = 'tab-group';
     element.dataset.slotId = slotId;
     
-    // Apply position
+    // Add saved/active class
+    if (data.isSaved && !data.isActive) {
+      element.classList.add('saved-group');
+    } else if (data.isActive || data.isCurrentlyActive) {
+      element.classList.add('active-group');
+    }
+    
     if (position) {
       element.style.transform = `translate(${position.x}px, ${position.y}px)`;
       element.setAttribute('data-x', position.x);
       element.setAttribute('data-y', position.y);
     }
     
-    // Create tab group instance
     const tabGroup = new TabGroupItem(element, { id, data, slotId, chromeService: this.chromeService });
-    
-    // Store tab group instance for later reference
     this.activeTabGroups.set(id, tabGroup);
-    
-    // Initialize the tab group
     await tabGroup.initialize();
     
     return element;
   }
-
-  /* –––––––––––––––––––––––––––
-    TAB GROUP REMOVAL
-  ––––––––––––––––––––––––––– */
 
   removeItem(element) {
     const id = element.id;
@@ -326,10 +424,6 @@ class TabGroupFactory {
     this.activeTabGroups.delete(id);
   }
 
-  /* –––––––––––––––––––––––––––
-    TAB GROUP ACCESS
-  ––––––––––––––––––––––––––– */
-
   getTabGroup(id) {
     return this.activeTabGroups.get(id);
   }
@@ -340,10 +434,10 @@ class TabGroupFactory {
 }
 
 /* –––––––––––––––––––––––––––
-  BASE TAB GROUP CLASS
+  TAB GROUP ITEM CLASS
 ––––––––––––––––––––––––––– */
 
-class BaseTabGroup {
+class TabGroupItem {
   constructor(element, config) {
     this.element = element;
     this.config = config;
@@ -351,85 +445,81 @@ class BaseTabGroup {
     this.data = config.data;
     this.slotId = config.slotId;
     this.chromeService = config.chromeService;
-    this.isExpanded = false;
+    this.isExpanded = true; // Default to expanded
   }
-  
+
   async initialize() {
-    // Add basic structure
+    const content = await this.getContent();
+    
     this.element.innerHTML = `
       <div class="tab-group-content">
-        ${this.getContent()}
+        ${content}
       </div>
     `;
     
-    // Bind events
     this.bindEvents();
-    
-    // Start any async operations
     await this.start();
   }
-  
-  getContent() {
-    return `<div class="tab-group-placeholder">Empty Tab Group Slot</div>`;
-  }
-  
-  bindEvents() {
-    // Override in subclasses
-  }
-  
-  async start() {
-    // Override in subclasses for async initialization
-  }
-  
-  cleanup() {
-    // Override in subclasses for cleanup
-  }
-  
-  // Utility method to get tab group content container
-  getContentContainer() {
-    return this.element.querySelector('.tab-group-content');
-  }
-}
 
-/* –––––––––––––––––––––––––––
-  TAB GROUP ITEM CLASS
-––––––––––––––––––––––––––– */
-
-class TabGroupItem extends BaseTabGroup {
   async getContent() {
-    if (!this.data || !this.data.id) {
+    if (!this.data) {
       return `<div class="tab-group-placeholder">Empty Tab Group Slot</div>`;
     }
     
-    // Get tabs in this group
     let tabs = [];
-    try {
-      if (this.chromeService.isExtensionContext) {
-        tabs = await this.chromeService.getTabsInGroup(this.data.id);
+    
+    if (this.data.isCurrentlyActive && this.data.originalId && this.chromeService.isExtensionContext) {
+      // Get live tabs for active groups
+      try {
+        tabs = await this.chromeService.getTabsInGroup(this.data.originalId);
+      } catch (error) {
+        console.error('Error fetching tabs for active group:', error);
+        tabs = this.data.tabs || [];
       }
-    } catch (error) {
-      console.error('Error fetching tabs for group:', error);
+    } else if (this.data.tabs) {
+      // Use saved tabs for saved groups
+      tabs = this.data.tabs;
     }
     
     return this.getTabGroupContent(tabs);
   }
 
   getTabGroupContent(tabs = []) {
-    const { title = 'Untitled Group', color = 'grey', collapsed = false } = this.data;
+    const { 
+      title = 'Untitled Group', 
+      color = 'grey', 
+      collapsed = false, 
+      isCurrentlyActive = false 
+    } = this.data;
+    
     const colorHex = this.chromeService?.getColorHex(color) || '#9E9E9E';
     const tabCount = tabs.length;
+    
+    // Status indicator
+    let statusIndicator = '';
+    if (isCurrentlyActive) {
+      statusIndicator = '<span class="group-status active">🟢 Active</span>';
+    } else {
+      statusIndicator = '<span class="group-status saved">💾 Saved</span>';
+    }
     
     return `
       <div class="tab-group-header" style="border-left-color: ${colorHex}">
         <div class="tab-group-color-indicator" style="background-color: ${colorHex}"></div>
         <div class="tab-group-info">
           <div class="tab-group-title" title="${title}">${title || 'Untitled Group'}</div>
-          <div class="tab-group-count">${tabCount} tab${tabCount !== 1 ? 's' : ''}</div>
+          <div class="tab-group-meta">
+            <span class="tab-group-count">${tabCount} tab${tabCount !== 1 ? 's' : ''}</span>
+            ${statusIndicator}
+          </div>
         </div>
-        <div class="tab-group-toggle ${collapsed ? 'collapsed' : ''}">
-          <svg width="12" height="12" viewBox="0 0 12 12">
-            <path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
+        <div class="tab-group-actions">
+          ${this.getActionButtons()}
+          <div class="tab-group-toggle ${collapsed ? 'collapsed' : ''}">
+            <svg width="12" height="12" viewBox="0 0 12 12">
+              <path d="M4 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
         </div>
       </div>
       <div class="tab-group-tabs ${collapsed ? 'collapsed' : ''}">
@@ -438,13 +528,47 @@ class TabGroupItem extends BaseTabGroup {
     `;
   }
 
+  getActionButtons() {
+    const { isCurrentlyActive = false } = this.data;
+    
+    if (!isCurrentlyActive) {
+      // Saved group - show restore and delete buttons
+      return `
+        <button class="group-action-btn restore-btn" title="Restore tab group">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+          </svg>
+        </button>
+        <button class="group-action-btn delete-btn" title="Delete saved group">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+      `;
+    } else {
+      // Active group - show save button
+      return `
+        <button class="group-action-btn save-btn" title="Manually save group">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+        </button>
+      `;
+    }
+  }
+
   getTabContent(tab) {
-    const { title, url, favIconUrl, active } = tab;
+    const { title, url, favIconUrl, active = false } = tab;
     const hostname = this.chromeService?.extractHostname(url) || 'unknown';
     const favicon = favIconUrl || this.chromeService?.getFaviconUrl(url) || this.chromeService?.getDefaultFavicon();
     
     return `
-      <div class="tab-item ${active ? 'active' : ''}" data-tab-id="${tab.id}">
+      <div class="tab-item ${active ? 'active' : ''}" data-tab-id="${tab.id || 'saved'}" data-tab-url="${url}">
         <div class="tab-favicon">
           <img src="${favicon}" alt="${title}" onerror="this.src='${this.chromeService?.getDefaultFavicon()}'">
         </div>
@@ -456,26 +580,51 @@ class TabGroupItem extends BaseTabGroup {
     `;
   }
 
-  async initialize() {
-    // Get content with tabs
-    const content = await this.getContent();
-    
-    // Add basic structure
-    this.element.innerHTML = `
-      <div class="tab-group-content">
-        ${content}
-      </div>
-    `;
-    
-    // Bind events
-    this.bindEvents();
-    
-    // Start any async operations
-    await this.start();
-  }
-  
   bindEvents() {
-    // Handle tab group toggle
+    // Handle action buttons
+    const restoreBtn = this.element.querySelector('.restore-btn');
+    const deleteBtn = this.element.querySelector('.delete-btn');
+    const saveBtn = this.element.querySelector('.save-btn');
+    
+    if (restoreBtn) {
+      restoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.restoreGroup();
+      });
+    }
+    
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteGroup();
+      });
+    }
+    
+    if (saveBtn) {
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.saveGroup();
+      });
+    }
+    
+    // Handle tab clicks
+    const tabItems = this.element.querySelectorAll('.tab-item');
+    tabItems.forEach(tabItem => {
+      tabItem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tabId = tabItem.dataset.tabId;
+        const tabUrl = tabItem.dataset.tabUrl;
+        
+        if (tabId && tabId !== 'saved') {
+          this.activateTab(parseInt(tabId));
+        } else if (tabUrl) {
+          // For saved tabs, open in new tab
+          window.open(tabUrl, '_blank');
+        }
+      });
+    });
+
+    // Handle toggle
     const toggle = this.element.querySelector('.tab-group-toggle');
     if (toggle) {
       toggle.addEventListener('click', (e) => {
@@ -483,25 +632,51 @@ class TabGroupItem extends BaseTabGroup {
         this.toggleExpanded();
       });
     }
+  }
 
-    // Handle tab clicks
-    const tabItems = this.element.querySelectorAll('.tab-item');
-    tabItems.forEach(tabItem => {
-      tabItem.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const tabId = parseInt(tabItem.dataset.tabId);
-        this.activateTab(tabId);
-      });
-    });
+  async restoreGroup() {
+    try {
+      console.log('Restoring group:', this.data.title);
+      await this.chromeService.restoreTabGroup(this.data);
+    } catch (error) {
+      console.error('Error restoring group:', error);
+      alert('Error restoring tab group. Please try again.');
+    }
+  }
 
-    // Handle tab group header click (expand/collapse)
-    const header = this.element.querySelector('.tab-group-header');
-    if (header) {
-      header.addEventListener('click', (e) => {
-        if (!e.target.closest('.tab-group-toggle')) {
-          this.toggleExpanded();
-        }
-      });
+  async deleteGroup() {
+    if (confirm(`Delete saved group "${this.data.title}"?`)) {
+      try {
+        await this.chromeService.deleteSavedTabGroup(this.data.id);
+      } catch (error) {
+        console.error('Error deleting group:', error);
+        alert('Error deleting tab group. Please try again.');
+      }
+    }
+  }
+
+  async saveGroup() {
+    if (this.data.isCurrentlyActive && this.chromeService.isExtensionContext) {
+      try {
+        const tabs = await this.chromeService.getTabsInGroup(this.data.originalId);
+        await this.chromeService.updateSavedGroup(this.data, tabs);
+        alert('Tab group saved successfully!');
+      } catch (error) {
+        console.error('Error saving group:', error);
+        alert('Error saving tab group. Please try again.');
+      }
+    }
+  }
+
+  async activateTab(tabId) {
+    if (!this.chromeService.isExtensionContext) return;
+
+    try {
+      await chrome.tabs.update(tabId, { active: true });
+      const tab = await chrome.tabs.get(tabId);
+      await chrome.windows.update(tab.windowId, { focused: true });
+    } catch (error) {
+      console.error('Error activating tab:', error);
     }
   }
 
@@ -514,42 +689,11 @@ class TabGroupItem extends BaseTabGroup {
     if (toggle && tabs) {
       toggle.classList.toggle('collapsed', !this.isExpanded);
       tabs.classList.toggle('collapsed', !this.isExpanded);
-      
-      // Update Chrome tab group collapsed state
-      if (this.chromeService.isExtensionContext && this.data.id) {
-        this.chromeService.updateTabGroup(this.data.id, { collapsed: !this.isExpanded });
-      }
-    }
-
-    // Emit event for external handling
-    this.element.dispatchEvent(new CustomEvent('tabGroupToggle', {
-      detail: {
-        groupId: this.data.id,
-        expanded: this.isExpanded,
-        group: this.data
-      },
-      bubbles: true
-    }));
-  }
-
-  async activateTab(tabId) {
-    if (!this.chromeService.isExtensionContext) {
-      console.warn('Cannot activate tab: Chrome extension context not available');
-      return;
-    }
-
-    try {
-      // Switch to the tab
-      await chrome.tabs.update(tabId, { active: true });
-      
-      // Focus the window containing the tab
-      const tab = await chrome.tabs.get(tabId);
-      await chrome.windows.update(tab.windowId, { focused: true });
-      
-    } catch (error) {
-      console.error('Error activating tab:', error);
     }
   }
+
+  async start() {}
+  cleanup() {}
 }
 
 /* –––––––––––––––––––––––––––
@@ -561,7 +705,6 @@ class TabGroupManager {
     this.container = document.querySelector(containerSelector);
     this.chromeService = new ChromeTabGroupsService();
     this.tabGroupFactory = new TabGroupFactory(this.chromeService);
-    this.groupStates = new Map(); // Track expanded/collapsed groups
     
     this.init();
   }
@@ -572,11 +715,8 @@ class TabGroupManager {
       return;
     }
 
-    // Start listening to tab group events
     this.chromeService.startListening();
     this.bindChromeEvents();
-    
-    // Load and render tab groups
     await this.loadTabGroups();
   }
 
@@ -584,45 +724,82 @@ class TabGroupManager {
     this.chromeService.on('tabGroupCreated', () => this.refreshTabGroups());
     this.chromeService.on('tabGroupRemoved', () => this.refreshTabGroups());
     this.chromeService.on('tabGroupUpdated', () => this.refreshTabGroups());
-    this.chromeService.on('tabGroupMoved', () => this.refreshTabGroups());
-    this.chromeService.on('tabAddedToGroup', () => this.refreshTabGroups());
-    this.chromeService.on('tabRemoved', () => this.refreshTabGroups());
-    this.chromeService.on('tabInGroupUpdated', () => this.refreshTabGroups());
+    this.chromeService.on('savedTabGroupDeleted', () => this.refreshTabGroups());
+    this.chromeService.on('tabGroupRestored', () => this.refreshTabGroups());
+    
+    // Add listener for when groups are closed
+    this.chromeService.on('tabGroupClosed', () => {
+      console.log('Tab group closed, refreshing display...');
+      setTimeout(() => this.refreshTabGroups(), 1000); // Delay to ensure saving is complete
+    });
   }
 
   async loadTabGroups() {
     try {
-      const tabGroups = await this.chromeService.getAllTabGroups();
-      await this.renderTabGroups(tabGroups);
+      // Get all groups (active + saved history)
+      const allTabGroups = await this.chromeService.getAllTabGroupsWithHistory();
+      console.log('Loading tab groups with history:', allTabGroups);
+      await this.renderTabGroups(allTabGroups);
     } catch (error) {
-      console.error('Error loading tab groups:', error);
+      console.error('Error loading tab groups with history:', error);
       this.renderMockTabGroups();
     }
   }
 
   async renderTabGroups(tabGroups) {
-    // Clear existing content
     this.container.innerHTML = '';
     
     if (tabGroups.length === 0) {
-      this.container.innerHTML = '<div class="no-tab-groups">No active tab groups</div>';
+      this.container.innerHTML = `
+        <div class="no-tab-groups">
+          <h3>No tab groups found</h3>
+          <p>Create some tab groups in Chrome to see them here!</p>
+          <p><small>💡 Right-click on tabs and select "Add to new group"</small></p>
+        </div>
+      `;
       return;
     }
     
-    // Create tab groups section
-    const tabGroupsSection = document.createElement('div');
-    tabGroupsSection.className = 'tab-groups-section';
-    tabGroupsSection.innerHTML = '<h3>Active Tab Groups</h3>';
+    // Separate groups by type
+    const activeGroups = tabGroups.filter(g => g.isCurrentlyActive);
+    const savedGroups = tabGroups.filter(g => !g.isCurrentlyActive);
     
-    // Create slot container for tab groups
-    const slotContainer = this.createSlotContainer('tab-groups');
-    tabGroupsSection.appendChild(slotContainer);
+    // Show active groups first
+    if (activeGroups.length > 0) {
+      await this.renderSection('Currently Open Tab Groups', activeGroups, 'active-groups');
+    }
     
-    this.container.appendChild(tabGroupsSection);
+    // Show saved groups
+    if (savedGroups.length > 0) {
+      await this.renderSection('Previously Saved Tab Groups', savedGroups, 'saved-groups');
+    }
+
+    // Show helpful message if no saved groups yet
+    if (savedGroups.length === 0 && activeGroups.length > 0) {
+      const helpDiv = document.createElement('div');
+      helpDiv.className = 'tab-groups-help';
+      helpDiv.innerHTML = `
+        <div class="help-message">
+          <h4>💡 Tip: Your tab groups will appear here automatically</h4>
+          <p>When you close tab groups in Chrome, they'll be saved here so you can restore them later!</p>
+        </div>
+      `;
+      this.container.appendChild(helpDiv);
+    }
+  }
+
+  async renderSection(title, groups, sectionId) {
+    const section = document.createElement('div');
+    section.className = 'tab-groups-section';
+    section.innerHTML = `<h3>${title}</h3>`;
     
-    // Render each tab group
-    for (let i = 0; i < tabGroups.length; i++) {
-      await this.renderTabGroupItem(tabGroups[i], slotContainer, i);
+    const slotContainer = this.createSlotContainer(sectionId);
+    section.appendChild(slotContainer);
+    
+    this.container.appendChild(section);
+    
+    for (let i = 0; i < groups.length; i++) {
+      await this.renderTabGroupItem(groups[i], slotContainer, i);
     }
   }
 
@@ -643,7 +820,6 @@ class TabGroupManager {
     slot.className = 'tab-group-slot';
     slot.dataset.slotId = `tab-group-${tabGroup.id}`;
     
-    // Create tab group element using factory
     const tabGroupElement = await this.tabGroupFactory.createItem(
       `tab-group-item-${tabGroup.id}`,
       tabGroup,
@@ -662,21 +838,28 @@ class TabGroupManager {
   }
 
   renderMockTabGroups() {
-    // Fallback for when not in extension context
     const mockTabGroups = [
       { 
         id: 1, 
         title: 'Work', 
         color: 'blue', 
         collapsed: false,
-        windowId: 1 
+        isCurrentlyActive: true,
+        tabs: [
+          { title: 'Gmail', url: 'https://mail.google.com' },
+          { title: 'Calendar', url: 'https://calendar.google.com' }
+        ]
       },
       { 
-        id: 2, 
+        id: 'saved-1', 
         title: 'Research', 
         color: 'green', 
-        collapsed: true,
-        windowId: 1 
+        collapsed: false,
+        isCurrentlyActive: false,
+        tabs: [
+          { title: 'Stack Overflow', url: 'https://stackoverflow.com' },
+          { title: 'MDN Web Docs', url: 'https://developer.mozilla.org' }
+        ]
       }
     ];
     
@@ -685,7 +868,6 @@ class TabGroupManager {
 
   cleanup() {
     this.chromeService.stopListening();
-    this.groupStates.clear();
   }
 }
 
@@ -695,7 +877,6 @@ class TabGroupManager {
 export { 
   ChromeTabGroupsService,
   TabGroupFactory,
-  BaseTabGroup,
   TabGroupItem,
   TabGroupManager
 };

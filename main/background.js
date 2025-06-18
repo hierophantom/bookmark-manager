@@ -205,6 +205,118 @@ async function handleUpdateTabGroup(data, sendResponse) {
 }
 
 /* –––––––––––––––––––––––––––
+  AUTO-SAVE TAB GROUPS SYSTEM
+––––––––––––––––––––––––––– */
+
+// Enhanced background.js code to add
+chrome.tabGroups.onRemoved.addListener(async (group) => {
+  console.log('Tab group removed, auto-saving:', group);
+  
+  try {
+    // Get existing saved groups
+    const result = await chrome.storage.local.get('savedTabGroups');
+    const savedGroups = result.savedTabGroups || [];
+    
+    // Create saved group object
+    const savedGroup = {
+      id: `auto-saved-${Date.now()}`,
+      originalId: group.id,
+      title: group.title || `Untitled Group ${Date.now()}`,
+      color: group.color || 'grey',
+      dateSaved: new Date().toISOString(),
+      wasActive: true,
+      isAutoSaved: true,
+      tabs: [], // We'll try to get tabs before the group is fully removed
+      windowId: group.windowId
+    };
+    
+    // Try to get tabs that were in this group (may not work if tabs were already closed)
+    try {
+      const tabs = await chrome.tabs.query({ groupId: group.id });
+      if (tabs.length > 0) {
+        savedGroup.tabs = tabs.map(tab => ({
+          title: tab.title || 'Untitled Tab',
+          url: tab.url,
+          favIconUrl: tab.favIconUrl,
+          index: tab.index
+        }));
+      }
+    } catch (error) {
+      console.log('Could not get tabs for removed group (they may have been closed)');
+      // If we can't get the tabs, we'll save the group anyway with empty tabs
+      // You could also skip saving if no tabs are found
+    }
+    
+    // Check if we already have this group saved
+    const existingIndex = savedGroups.findIndex(g => 
+      g.originalId === group.id || 
+      (g.title === group.title && g.color === group.color)
+    );
+    
+    if (existingIndex >= 0) {
+      // Update existing
+      savedGroups[existingIndex] = { ...savedGroups[existingIndex], ...savedGroup };
+    } else {
+      // Add new
+      savedGroups.push(savedGroup);
+    }
+    
+    // Limit saved groups to prevent storage bloat (keep last 50)
+    if (savedGroups.length > 50) {
+      savedGroups.splice(0, savedGroups.length - 50);
+    }
+    
+    // Save to storage
+    await chrome.storage.local.set({ savedTabGroups: savedGroups });
+    
+    console.log('Tab group auto-saved:', savedGroup);
+    
+    // Notify extension pages
+    notifyExtensionPages('tabGroupAutoSaved', { group: savedGroup });
+    
+  } catch (error) {
+    console.error('Error auto-saving tab group:', error);
+  }
+});
+
+// Enhanced TabGroupManager to include better auto-save tracking
+class EnhancedTabGroupManager extends TabGroupManager {
+  constructor(containerSelector) {
+    super(containerSelector);
+    this.setupPeriodicSave();
+  }
+  
+  setupPeriodicSave() {
+    // Periodically save active tab groups (every 30 seconds)
+    setInterval(async () => {
+      await this.saveAllActiveGroups();
+    }, 30000);
+    
+    // Save when page unloads
+    window.addEventListener('beforeunload', () => {
+      this.saveAllActiveGroups();
+    });
+  }
+  
+  async saveAllActiveGroups() {
+    if (!this.chromeService.isExtensionContext) return;
+    
+    try {
+      const activeGroups = await this.chromeService.getAllTabGroups();
+      
+      for (const group of activeGroups) {
+        const tabs = await this.chromeService.getTabsInGroup(group.id);
+        if (tabs.length > 0) {
+          await this.chromeService.saveTabGroup(group, tabs);
+        }
+      }
+    } catch (error) {
+      console.error('Error in periodic save:', error);
+    }
+  }
+}
+
+/* –––––––––––––––––––––––––––
   ERROR HANDLING
 ––––––––––––––––––––––––––– */
 
