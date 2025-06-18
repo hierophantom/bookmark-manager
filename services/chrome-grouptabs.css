@@ -1,0 +1,569 @@
+/* 
+File name & path: services/chrome-tabgroups.css
+Role: Tab groups visualization styles and interaction states
+*/
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP SECTIONS
+––––––––––––––––––––––––––– */
+
+.tab-groups-section {
+  margin-bottom: 30px;
+}
+
+.tab-groups-section h3 {
+  color: var(--content-bright-80);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  padding-left: 10px;
+}
+
+.no-tab-groups {
+  color: var(--content-bright-50);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP SLOT CONTAINERS
+––––––––––––––––––––––––––– */
+
+.tab-group-slot-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tab-group-slot-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  min-height: 100px;
+  width: 100%;
+  border-radius: 12px;
+  transition: background-color 0.3s;
+}
+
+.tab-group-slot-container:hover {
+  background-color: var(--container-dim-20);
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP SLOTS
+––––––––––––––––––––––––––– */
+
+.tab-group-slot {
+  display: flex;
+  width: 100%;
+  min-height: 80px;
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+  position: relative;
+}
+
+.tab-group-slot:hover {
+  background-color: var(--container-bright-10);
+}
+
+/* Drag and drop states */
+.tab-group-slot.drop-active {
+  border: 2px dashed var(--content-bright-60);
+}
+
+.tab-group-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border: 2px solid var(--content-bright-80);
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP ITEMS
+––––––––––––––––––––––––––– */
+
+.tab-group {
+  background-color: var(--container-bright-30);
+  border-radius: 8px;
+  padding: 12px;
+  width: calc(100% - 24px);
+  min-height: 80px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  transition: transform 0.2s, box-shadow 0.3s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-group:hover {
+  background-color: var(--container-bright-40);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+}
+
+.tab-group:hover .tab-group-controls {
+  display: flex;
+}
+
+/* Dragging state */
+.tab-group.dragging {
+  opacity: 0.8;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transform: rotate(1deg);
+}
+
+/* Swap target highlighting */
+.tab-group.swap-target {
+  outline: 2px dashed var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP CONTENT
+––––––––––––––––––––––––––– */
+
+.tab-group-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP HEADER
+––––––––––––––––––––––––––– */
+
+.tab-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-left: 4px solid transparent;
+  padding-left: 8px;
+  margin-left: -8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.tab-group-header:hover {
+  background-color: var(--container-bright-10);
+}
+
+.tab-group-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.tab-group-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tab-group-title {
+  color: var(--content-bright-100);
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.tab-group-count {
+  color: var(--content-bright-60);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.tab-group-toggle {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.tab-group-toggle:hover {
+  background-color: var(--container-bright-20);
+}
+
+.tab-group-toggle svg {
+  transition: transform 0.2s;
+  stroke: var(--content-bright-70);
+}
+
+/* Collapsed state */
+.tab-group-toggle.collapsed svg {
+  transform: rotate(90deg);
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP TABS CONTAINER
+––––––––––––––––––––––––––– */
+
+.tab-group-tabs {
+  margin-top: 8px;
+  max-height: 300px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.tab-group-tabs.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+}
+
+/* –––––––––––––––––––––––––––
+  INDIVIDUAL TAB ITEMS
+––––––––––––––––––––––––––– */
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  margin-bottom: 4px;
+  border-left: 3px solid transparent;
+}
+
+.tab-item:hover {
+  background-color: var(--container-bright-20);
+}
+
+.tab-item.active {
+  background-color: var(--container-bright-20);
+  border-left-color: var(--content-bright-80);
+}
+
+.tab-item:last-child {
+  margin-bottom: 0;
+}
+
+.tab-favicon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-favicon img {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.tab-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tab-title {
+  color: var(--content-bright-90);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.tab-url {
+  color: var(--content-bright-50);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.tab-item.active .tab-title {
+  color: var(--content-bright-100);
+  font-weight: 600;
+}
+
+.tab-item.active .tab-url {
+  color: var(--content-bright-70);
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP CONTROLS
+––––––––––––––––––––––––––– */
+
+.tab-group-controls {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: none;
+  gap: 4px;
+}
+
+.tab-group-close-btn {
+  width: 18px;
+  height: 18px;
+  background-color: var(--white-100);
+  border: none;
+  border-radius: 999px;
+  padding: 3px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.tab-group-close-btn:hover {
+  background-color: var(--content-bright-10);
+}
+
+.tab-group-close-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: var(--content-dim-80);
+}
+
+/* Drag handle */
+.tab-group-drag-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.tab-group-drag-handle:hover {
+  opacity: 0.8;
+}
+
+.tab-group-drag-handle svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* –––––––––––––––––––––––––––
+  PLACEHOLDER STYLES
+––––––––––––––––––––––––––– */
+
+.tab-group-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--content-bright-40);
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: center;
+  min-height: 60px;
+}
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.tab-group-enter {
+  animation: tabGroupEnter 0.4s ease-out;
+}
+
+@keyframes tabGroupEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Exit animation */
+.tab-group-exit {
+  animation: tabGroupExit 0.3s ease-in forwards;
+}
+
+@keyframes tabGroupExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* Tab expansion animation */
+.tab-group-tabs.expanding {
+  animation: tabsExpand 0.3s ease-out;
+}
+
+@keyframes tabsExpand {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 300px;
+    opacity: 1;
+  }
+}
+
+/* Tab item hover animation */
+.tab-item {
+  animation: none;
+}
+
+.tab-item:hover {
+  animation: tabItemHover 0.2s ease-out;
+}
+
+@keyframes tabItemHover {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(2px);
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  RESPONSIVE DESIGN
+––––––––––––––––––––––––––– */
+
+@media (max-width: 768px) {
+  .tab-group {
+    padding: 10px;
+  }
+  
+  .tab-group-title {
+    font-size: 0.9rem;
+  }
+  
+  .tab-group-count {
+    font-size: 0.75rem;
+  }
+  
+  .tab-title {
+    font-size: 0.8rem;
+  }
+  
+  .tab-url {
+    font-size: 0.65rem;
+  }
+  
+  .tab-group-tabs {
+    max-height: 200px;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  ACCESSIBILITY
+––––––––––––––––––––––––––– */
+
+.tab-group:focus {
+  outline: 2px solid var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+.tab-group-toggle:focus {
+  outline: 2px solid var(--content-bright-80);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.tab-item:focus {
+  outline: 2px solid var(--content-bright-80);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .tab-group {
+    border: 1px solid var(--content-bright-60);
+  }
+  
+  .tab-group-title {
+    font-weight: 700;
+  }
+  
+  .tab-title {
+    font-weight: 600;
+  }
+  
+  .tab-group-toggle svg {
+    stroke-width: 2;
+  }
+  
+  .tab-group-color-indicator {
+    border: 1px solid var(--content-bright-60);
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  COLOR THEME VARIATIONS
+––––––––––––––––––––––––––– */
+
+.tab-group[data-color="blue"] .tab-group-header {
+  border-left-color: #2196F3;
+}
+
+.tab-group[data-color="red"] .tab-group-header {
+  border-left-color: #F44336;
+}
+
+.tab-group[data-color="green"] .tab-group-header {
+  border-left-color: #4CAF50;
+}
+
+.tab-group[data-color="yellow"] .tab-group-header {
+  border-left-color: #FFEB3B;
+}
+
+.tab-group[data-color="purple"] .tab-group-header {
+  border-left-color: #9C27B0;
+}
+
+.tab-group[data-color="pink"] .tab-group-header {
+  border-left-color: #E91E63;
+}
+
+.tab-group[data-color="cyan"] .tab-group-header {
+  border-left-color: #00BCD4;
+}
+
+.tab-group[data-color="orange"] .tab-group-header {
+  border-left-color: #FF9800;
+}
+
+.tab-group[data-color="grey"] .tab-group-header {
+  border-left-color: #9E9E9E;
+}

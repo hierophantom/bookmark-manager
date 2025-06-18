@@ -21,14 +21,12 @@ Role: Core slot system styles (layout, drag/drop, animations)
   width: 860px;
   position: relative;
   background-color: var(--container-dim-10);
-  outline: 0px solid var(--container-dim-30);
   backdrop-filter: blur(3px);
   border-radius: 16px;
 }
 
 .slot-container:hover {
   background-color: var(--container-dim-20);
-  outline: 2px solid var(--container-dim-30);
   border-radius: 16px;
   backdrop-filter: blur(7px);
   transition: background-color 0.3s, backdrop-filter 0.3s;
@@ -50,7 +48,7 @@ Role: Core slot system styles (layout, drag/drop, animations)
   flex-direction: row;
   gap: 16px;
   visibility: hidden;
-  fill: var(--content-bright-30);
+  fill: var(--content-bright-60);
 }
 
 .slot-controls:hover svg {

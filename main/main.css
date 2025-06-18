@@ -1,4 +1,4 @@
-p/*
+/*
 File name & path: main/main.css
 Role: The index.html style source
 */
@@ -78,6 +78,7 @@ table {
 :root {
   --content-bright-100: var(--white-100);
   --content-bright-80: var(--white-80);
+  --content-bright-60: var(--white-60);
   --content-bright-30: var(--white-30);
   --content-dim-30: var(--black-30);
   --content-dim-80: var(--black-80);
@@ -102,6 +103,7 @@ table {
 :root.dark-theme {
   --content-bright-100: var(--white-100);
   --content-bright-80: var(--white-80);
+  --content-bright-60: var(--black-60);
   --content-bright-30: var(--black-30);
   --content-dim-30: var(--white-30);
   --content-dim-80: var(--white-80);
@@ -348,7 +350,7 @@ header {
   position: absolute;
   width: 100%;
   height: 100%;
-  transition: opacity 1s ease 0.1s;
+  transition: opacity 0.5s ease 0.1s;
 }
 
 .page.active {
@@ -383,11 +385,34 @@ header {
     flex-shrink: 0;
 }
 
+.drawer-left {
+    left: 0;
+}
+
+.drawer-right {
+    right: 0;
+}
+
 .drawer.collapsed {
-    width: 0;
-    padding: 0;
-    border: none;
-    overflow: hidden;
+    position: absolute;
+    width: 250px;
+    padding: initial;
+    border-right: 1px solid var(--container-bright-20);
+    overflow: visible;
+    transform: translateX(-100%);
+}
+
+.drawer-right.collapsed {
+    transform: translateX(100%);
+}
+
+.drawer.collapsed:hover,
+.drawer.collapsed.overlay-visible {
+    width: 250px;
+    padding: initial;
+    border-right: 1px solid var(--container-bright-20);
+    overflow: visible;
+    transform: translateX(0);
 }
 
 .drawer-hover-zone {
@@ -398,16 +423,12 @@ header {
     z-index: 999;
 }
 
-.drawer-hover-zone.left { left: 0; }
-.drawer-hover-zone.right { right: 0; }
+.drawer-hover-zone.left {
+    left: 0;
+}
 
-.drawer.collapsed:hover,
-.drawer-hover-zone:hover + .drawer.collapsed,
-.drawer.collapsed.overlay-visible {
-    width: 250px;
-    padding: initial;
-    border-right: 1px solid var(--container-bright-20);
-    overflow: visible;
+.drawer-hover-zone.right {
+    right: 0;
 }
 
 .pin-button {
@@ -443,6 +464,70 @@ header {
 
 .page-nav-btn:disabled {
   opacity: 0.5;
+}
+
+/* –––––––––––––––––––––––––––
+  TOOLTIP SYSTEM
+––––––––––––––––––––––––––– */
+
+[class*="tooltip-"] {
+  position: relative;
+}
+
+[class*="tooltip-"]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  background-color: var(--container-bright-100);
+  color: var(--content-bright-100);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 16px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  transition-delay: 1.5s, 1ms;
+  z-index: 10000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  pointer-events: none;
+}
+
+[class*="tooltip-"]:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip-top::after {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+}
+
+.tooltip-bottom::after {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 5px;
+}
+
+.tooltip-right::after {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 5px;
+}
+
+.tooltip-left::after {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 5px;
+}
+
+/* Disable tooltip */
+.tooltip-disabled::after {
+  display: none !important;
 }
 
 /* –––––––––––––––––––––––––––

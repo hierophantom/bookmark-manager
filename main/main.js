@@ -539,6 +539,37 @@ class DrawerManager {
 }
 
 /* –––––––––––––––––––––––––––
+  TOOLTIP SYSTEM
+––––––––––––––––––––––––––– */
+
+class TooltipManager {
+  static addTooltip(element, content, direction = 'n', enabled = true) {
+    element.classList.add('tooltip', `tooltip-${direction}`);
+    element.setAttribute('data-tooltip', content);
+    element.setAttribute('data-tooltip-enabled', enabled);
+  }
+
+  static removeTooltip(element) {
+    element.classList.remove('tooltip', 'tooltip-n', 'tooltip-s', 'tooltip-e', 'tooltip-w');
+    element.removeAttribute('data-tooltip');
+    element.removeAttribute('data-tooltip-enabled');
+  }
+
+  static updateTooltip(element, content, direction, enabled) {
+    if (content !== undefined) element.setAttribute('data-tooltip', content);
+    if (direction !== undefined) {
+      element.classList.remove('tooltip-n', 'tooltip-s', 'tooltip-e', 'tooltip-w');
+      element.classList.add(`tooltip-${direction}`);
+    }
+    if (enabled !== undefined) element.setAttribute('data-tooltip-enabled', enabled);
+  }
+
+  static toggleTooltip(element, enabled) {
+    element.setAttribute('data-tooltip-enabled', enabled);
+  }
+}
+
+/* –––––––––––––––––––––––––––
   MAIN MENU INITIALIZATION
 ––––––––––––––––––––––––––– */
 

@@ -1,0 +1,467 @@
+/* 
+File name & path: services/chrome-bookmarks.css
+Role: Bookmark visualization styles and folder management
+*/
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK SECTIONS
+––––––––––––––––––––––––––– */
+
+.bookmarks-section {
+  margin-bottom: 30px;
+}
+
+.bookmarks-section h3 {
+  color: var(--content-bright-80);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  padding-left: 10px;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK SLOT CONTAINERS
+––––––––––––––––––––––––––– */
+
+.bookmark-slot-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.bookmark-slot-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px;
+  min-height: 80px;
+  width: 100%;
+  border-radius: 12px;
+  transition: background-color 0.3s;
+}
+
+.bookmark-slot-container:hover {
+  background-color: var(--container-dim-20);
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK SLOTS
+––––––––––––––––––––––––––– */
+
+.bookmark-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  height: 60px;
+  border-radius: 8px;
+  transition: background-color 0.3s, border-color 0.3s;
+  position: relative;
+}
+
+.bookmark-slot:hover {
+  background-color: var(--container-bright-10);
+}
+
+/* Drag and drop states */
+.bookmark-slot.drop-active {
+  border: 2px dashed var(--content-bright-60);
+}
+
+.bookmark-slot.drop-target {
+  background-color: var(--container-bright-20);
+  border: 2px solid var(--content-bright-80);
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK ITEMS
+––––––––––––––––––––––––––– */
+
+.bookmark {
+  background-color: var(--container-bright-30);
+  border-radius: 6px;
+  padding: 8px 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 16px);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  transition: transform 0.2s, box-shadow 0.3s, background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.bookmark:hover {
+  background-color: var(--container-bright-40);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bookmark:hover .bookmark-controls {
+  display: flex;
+}
+
+/* Dragging state */
+.bookmark.dragging {
+  opacity: 0.8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transform: rotate(2deg);
+}
+
+/* Swap target highlighting */
+.bookmark.swap-target {
+  outline: 2px dashed var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK CONTENT
+––––––––––––––––––––––––––– */
+
+.bookmark-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.bookmark-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bookmark-favicon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookmark-favicon img {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.bookmark-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bookmark-name {
+  color: var(--content-bright-100);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.bookmark-url {
+  color: var(--content-bright-60);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+/* –––––––––––––––––––––––––––
+  FOLDER STYLES
+––––––––––––––––––––––––––– */
+
+.bookmark-folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.folder-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+/* –––––––––––––––––––––––––––
+  NESTED FOLDER MANAGEMENT
+––––––––––––––––––––––––––– */
+
+.folder-children {
+  margin-left: 20px;
+  margin-top: 10px;
+  border-left: 2px solid var(--container-bright-20);
+  padding-left: 15px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.bookmark.folder-expanded .folder-children {
+  max-height: 500px;
+  opacity: 1;
+}
+
+.folder-depth-1 { margin-left: 20px; }
+.folder-depth-2 { margin-left: 40px; }
+.folder-depth-3 { margin-left: 60px; }
+
+/* Folder depth indicators */
+.folder-depth-indicator {
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--content-bright-40);
+}
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.bookmark-enter {
+  animation: bookmarkEnter 0.4s ease-out;
+}
+
+@keyframes bookmarkEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Exit animation */
+.bookmark-exit {
+  animation: bookmarkExit 0.3s ease-in forwards;
+}
+
+@keyframes bookmarkExit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Folder expand animation */
+.folder-expanding {
+  animation: folderExpand 0.3s ease-out;
+}
+
+@keyframes folderExpand {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  RESPONSIVE DESIGN
+––––––––––––––––––––––––––– */
+
+@media (max-width: 768px) {
+  .bookmark-slot {
+    min-width: 150px;
+    height: 50px;
+  }
+  
+  .bookmark {
+    padding: 6px 10px;
+  }
+  
+  .bookmark-name {
+    font-size: 0.8rem;
+  }
+  
+  .bookmark-url {
+    font-size: 0.7rem;
+  }
+  
+  .folder-children {
+    margin-left: 15px;
+    padding-left: 10px;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  ACCESSIBILITY
+––––––––––––––––––––––––––– */
+
+.bookmark:focus {
+  outline: 2px solid var(--content-bright-80);
+  outline-offset: 2px;
+}
+
+.folder-toggle:focus {
+  outline: 2px solid var(--content-bright-80);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bookmark {
+    border: 1px solid var(--content-bright-60);
+  }
+  
+  .bookmark-name {
+    font-weight: 600;
+  }
+  
+  .folder-toggle svg {
+    stroke-width: 2;
+  }
+}: center;
+}
+
+.folder-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.folder-name {
+  color: var(--content-bright-100);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.folder-count {
+  color: var(--content-bright-60);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.folder-toggle {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.folder-toggle:hover {
+  background-color: var(--container-bright-20);
+}
+
+.folder-toggle svg {
+  transition: transform 0.2s;
+  stroke: var(--content-bright-70);
+}
+
+/* Expanded folder state */
+.bookmark.folder-expanded .folder-toggle svg {
+  transform: rotate(90deg);
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK CONTROLS
+––––––––––––––––––––––––––– */
+
+.bookmark-controls {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: none;
+  gap: 2px;
+}
+
+.bookmark-close-btn {
+  width: 16px;
+  height: 16px;
+  background-color: var(--white-100);
+  border: none;
+  border-radius: 999px;
+  padding: 2px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.bookmark-close-btn:hover {
+  background-color: var(--content-bright-10);
+}
+
+.bookmark-close-btn svg {
+  width: 10px;
+  height: 10px;
+  stroke: var(--content-dim-80);
+}
+
+/* Drag handle */
+.bookmark-drag-handle {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  cursor: move;
+  opacity: 0.3;
+  transition: opacity 0.2s;
+  fill: var(--content-dim-100);
+}
+
+.bookmark-drag-handle:hover {
+  opacity: 0.8;
+}
+
+.bookmark-drag-handle svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* –––––––––––––––––––––––––––
+  PLACEHOLDER STYLES
+––––––––––––––––––––––––––– */
+
+.bookmark-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--content-bright-40);
+  font-size: 0.85rem;
+  font-style: italic;
+  text-align
