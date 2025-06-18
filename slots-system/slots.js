@@ -43,6 +43,7 @@ class SlotFactory {
   }
 }
 
+
 /* –––––––––––––––––––––––––––
   CORE SLOT SYSTEM
 ––––––––––––––––––––––––––– */
@@ -760,7 +761,6 @@ class SlotSystem {
     this.loadItems();
   }
 }
-window.slotFactory = slotFactory;
 
 /* –––––––––––––––––––––––––––
   EXPORTS
