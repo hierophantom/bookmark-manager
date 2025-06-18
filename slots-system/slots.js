@@ -760,6 +760,7 @@ class SlotSystem {
     this.loadItems();
   }
 }
+window.slotFactory = slotFactory;
 
 /* –––––––––––––––––––––––––––
   EXPORTS

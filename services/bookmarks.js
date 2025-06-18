@@ -1,5 +1,5 @@
 // services/bookmarks.js
-import { SlotFactory } from '../slots-system/slots.js';
+import { SlotFactory }from '../slots-system/slots.js';
 
 class BookmarksService {
     constructor() {
@@ -83,13 +83,14 @@ class BookmarksService {
     }
 
     async populateFolder(folderId, bookmarks) {
+        
         const container = document.getElementById(`bookmarks-${folderId}`);
         if (!container) return;
 
         // Create or get slot factory for this folder
         let factory = this.slotFactories.get(folderId);
         if (!factory) {
-            factory = slotFactory(container);
+            factory = window.slotFactory(container);
             this.slotFactories.set(folderId, factory);
         }
 
@@ -111,9 +112,8 @@ class BookmarksService {
         return {
             id: bookmark.id,
             name: bookmark.title || 'Untitled',
-            icon: faviconUrl,
-            url: bookmark.url,
-            onClick: () => {
+            image: faviconUrl,
+            clickAction: () => {
                 chrome.tabs.create({ url: bookmark.url });
             }
         };
@@ -123,9 +123,8 @@ class BookmarksService {
         if (!url) return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23666"/></svg>';
         
         try {
-            const urlObj = new URL(url);
-            // Use Chrome's favicon service
-            return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=32`;
+            // Use Google's favicon service as it's more reliable
+            return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
         } catch {
             // Fallback for invalid URLs
             return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23666"/></svg>';
