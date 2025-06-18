@@ -12,6 +12,8 @@ import { SlotSystem } from '../slots-system/slots.js';
 import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
 import { ModalManager } from '../slots-system/modal.js';
+import { BookmarkManager } from '../services/chrome-bookmarks.js';
+import { TabGroupManager } from '../services/chrome-tabgroups.js';
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION

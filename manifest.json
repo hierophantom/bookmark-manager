@@ -3,24 +3,30 @@
   "name": "Bookmark Manager",
   "version": "1.0",
   "description": "Advanced bookmark manager with widgets",
+  
   "permissions": [
     "bookmarks",
     "tabs",
     "tabGroups",
     "storage"
   ],
+  
   "host_permissions": [
     "<all_urls>"
   ],
+  
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
+  
   "background": {
     "service_worker": "main/background.js"
   },
+  
   "chrome_url_overrides": {
     "newtab": "main/main.html"
   },
+  
   "action": {
     "default_title": "Open Bookmark Manager",
     "default_icon": {
