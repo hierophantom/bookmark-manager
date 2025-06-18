@@ -350,7 +350,7 @@ header {
   position: absolute;
   width: 100%;
   height: 100%;
-  transition: opacity 0.5s ease 0.1s;
+  transition: opacity 1s ease 0.1s;
 }
 
 .page.active {

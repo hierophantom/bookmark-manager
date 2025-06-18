@@ -12,9 +12,6 @@ import { SlotSystem } from '../slots-system/slots.js';
 import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
 import { ModalManager } from '../slots-system/modal.js';
-import { BookmarkManager } from '../services/chrome-bookmarks.js';
-import { TabGroupManager, PersistentTabGroupManager } from '../services/chrome-tabgroups.js';
-
 
 /* –––––––––––––––––––––––––––
   INITIALIZATION
@@ -134,43 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  // ADD TAB GROUPS AND BOOKMARKS INITIALIZATION
-  // Initialize Tab Groups Manager
-  let tabGroupManager = null;
-  const tabGroupsContainer = document.querySelector('#tab-groups-container');
-  if (tabGroupsContainer) {
-    console.log('Initializing Tab Group Manager...');
-    tabGroupManager = new TabGroupManager('#tab-groups-container');
-  } else {
-    console.warn('Tab groups container not found');
-  }
-
-  // Initialize Bookmarks Manager
-  let bookmarkManager = null;
-  const bookmarksContainer = document.querySelector('#bookmarks-content');
-  if (bookmarksContainer) {
-    console.log('Initializing Bookmark Manager...');
-    bookmarkManager = new BookmarkManager('#bookmarks-content');
-  } else {
-    console.warn('Bookmarks container not found');
-  }
-
-  // Listen for background script events (for real-time updates)
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'backgroundEvent') {
-      console.log('Received background event:', message.event, message.data);
-      
-      // Handle tab group events
-      if (message.event.startsWith('tabGroup') && tabGroupManager) {
-        tabGroupManager.refreshTabGroups();
-      }
-      
-      // Handle bookmark events  
-      if (message.event.startsWith('bookmark') && bookmarkManager) {
-        bookmarkManager.refreshBookmarks();
-      }
-    }
-  });
 
   // Initialize other managers
   const pageManager = new PageManager();
