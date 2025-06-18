@@ -1,6 +1,6 @@
 /*
 File name & path: main/background.js
-Role: The extension rvent handler
+Role: The extension event handler (Manifest V3 compatible)
 */
 
 // This will handle the extension icon click
@@ -18,7 +18,6 @@ chrome.tabs.onCreated.addListener((tab) => {
     });
   }
 });
-
 
 /* –––––––––––––––––––––––––––
   BACKGROUND SERVICE WORKER
@@ -97,20 +96,39 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   UTILITY FUNCTIONS
 ––––––––––––––––––––––––––– */
 
-// Notify all open extension pages about changes
-function notifyExtensionPages(event, data) {
-  // Get all extension views (popup, options, etc.)
-  const views = chrome.extension.getViews();
-  
-  views.forEach(view => {
-    if (view.document && view.document.readyState === 'complete') {
-      // Dispatch custom event to the page
-      const customEvent = new CustomEvent('chromeExtensionEvent', {
-        detail: { event, data }
-      });
-      view.document.dispatchEvent(customEvent);
+// Notify all open extension pages about changes (Manifest V3 compatible)
+async function notifyExtensionPages(event, data) {
+  try {
+    // In Manifest V3, we need to use chrome.runtime.sendMessage to communicate
+    // with extension pages since chrome.extension.getViews() is deprecated
+    
+    // Send message to all extension contexts
+    chrome.runtime.sendMessage({
+      type: 'backgroundEvent',
+      event: event,
+      data: data
+    }).catch(() => {
+      // Ignore errors if no listeners are available
+      // This is normal when the extension page isn't open
+    });
+    
+    // Also try to communicate with any open tabs that might be our extension
+    const tabs = await chrome.tabs.query({ url: chrome.runtime.getURL('*') });
+    
+    for (const tab of tabs) {
+      try {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: 'backgroundEvent',
+          event: event,
+          data: data
+        });
+      } catch (error) {
+        // Ignore errors - tab might not have content script or might be loading
+      }
     }
-  });
+  } catch (error) {
+    console.error('Error notifying extension pages:', error);
+  }
 }
 
 // Handle messages from content scripts or popup
@@ -133,8 +151,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
       
     default:
-      console.log('Unknown action:', request.action);
-      sendResponse({ error: 'Unknown action' });
+      // Don't log backgroundEvent messages as they're internal
+      if (request.type !== 'backgroundEvent') {
+        console.log('Unknown action:', request.action);
+        sendResponse({ error: 'Unknown action' });
+      }
   }
 });
 
