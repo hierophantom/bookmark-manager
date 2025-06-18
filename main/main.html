@@ -12,12 +12,14 @@ Role: The main view of the extension with separated slot/widget systems
     <link rel="stylesheet" href="../slots-system/modal.css">
     <link rel="stylesheet" href="../services/widgets.css">
     <link rel="stylesheet" href="../services/shortcuts.css">
+    <link rel="stylesheet" href="../services/bookmarks.css">
     
     <script src="../libs/interact.min.js"></script>
     <script type="module" src="../slots-system/modal.js"></script>
     <script type="module" src="../slots-system/slots.js"></script>
     <script type="module" src="../services/widgets.js"></script>
     <script type="module" src="../services/shortcuts.js"></script>
+    <script type="module" src="../services/bookmarks.js"></script>
     <script type="module" src="main.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,6 +101,10 @@ Role: The main view of the extension with separated slot/widget systems
                         <button data-action="toggle-folder-tree">Toggle Folder Tree</button>
                         <button data-action="toggle-active-tabs">Toggle Active Tabs</button>
                     </div>
+
+                        <div class="bookmarks-container">
+        <!-- Bookmarks will be dynamically loaded here -->
+    </div>
                 </div>
 
             </div>
@@ -116,5 +122,4 @@ Role: The main view of the extension with separated slot/widget systems
 
     </main>
 </body>
-
 </html>

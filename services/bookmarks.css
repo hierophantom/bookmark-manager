@@ -1,0 +1,133 @@
+/* services/bookmarks.css */
+
+.bookmarks-container {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.bookmarks-folder {
+    margin-bottom: 30px;
+}
+
+.folder-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 15px;
+    padding-left: 10px;
+    border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.bookmarks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    min-height: 100px;
+}
+
+/* Style slot items within bookmarks */
+.bookmarks .slot-item {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.bookmarks .slot-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.bookmarks .slot-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+}
+
+.bookmarks .slot-name {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* Empty state */
+.bookmarks:empty::after {
+    content: 'No bookmarks';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bookmarks {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 10px;
+    }
+    
+    .bookmarks .slot-icon {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .bookmarks .slot-name {
+        font-size: 11px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .bookmarks-folder {
+        background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .bookmarks {
+        background: rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* Loading state */
+.bookmarks.loading {
+    position: relative;
+    min-height: 150px;
+}
+
+.bookmarks.loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Drag and drop support (future addition) */
+.bookmarks .slot-item.dragging {
+    opacity: 0.5;
+}
+
+.bookmarks .slot-item.drag-over {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+}
