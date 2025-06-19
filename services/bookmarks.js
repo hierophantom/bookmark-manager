@@ -47,26 +47,41 @@ class BookmarksService {
         this.bookmarksContainer.innerHTML = '';
         this.bookmarkFolders.clear();
         
-        // Create container for root level bookmarks (not in any folder)
+        // Create folder for root level bookmarks (not in any folder)
         const rootBookmarks = bookmarkNode.children.filter(child => !child.children);
         if (rootBookmarks.length > 0) {
-            const rootContainer = this.createRootContainer(bookmarkNode.id, 'Quick Bookmarks');
-            this.bookmarksContainer.appendChild(rootContainer);
+            const rootFolder = this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', []);
+            this.bookmarksContainer.appendChild(rootFolder);
             await this.populateFolder(bookmarkNode.id, rootBookmarks);
         }
         
-        // Process root-level folders - each gets its own container
+        // Process all folders recursively and add them as individual items
         if (bookmarkNode.children) {
             for (const child of bookmarkNode.children) {
                 if (child.children) {
-                    // It's a root folder - create a separate container
-                    const containerElement = this.createRootContainer(child.id, child.title);
-                    this.bookmarksContainer.appendChild(containerElement);
-                    
-                    // Process folder contents (including nested folders)
-                    await this.populateRootFolder(child.id, child.children);
+                    // Process this folder and all its subfolders
+                    await this.processFolderHierarchy(child, []);
                 }
             }
+        }
+    }
+
+    async processFolderHierarchy(folder, parentPath) {
+        // Create the current folder
+        const currentPath = [...parentPath, folder.title];
+        const folderElement = this.createBookmarkFolder(folder.id, folder.title, parentPath);
+        this.bookmarksContainer.appendChild(folderElement);
+        
+        // Add bookmarks from this folder
+        const bookmarks = folder.children.filter(child => !child.children);
+        if (bookmarks.length > 0) {
+            await this.populateFolder(folder.id, bookmarks);
+        }
+        
+        // Recursively process any subfolders
+        const subfolders = folder.children.filter(child => child.children);
+        for (const subfolder of subfolders) {
+            await this.processFolderHierarchy(subfolder, currentPath);
         }
     }
 
