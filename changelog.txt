@@ -1,3 +1,6 @@
+1.12
+VIsualizing bookmarks with complete sync. Each folder show as individual contained item
+
 1.11
 Tooltip standard
 

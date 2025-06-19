@@ -12,13 +12,14 @@ Role: Bookmarks styles
     height: 100vh;
     overflow: scroll;
     margin-right: 24px;
+    padding-bottom: 126px;
 }
 
 .bookmarks-container {
     padding: 24px;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
     gap: 20px;
 }
 
