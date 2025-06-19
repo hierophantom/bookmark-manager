@@ -86,34 +86,43 @@ class BookmarksService {
     }
 
     createBookmarkFolder(folderId, title, parentPath) {
-        const folderDiv = document.createElement('div');
-        folderDiv.id = `bookmark-folder-${folderId}`;
-        folderDiv.className = 'bookmark-folder';
-        
-        // Create display title with breadcrumbs if it has parents
-        const displayTitle = parentPath.length > 0 ? `${parentPath.join(' > ')} > ${title}` : title;
-        
-        folderDiv.innerHTML = `
-            <div class="folder-header">
-                <h3 class="folder-title">${displayTitle}</h3>
-                <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="bookmarks" id="bookmarks-${folderId}"></div>
-        `;
-        
-        // Add event listener for add button
-        const addBtn = folderDiv.querySelector('.add-btn');
-        addBtn.addEventListener('click', () => this.addBookmark(folderId));
-        
-        return folderDiv;
+    const folderDiv = document.createElement('div');
+    folderDiv.id = `bookmark-folder-${folderId}`;
+    folderDiv.className = 'bookmark-folder';
+    
+    // Create display title with breadcrumbs if it has parents
+    let displayTitle = '';
+    if (parentPath.length > 0) {
+        // Build breadcrumb with spans only for parent path
+        const breadcrumbPath = parentPath.map(part => 
+            `<span class="subfolder-title">${part}</span>`
+        ).join(' > ');
+        displayTitle = `${breadcrumbPath} > ${title}`;
+    } else {
+        displayTitle = title;
     }
+    
+    folderDiv.innerHTML = `
+        <div class="folder-header">
+            <h3 class="folder-title">${displayTitle}</h3>
+            <div class="folder-actions">
+                <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="bookmarks" id="bookmarks-${folderId}"></div>
+    `;
+    
+    // Add event listener for add button
+    const addBtn = folderDiv.querySelector('.add-btn');
+    addBtn.addEventListener('click', () => this.addBookmark(folderId));
+    
+    return folderDiv;
+}
 
     async populateFolder(folderId, bookmarks) {
         const container = document.getElementById(`bookmarks-${folderId}`);

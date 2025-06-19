@@ -68,7 +68,9 @@ Role: Bookmarks styles
     color: var(--content-bright-100);
     font-weight: 600;
 }
-
+.subfolder-title {
+    color: var(--content-bright-30);
+}
 .bookmarks {
     display: flex;
     flex-direction: row;
