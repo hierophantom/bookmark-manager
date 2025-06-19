@@ -143,7 +143,8 @@ body {
 }
 
 main {
-  background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://picsum.photos/1920/1080");
+  /*background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://picsum.photos/1920/1080");*/
+  background-color: var(--black-60);
   background-repeat: no-repeat;
   background-size: cover;
   width: 100%;
@@ -188,6 +189,7 @@ header {
   padding: 24px;
   display: block;
   flex-grow: 20;
+
   flex-shrink: 1;
   flex-basis: auto;
   align-self: auto;
@@ -195,6 +197,15 @@ header {
 }
 
 #homepage {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+#bookmarks {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
