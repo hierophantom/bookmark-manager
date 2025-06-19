@@ -162,6 +162,84 @@ Role: Bookmarks styles
 }
 
 /* –––––––––––––––––––––––––––
+  DRAG CONTROL
+––––––––––––––––––––––––––– */
+
+.slot-item.drag-before {
+    position: relative;
+}
+
+.slot-item.drag-before::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #4CAF50;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.slot-item.drag-after {
+    position: relative;
+}
+
+.slot-item.drag-after::after {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #4CAF50;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.slot-item.drag-swap {
+    background: rgba(76, 175, 80, 0.2) !important;
+    border-color: #4CAF50 !important;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+}
+
+/* Visual feedback for drop zones */
+.slot-item {
+    position: relative;
+    overflow: visible;
+}
+
+/* Optional: Add visual hints on hover */
+.slot-item:not(.dragging)::before,
+.slot-item:not(.dragging)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20%;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.slot-item:not(.dragging)::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
+}
+
+.slot-item:not(.dragging)::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.05), transparent);
+}
+
+/* Show zones when dragging */
+.dragging ~ .slot-item:hover::before,
+.dragging ~ .slot-item:hover::after {
+    opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
   CONTORLS
 ––––––––––––––––––––––––––– */
 
