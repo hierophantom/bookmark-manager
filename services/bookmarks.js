@@ -9,7 +9,7 @@ class BookmarksService {
 
     async init() {
         await this.waitForDOM();
-        this.bookmarksContainer = document.querySelector('.bookmarks-container');
+        this.bookmarksContainer = document.getElementById('bookmarks-container');
         
         if (!this.bookmarksContainer) {
             console.error('Bookmarks container not found');
@@ -70,40 +70,19 @@ class BookmarksService {
         }
     }
 
-    createRootContainer(folderId, title) {
-        const containerDiv = document.createElement('div');
-        containerDiv.className = 'bookmarks-container root-folder-container';
-        containerDiv.innerHTML = `
-            <div class="container-header">
-                <h2 class="container-title">${title}</h2>
-                <div class="folder-actions">
-                    <button class="container-add-btn" title="Add bookmark to ${title}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="bookmarks" id="bookmarks-${folderId}"></div>
-            <div class="subfolders-container" id="subfolders-${folderId}"></div>
-        `;
-        
-        // Add event listener for add button
-        const addBtn = containerDiv.querySelector('.container-add-btn');
-        addBtn.addEventListener('click', () => this.addBookmark(folderId));
-        
-        return containerDiv;
-    }
-
-    createBookmarkFolder(folderId, title) {
+    createBookmarkFolder(folderId, title, parentPath) {
         const folderDiv = document.createElement('div');
-        folderDiv.className = 'bookmarks-folder';
+        folderDiv.id = `bookmark-folder-${folderId}`;
+        folderDiv.className = 'bookmark-folder';
+        
+        // Create display title with breadcrumbs if it has parents
+        const displayTitle = parentPath.length > 0 ? `${parentPath.join(' > ')} > ${title}` : title;
+        
         folderDiv.innerHTML = `
             <div class="folder-header">
-                <h3 class="folder-title">${title}</h3>
+                <h3 class="folder-title">${displayTitle}</h3>
                 <div class="folder-actions">
-                    <button class="folder-add-btn" title="Add bookmark to ${title}">
+                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -115,66 +94,10 @@ class BookmarksService {
         `;
         
         // Add event listener for add button
-        const addBtn = folderDiv.querySelector('.folder-add-btn');
+        const addBtn = folderDiv.querySelector('.add-btn');
         addBtn.addEventListener('click', () => this.addBookmark(folderId));
         
         return folderDiv;
-    }
-
-    async populateRootFolder(folderId, children) {
-        const bookmarksContainer = document.getElementById(`bookmarks-${folderId}`);
-        const subfoldersContainer = document.getElementById(`subfolders-${folderId}`);
-        
-        if (!bookmarksContainer) return;
-
-        // Clear existing content
-        bookmarksContainer.innerHTML = '';
-        if (subfoldersContainer) {
-            subfoldersContainer.innerHTML = '';
-        }
-        
-        // Setup drop zone for the bookmarks container
-        this.setupDropZone(bookmarksContainer, folderId);
-
-        // First, add all direct bookmarks to the bookmarks grid
-        const directBookmarks = children.filter(child => !child.children);
-        for (const bookmark of directBookmarks) {
-            const slotItem = await this.createBookmarkSlotItem(bookmark);
-            bookmarksContainer.appendChild(slotItem);
-        }
-        
-        // Then, recursively find and add all nested folders with breadcrumbs
-        const rootFolderName = document.querySelector(`#bookmarks-${folderId}`).closest('.root-folder-container').querySelector('.container-title').textContent;
-        const nestedFolders = children.filter(child => child.children);
-        
-        if (nestedFolders.length > 0 && subfoldersContainer) {
-            // Process all nested folders recursively
-            for (const folder of nestedFolders) {
-                await this.processNestedFolders(folder, subfoldersContainer, [rootFolderName]);
-            }
-        }
-    }
-
-    async processNestedFolders(folder, container, breadcrumbs) {
-        // Create breadcrumb path
-        const currentBreadcrumbs = [...breadcrumbs, folder.title];
-        const breadcrumbTitle = currentBreadcrumbs.slice(1).join(' > '); // Skip root folder name for breadcrumb
-        
-        // Create folder element with breadcrumb title
-        const folderElement = this.createBookmarkFolder(folder.id, breadcrumbTitle);
-        container.appendChild(folderElement);
-        
-        // Add bookmarks from this folder
-        const bookmarks = folder.children.filter(child => !child.children);
-        if (bookmarks.length > 0) {
-            await this.populateFolder(folder.id, bookmarks);
-        }
-        
-        // Recursively process any subfolders
-        const subfolders = folder.children.filter(child => child.children);
-        for (const subfolder of subfolders) {
-            await this.processNestedFolders(subfolder, container, currentBreadcrumbs);
-        }
     }
 
     async populateFolder(folderId, bookmarks) {
