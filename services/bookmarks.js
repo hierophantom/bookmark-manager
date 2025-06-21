@@ -227,51 +227,56 @@ class BookmarksService {
     }
 
 
-    createBookmarkFolder(folderId, title, parentPath) {
-        const folderDiv = document.createElement('div');
-        folderDiv.id = `bookmark-folder-${folderId}`;
-        folderDiv.className = 'bookmark-folder';
+createBookmarkFolder(folderId, title, parentPath) {
+    const folderDiv = document.createElement('div');
+    folderDiv.id = `bookmark-folder-${folderId}`;
+    folderDiv.className = 'bookmark-folder';
+    
+    // Create display title with breadcrumbs if it has parents
+    let displayTitle = '';
+    if (parentPath.length > 0) {
+        // Build breadcrumb with spans, show "Untitled Folder" for empty names in breadcrumbs only
+        const breadcrumbPath = parentPath.map(part => {
+            const displayPart = part.trim() === '' ? 'Untitled Folder' : part;
+            return `<span class="subfolder-title">${displayPart}</span>`;
+        }).join(' > ');
         
-        let displayTitle = '';
-        if (parentPath.length > 0) {
-            const breadcrumbPath = parentPath.map(part => 
-                `<span class="subfolder-title">${part}</span>`
-            ).join(' > ');
-            displayTitle = `${breadcrumbPath} > ${title}`;
-        } else {
-            displayTitle = title;
-        }
-        
-        folderDiv.innerHTML = `
-            <div class="folder-header">
-                <h3 class="folder-title">${displayTitle}</h3>
-                <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" id="add-bookmark" title="Add bookmark to ${title}">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                    </button>
-                    <button class="folder-action-btn add-btn" id="add-folder" title="Add folder">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            <line x1="12" y1="11" x2="12" y2="17"></line>
-                            <line x1="9" y1="14" x2="15" y2="14"></line>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <div class="bookmarks" id="bookmarks-${folderId}"></div>
-        `;
-        
-        const addBookmarkBtn = folderDiv.querySelector('#add-bookmark');
-        const addFolderBtn = folderDiv.querySelector('#add-folder');
-        
-        addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
-        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog(folderId));
-        
-        return folderDiv;
+        // For the current folder title, keep original behavior (can be empty)
+        displayTitle = `${breadcrumbPath} > ${title}`;
+    } else {
+        displayTitle = title;
     }
+    
+    folderDiv.innerHTML = `
+        <div class="folder-header">
+            <h3 class="folder-title">${displayTitle}</h3>
+            <div class="folder-actions">
+                <button class="folder-action-btn add-btn" id="add-bookmark" title="Add bookmark to ${title}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <button class="folder-action-btn add-btn" id="add-folder" title="Add folder">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="bookmarks" id="bookmarks-${folderId}"></div>
+    `;
+    
+    const addBookmarkBtn = folderDiv.querySelector('#add-bookmark');
+    const addFolderBtn = folderDiv.querySelector('#add-folder');
+    
+    addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
+    addFolderBtn.addEventListener('click', () => this.showAddFolderDialog(folderId));
+    
+    return folderDiv;
+}
 
     async populateFolder(folderId, items) {
         const container = document.getElementById(`bookmarks-${folderId}`);
