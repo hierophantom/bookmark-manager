@@ -309,6 +309,66 @@ class BookmarksService {
             }
         }
     }
+    
+    async populateFolder(folderId, bookmarks) {
+        const container = document.getElementById(`bookmarks-${folderId}`);
+        if (!container) return;
+
+        // Clear existing content
+        container.innerHTML = '';
+        
+        // Setup drop zone for the container
+        this.setupDropZone(container, folderId);
+
+        // Add ALL items as slot items (both bookmarks and folders)
+        for (const item of bookmarks) {
+            if (item.children) {
+                // This is a folder - create folder slot item
+                const folderSlotItem = await this.createFolderSlotItem(item);
+                container.appendChild(folderSlotItem);
+            } else {
+                // This is a bookmark - create bookmark slot item
+                const slotItem = await this.createBookmarkSlotItem(item);
+                container.appendChild(slotItem);
+            }
+        }
+    }
+    async createFolderSlotItem(folder) {
+        const slotItem = document.createElement('div');
+        slotItem.className = 'slot-item folder-item';
+        slotItem.dataset.folderId = folder.id;
+        slotItem.title = folder.title;
+        slotItem.draggable = true;
+        
+        slotItem.innerHTML = `
+            <div class="slot-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                </svg>
+            </div>
+            <div class="slot-name">${folder.title}</div>
+            <div class="slot-actions">
+                <button class="slot-action edit-btn" title="Edit folder">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        // Click to scroll to folder section
+        slotItem.addEventListener('click', (e) => {
+            if (!e.target.closest('.slot-actions')) {
+                const targetFolder = document.getElementById(`bookmark-folder-${folder.id}`);
+                if (targetFolder) {
+                    targetFolder.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+        
+        return slotItem;
+    }
 
     async processFolderHierarchy(folder, parentPath) {
         const bookmarks = folder.children.filter(child => !child.children);
