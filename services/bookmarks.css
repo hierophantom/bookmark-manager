@@ -347,66 +347,6 @@ body:has(.bookmark-item.dragging) .bookmark-slot:empty {
     background-color: rgba(76, 175, 80, 0.05);
 }
 
-
-/* Add these styles to your existing bookmarks.css */
-
-/* Folder-specific styling */
-.slot-item[data-item-type="folder"] {
-    background-color: var(--container-bright-60);
-    border: 1px solid var(--container-dim-40);
-}
-
-.slot-item[data-item-type="folder"]:hover {
-    background-color: var(--container-bright-70);
-    border-color: var(--container-dim-50);
-}
-
-.folder-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-}
-
-.folder-icon svg {
-    width: 32px;
-    height: 32px;
-    fill: var(--content-bright-70);
-    stroke: var(--content-bright-70);
-}
-
-/* Different hover effects for folders vs bookmarks */
-.slot-item[data-item-type="bookmark"]:hover {
-    background-color: var(--container-bright-90);
-    transform: translateY(-2px);
-}
-
-.slot-item[data-item-type="folder"]:hover {
-    background-color: var(--container-bright-70);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Drag states for folders */
-.slot-item[data-item-type="folder"].dragging {
-    opacity: 0.7;
-    background-color: var(--container-bright-50);
-}
-
-/* Visual distinction when dragging folders vs bookmarks */
-.slot-item[data-item-type="folder"].drag-swap {
-    background: rgba(76, 175, 80, 0.15) !important;
-    border-color: #4CAF50 !important;
-}
-
-.slot-item[data-item-type="bookmark"].drag-swap {
-    background: rgba(76, 175, 80, 0.2) !important;
-    border-color: #4CAF50 !important;
-}
-
-
 /* –––––––––––––––––––––––––––
   ANIMATIONS
 ––––––––––––––––––––––––––– */
