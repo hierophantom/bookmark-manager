@@ -150,9 +150,9 @@ class BookmarksService {
         this.bookmarksContainer = null;
         this.folderSlotSystems = new Map(); // Map folder ID to SlotSystem instance
         this.bookmarksFactory = new BookmarksFactory();
-        this.slotsPerFolder = 8; // Number of slots per folder
         this.currentFolderId = null;
         this.currentTargetSlot = null;
+        this.isLoading = false; // Prevent duplicate loads
         this.init();
     }
 
@@ -176,6 +176,9 @@ class BookmarksService {
     }
 
     async loadBookmarks() {
+        if (this.isLoading) return;
+        this.isLoading = true;
+
         try {
             // Get the bookmarks tree from Chrome API
             const bookmarksTree = await chrome.bookmarks.getTree();
@@ -188,6 +191,8 @@ class BookmarksService {
             }
         } catch (error) {
             console.error('Failed to load bookmarks:', error);
+        } finally {
+            this.isLoading = false;
         }
     }
 
@@ -242,8 +247,11 @@ class BookmarksService {
             displayTitle = title;
         }
         
+        // Calculate number of slots: bookmarks count + 1 empty slot
+        const slotsCount = Math.max(1, bookmarks.length + 1);
+        
         // Create slots HTML
-        const slotsHTML = Array.from({ length: this.slotsPerFolder }, (_, index) => 
+        const slotsHTML = Array.from({ length: slotsCount }, (_, index) => 
             `<div class="bookmark-slot" data-slot-id="slot-${folderId}-${index}"></div>`
         ).join('');
         
@@ -275,7 +283,7 @@ class BookmarksService {
         this.bookmarksContainer.appendChild(folderDiv);
         
         // Initialize slot system for this folder
-        await this.initializeFolderSlotSystem(folderId, bookmarks);
+        await this.initializeFolderSlotSystem(folderId, bookmarks, slotsCount);
         
         // Add event listeners
         const addBtn = folderDiv.querySelector('.add-bookmark-btn');
@@ -285,7 +293,7 @@ class BookmarksService {
         addControlBtn.addEventListener('click', () => this.showAddBookmarkModal(folderId));
     }
 
-    async initializeFolderSlotSystem(folderId, bookmarks) {
+    async initializeFolderSlotSystem(folderId, bookmarks, slotsCount) {
         const slotSystem = new SlotSystem({
             storageKey: `bookmarks-${folderId}`,
             slotSelector: `#bookmark-slots-${folderId} .bookmark-slot`,
@@ -294,22 +302,47 @@ class BookmarksService {
             itemClass: 'bookmark-item'
         });
         
-        // Set the bookmarks factory
-        slotSystem.setItemFactory(this.bookmarksFactory);
+        // Set the enhanced bookmarks factory
+        const enhancedFactory = new EnhancedBookmarksFactory(this);
+        slotSystem.setItemFactory(enhancedFactory);
         
         // Store the slot system
         this.folderSlotSystems.set(folderId, slotSystem);
         
-        // Populate with existing bookmarks
-        for (let i = 0; i < bookmarks.length && i < this.slotsPerFolder; i++) {
+        // Populate with existing bookmarks - DON'T use addItemWithData to avoid duplicates
+        for (let i = 0; i < bookmarks.length; i++) {
             const bookmark = bookmarks[i];
             const slotId = `slot-${folderId}-${i}`;
+            const targetSlot = document.querySelector(`[data-slot-id="${slotId}"]`);
             
-            await slotSystem.addItemWithData({
-                id: bookmark.id,
-                title: bookmark.title,
-                url: bookmark.url
-            }, document.querySelector(`[data-slot-id="${slotId}"]`));
+            if (targetSlot) {
+                // Create bookmark element directly without Chrome API call
+                const bookmarkElement = await enhancedFactory.createItem(
+                    `bookmark-${bookmark.id}`, 
+                    {
+                        id: bookmark.id,
+                        title: bookmark.title,
+                        url: bookmark.url
+                    }, 
+                    slotId
+                );
+                
+                if (bookmarkElement) {
+                    targetSlot.appendChild(bookmarkElement);
+                    
+                    // Add to slot system's items array manually
+                    slotSystem.items.push({
+                        id: `bookmark-${bookmark.id}`,
+                        data: {
+                            id: bookmark.id,
+                            title: bookmark.title,
+                            url: bookmark.url
+                        },
+                        slotId: slotId,
+                        position: { x: 0, y: 0 }
+                    });
+                }
+            }
         }
     }
 
@@ -430,7 +463,7 @@ class BookmarksService {
             const finalUrl = url.startsWith('http') ? url : `https://${url}`;
             
             try {
-                // Create bookmark in Chrome
+                // Create bookmark in Chrome first
                 const chromeBookmark = await chrome.bookmarks.create({
                     parentId: this.currentFolderId,
                     title: title,
@@ -445,6 +478,9 @@ class BookmarksService {
                         title: title,
                         url: finalUrl
                     }, this.currentTargetSlot);
+                    
+                    // Reload to add new empty slot
+                    setTimeout(() => this.loadBookmarks(), 500);
                 }
                 
                 closeModal();
@@ -473,22 +509,22 @@ class BookmarksService {
     }
 
     setupListeners() {
-        // Listen for bookmark changes from Chrome
-        chrome.bookmarks.onCreated.addListener((id, bookmark) => {
-            // Only reload if it's not created by our modal (to avoid double creation)
-            if (!this.currentFolderId) {
-                this.loadBookmarks();
-            }
-        });
+        // Listen for bookmark changes from Chrome - but debounce to prevent loops
+        let timeout;
+        const debouncedReload = () => {
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                if (!this.currentFolderId) { // Only reload if not in modal
+                    this.loadBookmarks();
+                }
+            }, 300);
+        };
         
-        chrome.bookmarks.onRemoved.addListener(() => this.loadBookmarks());
-        chrome.bookmarks.onChanged.addListener(() => this.loadBookmarks());
-        chrome.bookmarks.onMoved.addListener((id, moveInfo) => {
-            // Handle bookmark moves between Chrome folders
-            this.handleBookmarkMove(id, moveInfo);
-        });
-        
-        chrome.bookmarks.onChildrenReordered?.addListener(() => this.loadBookmarks());
+        chrome.bookmarks.onCreated.addListener(debouncedReload);
+        chrome.bookmarks.onRemoved.addListener(debouncedReload);
+        chrome.bookmarks.onChanged.addListener(debouncedReload);
+        chrome.bookmarks.onMoved.addListener(debouncedReload);
+        chrome.bookmarks.onChildrenReordered?.addListener(debouncedReload);
     }
 
     async handleBookmarkMove(bookmarkId, moveInfo) {
@@ -523,6 +559,9 @@ class BookmarksService {
                 console.error('Failed to handle bookmark move:', error);
             }
         }
+        
+        // Reload to adjust slot counts
+        setTimeout(() => this.loadBookmarks(), 500);
     }
 
     // Public method to refresh bookmarks
@@ -594,6 +633,9 @@ class BookmarksService {
                 url: bookmarkData.url
             }, targetSlot);
 
+            // Reload to adjust slot count
+            setTimeout(() => this.loadBookmarks(), 500);
+
             return true;
         } catch (error) {
             console.error('Failed to add bookmark to slot:', error);
@@ -624,6 +666,9 @@ class BookmarksService {
                 
                 // Remove from slot system
                 slotSystem.removeItemProgrammatically(item.id);
+                
+                // Reload to adjust slot count
+                setTimeout(() => this.loadBookmarks(), 500);
                 
                 return true;
             } catch (error) {
