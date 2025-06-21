@@ -239,6 +239,206 @@ Role: Bookmarks styles
     opacity: 1;
 }
 
+
+/*Newly added*/
+
+/* Enhanced drag and drop animations for smooth slot movement */
+
+/* Add transition for smooth repositioning */
+.bookmarks .slot-item {
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Disable transitions when dragging to avoid conflicts */
+.bookmarks .slot-item.dragging {
+    transition: none !important;
+}
+
+/* Enhanced drop zone indicators */
+.slot-item.drag-before::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 10%;
+    bottom: 10%;
+    width: 4px;
+    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+    animation: pulse-before 1s ease-in-out infinite alternate;
+}
+
+.slot-item.drag-after::after {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 10%;
+    bottom: 10%;
+    width: 4px;
+    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+    animation: pulse-after 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-before {
+    0% { 
+        opacity: 0.7; 
+        transform: translateX(-2px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateX(0px);
+    }
+}
+
+@keyframes pulse-after {
+    0% { 
+        opacity: 0.7; 
+        transform: translateX(2px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateX(0px);
+    }
+}
+
+/* Enhanced folder drop zone */
+.bookmarks.drag-over-folder {
+    background: rgba(76, 175, 80, 0.1);
+    border: 2px dashed #4CAF50;
+    border-radius: 8px;
+    min-height: 120px;
+    position: relative;
+}
+
+.bookmarks.drag-over-folder::before {
+    content: 'Drop here to add to folder';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #4CAF50;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Drop zones within folders */
+.bookmarks.has-drop-zones {
+    position: relative;
+}
+
+.drop-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.drop-zone.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drop-zone::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    left: 50%;
+    width: 4px;
+    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+    animation: pulse-drop-zone 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-drop-zone {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Empty slot placeholder for empty folders */
+.empty-slot {
+    display: flex;
+    flex-direction: column;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    width: 120px;
+    height: 120px;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    opacity: 0.6;
+}
+
+.empty-slot:hover,
+.empty-slot.drag-over {
+    border-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+    opacity: 1;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+.empty-slot .empty-icon {
+    width: 40px;
+    height: 40px;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+}
+
+.empty-slot:hover .empty-icon,
+.empty-slot.drag-over .empty-icon {
+    opacity: 0.8;
+}
+
+.empty-slot .empty-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    transition: color 0.3s ease;
+}
+
+.empty-slot:hover .empty-text,
+.empty-slot.drag-over .empty-text {
+    color: #4CAF50;
+}
+
+/* Animation for slots making space */
+.slot-item.shift-right {
+    transform: translateX(135px);
+}
+
+.slot-item.shift-left {
+    transform: translateX(-135px);
+}
+
+/* Enhanced dragging state */
+.slot-item.dragging {
+    opacity: 0.6;
+    transform: scale(1.05) rotate(3deg);
+    z-index: 1000;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Folder highlight when dragging over */
+.bookmark-folder.drag-target {
+    background-color: var(--container-dim-30);
+    border: 2px solid rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
+    transition: all 0.3s ease;
+}
 /* –––––––––––––––––––––––––––
   CONTORLS
 ––––––––––––––––––––––––––– */

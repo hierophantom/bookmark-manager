@@ -1,9 +1,156 @@
 // services/bookmarks.js
+// Using SlotSystem architecture for bookmarks
+
+import { SlotSystem } from '../slots-system/slots.js';
+
+/* –––––––––––––––––––––––––––
+  BOOKMARKS FACTORY
+––––––––––––––––––––––––––– */
+
+class BookmarksFactory {
+    constructor() {
+        this.activeBookmarks = new Map();
+    }
+    
+    async createItem(id, bookmarkData, slotId, position = { x: 0, y: 0 }) {
+        // Create the bookmark element
+        const element = document.createElement('div');
+        element.id = id;
+        element.className = 'bookmark-item';
+        element.dataset.slotId = slotId;
+        
+        // Apply position
+        if (position) {
+            element.style.transform = `translate(${position.x}px, ${position.y}px)`;
+            element.setAttribute('data-x', position.x);
+            element.setAttribute('data-y', position.y);
+        }
+        
+        // Create bookmark instance
+        const bookmark = new BookmarkItem(element, { id, data: bookmarkData, slotId });
+        
+        // Store bookmark instance for later reference
+        this.activeBookmarks.set(id, bookmark);
+        
+        // Initialize the bookmark
+        await bookmark.initialize();
+        
+        return element;
+    }
+    
+    removeItem(element) {
+        const id = element.id;
+        const bookmark = this.activeBookmarks.get(id);
+        
+        if (bookmark && bookmark.cleanup) {
+            bookmark.cleanup();
+        }
+        
+        this.activeBookmarks.delete(id);
+    }
+    
+    getBookmark(id) {
+        return this.activeBookmarks.get(id);
+    }
+    
+    getAllBookmarks() {
+        return Array.from(this.activeBookmarks.values());
+    }
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK ITEM CLASS
+––––––––––––––––––––––––––– */
+
+class BookmarkItem {
+    constructor(element, config) {
+        this.element = element;
+        this.config = config;
+        this.id = config.id;
+        this.data = config.data;
+        this.slotId = config.slotId;
+    }
+    
+    async initialize() {
+        // Add basic structure
+        this.element.innerHTML = `
+            <div class="bookmark-item-content">
+                ${this.getContent()}
+            </div>
+        `;
+        
+        // Bind events
+        this.bindEvents();
+        
+        // Start any async operations
+        await this.start();
+    }
+    
+    getContent() {
+        if (!this.data || !this.data.url) {
+            return `
+                <div class="bookmark-placeholder">
+                    <svg class="bookmark-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    <div>Empty Slot</div>
+                </div>
+            `;
+        }
+        
+        const { title, url } = this.data;
+        const faviconUrl = this.getFaviconUrl(url);
+        
+        return `
+            <div class="bookmark-icon">
+                <img src="${faviconUrl}" alt="${title}" 
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22currentColor%22 stroke-width=%222%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><path d=%22M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3%22/><path d=%22M12 17h.01%22/></svg>'">
+            </div>
+            <div class="bookmark-name">${title || 'Untitled'}</div>
+        `;
+    }
+    
+    bindEvents() {
+        if (this.data && this.data.url) {
+            // Make the bookmark clickable
+            this.element.addEventListener('click', (e) => {
+                // Don't trigger if clicking on controls
+                if (!e.target.closest('.bookmark-item-controls')) {
+                    chrome.tabs.create({ url: this.data.url });
+                }
+            });
+        }
+    }
+    
+    async start() {
+        // Any async initialization
+    }
+    
+    cleanup() {
+        // Cleanup when bookmark is removed
+    }
+    
+    getFaviconUrl(url) {
+        if (!url) return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="%23666"/></svg>';
+        
+        try {
+            return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
+        } catch {
+            return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="%23666"/></svg>';
+        }
+    }
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARKS SERVICE
+––––––––––––––––––––––––––– */
 
 class BookmarksService {
     constructor() {
         this.bookmarksContainer = null;
-        this.bookmarkFolders = new Map();
+        this.folderSlotSystems = new Map(); // Map folder ID to SlotSystem instance
+        this.bookmarksFactory = new BookmarksFactory();
+        this.slotsPerFolder = 8; // Number of slots per folder
         this.init();
     }
 
@@ -31,7 +178,7 @@ class BookmarksService {
             // Get the bookmarks tree from Chrome API
             const bookmarksTree = await chrome.bookmarks.getTree();
             
-            // Process the root bookmark bar (usually bookmarksTree[0].children[0])
+            // Process the root bookmark bar
             const bookmarkBar = bookmarksTree[0].children.find(child => child.title === 'Bookmarks Bar');
             
             if (bookmarkBar) {
@@ -45,21 +192,18 @@ class BookmarksService {
     async renderBookmarks(bookmarkNode) {
         // Clear existing content
         this.bookmarksContainer.innerHTML = '';
-        this.bookmarkFolders.clear();
+        this.folderSlotSystems.clear();
         
-        // Create folder for root level bookmarks (not in any folder)
+        // Create folder for root level bookmarks
         const rootBookmarks = bookmarkNode.children.filter(child => !child.children);
-        if (rootBookmarks.length > 0) {
-            const rootFolder = this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', []);
-            this.bookmarksContainer.appendChild(rootFolder);
-            await this.populateFolder(bookmarkNode.id, rootBookmarks);
+        if (rootBookmarks.length > 0 || true) { // Always show root folder
+            await this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', [], rootBookmarks);
         }
         
-        // Process all folders recursively and add them as individual items
+        // Process all folders recursively
         if (bookmarkNode.children) {
             for (const child of bookmarkNode.children) {
                 if (child.children) {
-                    // Process this folder and all its subfolders
                     await this.processFolderHierarchy(child, []);
                 }
             }
@@ -67,16 +211,13 @@ class BookmarksService {
     }
 
     async processFolderHierarchy(folder, parentPath) {
-        // Create the current folder
         const currentPath = [...parentPath, folder.title];
-        const folderElement = this.createBookmarkFolder(folder.id, folder.title, parentPath);
-        this.bookmarksContainer.appendChild(folderElement);
         
-        // Add bookmarks from this folder
+        // Get bookmarks from this folder
         const bookmarks = folder.children.filter(child => !child.children);
-        if (bookmarks.length > 0) {
-            await this.populateFolder(folder.id, bookmarks);
-        }
+        
+        // Create the folder
+        await this.createBookmarkFolder(folder.id, folder.title, parentPath, bookmarks);
         
         // Recursively process any subfolders
         const subfolders = folder.children.filter(child => child.children);
@@ -85,379 +226,302 @@ class BookmarksService {
         }
     }
 
-    createBookmarkFolder(folderId, title, parentPath) {
-    const folderDiv = document.createElement('div');
-    folderDiv.id = `bookmark-folder-${folderId}`;
-    folderDiv.className = 'bookmark-folder';
-    
-    // Create display title with breadcrumbs if it has parents
-    let displayTitle = '';
-    if (parentPath.length > 0) {
-        // Build breadcrumb with spans only for parent path
-        const breadcrumbPath = parentPath.map(part => 
-            `<span class="subfolder-title">${part}</span>`
-        ).join(' > ');
-        displayTitle = `${breadcrumbPath} > ${title}`;
-    } else {
-        displayTitle = title;
-    }
-    
-    folderDiv.innerHTML = `
-        <div class="folder-header">
-            <h3 class="folder-title">${displayTitle}</h3>
-            <div class="folder-actions">
-                <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <div class="bookmarks" id="bookmarks-${folderId}"></div>
-    `;
-    
-    // Add event listener for add button
-    const addBtn = folderDiv.querySelector('.add-btn');
-    addBtn.addEventListener('click', () => this.addBookmark(folderId));
-    
-    return folderDiv;
-}
-
-    async populateFolder(folderId, bookmarks) {
-        const container = document.getElementById(`bookmarks-${folderId}`);
-        if (!container) return;
-
-        // Clear existing content
-        container.innerHTML = '';
+    async createBookmarkFolder(folderId, title, parentPath, bookmarks = []) {
+        const folderDiv = document.createElement('div');
+        folderDiv.id = `bookmark-folder-${folderId}`;
+        folderDiv.className = 'bookmark-folder';
         
-        // Setup drop zone for the container
-        this.setupDropZone(container, folderId);
-
-        // Add bookmarks as slot items
-        for (const bookmark of bookmarks) {
-            if (!bookmark.children) { // Only process actual bookmarks, not folders
-                const slotItem = await this.createBookmarkSlotItem(bookmark);
-                container.appendChild(slotItem);
-            }
+        // Create display title with breadcrumbs
+        let displayTitle = '';
+        if (parentPath.length > 0) {
+            const breadcrumbPath = parentPath.map(part => 
+                `<span class="subfolder-title">${part}</span>`
+            ).join(' > ');
+            displayTitle = `${breadcrumbPath} > ${title}`;
+        } else {
+            displayTitle = title;
         }
-    }
-
-    setupDropZone(container, folderId) {
-        container.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            // Only show drag-over if the container is empty or dropping from another folder
-            const bookmarkId = e.dataTransfer.types.includes('bookmarkid') ? 
-                e.dataTransfer.getData('bookmarkId') : null;
-            const sourceFolderId = e.dataTransfer.types.includes('sourcefolderid') ? 
-                e.dataTransfer.getData('sourceFolderId') : null;
-            
-            if (container.children.length === 0 || sourceFolderId !== folderId) {
-                container.classList.add('drag-over');
-            }
-        });
         
-        container.addEventListener('dragleave', (e) => {
-            if (e.target === container) {
-                container.classList.remove('drag-over');
-            }
-        });
+        // Create slots HTML
+        const slotsHTML = Array.from({ length: this.slotsPerFolder }, (_, index) => 
+            `<div class="bookmark-slot" data-slot-id="slot-${folderId}-${index}"></div>`
+        ).join('');
         
-        container.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            container.classList.remove('drag-over');
-            
-            // Only handle drops on empty containers or from different folders
-            if (e.target !== container) return;
-            
-            const bookmarkId = e.dataTransfer.getData('bookmarkId');
-            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
-            
-            if (bookmarkId && (container.children.length === 0 || sourceFolderId !== folderId)) {
-                try {
-                    await chrome.bookmarks.move(bookmarkId, { 
-                        parentId: folderId,
-                        index: container.children.length
-                    });
-                } catch (error) {
-                    console.error('Failed to move bookmark:', error);
-                    alert('Failed to move bookmark');
-                }
-            }
-        });
-    }
-
-    async createBookmarkSlotItem(bookmark) {
-        const slotItem = document.createElement('div');
-        slotItem.className = 'slot-item';
-        slotItem.dataset.bookmarkId = bookmark.id;
-        slotItem.dataset.url = bookmark.url;
-        slotItem.title = bookmark.title || 'Untitled';
-        slotItem.draggable = true;
-        
-        const faviconUrl = await this.getFaviconUrl(bookmark.url);
-        
-        slotItem.innerHTML = `
-            <img class="slot-icon" src="${faviconUrl}" alt="${bookmark.title}" 
-                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22%23666%22/></svg>'">
-            <div class="slot-name">${bookmark.title || 'Untitled'}</div>
-            <div class="slot-actions">
-                <button class="slot-action edit-btn" title="Edit bookmark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                </button>
-                <button class="slot-action delete-btn" title="Delete bookmark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
+        folderDiv.innerHTML = `
+            <div class="folder-header">
+                <h3 class="folder-title">${displayTitle}</h3>
+                <div class="folder-actions">
+                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <div class="slot-drag-handle" title="Drag to reorder">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                    <circle cx="19" cy="5" r="1"></circle>
-                    <circle cx="19" cy="12" r="1"></circle>
-                    <circle cx="19" cy="19" r="1"></circle>
-                    <circle cx="5" cy="5" r="1"></circle>
-                    <circle cx="5" cy="12" r="1"></circle>
-                    <circle cx="5" cy="19" r="1"></circle>
-                </svg>
+            <div class="bookmark-slots-container" id="bookmark-slots-${folderId}">
+                ${slotsHTML}
+                <div class="bookmark-controls">
+                    <button class="bookmark-btn" title="Add bookmark">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
         
-        // Add click handler for the main item
-        slotItem.addEventListener('click', (e) => {
-            // Don't open if clicking on actions or drag handle
-            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
-                chrome.tabs.create({ url: bookmark.url });
-            }
-        });
+        this.bookmarksContainer.appendChild(folderDiv);
         
-        // Add action handlers
-        const editBtn = slotItem.querySelector('.edit-btn');
-        const deleteBtn = slotItem.querySelector('.delete-btn');
+        // Initialize slot system for this folder
+        await this.initializeFolderSlotSystem(folderId, bookmarks);
         
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.editBookmark(bookmark);
-        });
+        // Add event listeners
+        const addBtn = folderDiv.querySelector('.add-btn');
+        const addControlBtn = folderDiv.querySelector('.bookmark-btn');
         
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.deleteBookmark(bookmark.id, slotItem);
-        });
-        
-        // Add drag and drop handlers
-        slotItem.addEventListener('dragstart', (e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('bookmarkId', bookmark.id);
-            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
-            slotItem.classList.add('dragging');
-            
-            // Store the dragged element
-            this.draggedElement = slotItem;
-        });
-        
-        slotItem.addEventListener('dragend', (e) => {
-            slotItem.classList.remove('dragging');
-            
-            // Remove all drag-over classes
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
-            document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
-            document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
-            
-            this.draggedElement = null;
-        });
-        
-        // Add dragover handler for reordering
-        slotItem.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (!this.draggedElement || this.draggedElement === slotItem) return;
-            
-            const rect = slotItem.getBoundingClientRect();
-            const relativeX = (e.clientX - rect.left) / rect.width;
-            
-            // Remove previous indicators
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-            
-            // Determine the drop zone: before (0-20%), swap (20-80%), after (80-100%)
-            if (relativeX < 0.2) {
-                slotItem.classList.add('drag-before');
-                this.dropAction = 'before';
-            } else if (relativeX > 0.8) {
-                slotItem.classList.add('drag-after');
-                this.dropAction = 'after';
-            } else {
-                slotItem.classList.add('drag-swap');
-                this.dropAction = 'swap';
-            }
-        });
-        
-        slotItem.addEventListener('dragleave', (e) => {
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-        });
-        
-        slotItem.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const bookmarkId = e.dataTransfer.getData('bookmarkId');
-            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
-            
-            if (!bookmarkId || !this.draggedElement) return;
-            
-            try {
-                const parentId = slotItem.closest('.bookmarks').id.replace('bookmarks-', '');
-                
-                if (this.dropAction === 'swap') {
-                    // Swap the two bookmarks
-                    const targetBookmarkId = slotItem.dataset.bookmarkId;
-                    
-                    // Get both bookmarks
-                    const [sourceBookmark] = await chrome.bookmarks.get(bookmarkId);
-                    const [targetBookmark] = await chrome.bookmarks.get(targetBookmarkId);
-                    
-                    // Get their parent folders
-                    const sourceParent = await chrome.bookmarks.getChildren(sourceBookmark.parentId);
-                    const targetParent = await chrome.bookmarks.getChildren(targetBookmark.parentId);
-                    
-                    // Find their indices
-                    const sourceIndex = sourceParent.findIndex(b => b.id === bookmarkId);
-                    const targetIndex = targetParent.findIndex(b => b.id === targetBookmarkId);
-                    
-                    // Perform the swap
-                    if (sourceBookmark.parentId === targetBookmark.parentId) {
-                        // Same folder swap
-                        await chrome.bookmarks.move(bookmarkId, { index: targetIndex });
-                        await chrome.bookmarks.move(targetBookmarkId, { index: sourceIndex });
-                    } else {
-                        // Different folder swap
-                        await chrome.bookmarks.move(bookmarkId, { 
-                            parentId: targetBookmark.parentId, 
-                            index: targetIndex 
-                        });
-                        await chrome.bookmarks.move(targetBookmarkId, { 
-                            parentId: sourceBookmark.parentId, 
-                            index: sourceIndex 
-                        });
-                    }
-                } else {
-                    // Insert before or after
-                    const targetFolder = await chrome.bookmarks.getChildren(parentId);
-                    const targetIndex = targetFolder.findIndex(b => b.id === slotItem.dataset.bookmarkId);
-                    
-                    let newIndex = this.dropAction === 'before' ? targetIndex : targetIndex + 1;
-                    
-                    // If moving within the same folder and moving down, adjust index
-                    if (sourceFolderId === parentId) {
-                        const currentIndex = targetFolder.findIndex(b => b.id === bookmarkId);
-                        if (currentIndex < targetIndex) {
-                            newIndex--;
-                        }
-                    }
-                    
-                    // Move the bookmark
-                    await chrome.bookmarks.move(bookmarkId, {
-                        parentId: parentId,
-                        index: newIndex
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Failed to reorder bookmark:', error);
-            }
-            
-            // Clean up
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-        });
-        
-        // Add hover effect
-        slotItem.style.cursor = 'pointer';
-        
-        return slotItem;
+        addBtn.addEventListener('click', () => this.showAddBookmarkModal(folderId));
+        addControlBtn.addEventListener('click', () => this.showAddBookmarkModal(folderId));
     }
 
-    async getFaviconUrl(url) {
-        if (!url) return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23666"/></svg>';
+    async initializeFolderSlotSystem(folderId, bookmarks) {
+        const slotSystem = new SlotSystem({
+            storageKey: `bookmarks-${folderId}`,
+            slotSelector: `#bookmark-slots-${folderId} .bookmark-slot`,
+            containerSelector: `#bookmark-slots-${folderId}`,
+            controlsSelector: `#bookmark-slots-${folderId} .bookmark-controls`,
+            itemClass: 'bookmark-item'
+        });
         
-        try {
-            // Use Google's favicon service as it's more reliable
-            return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=32`;
-        } catch {
-            // Fallback for invalid URLs
-            return 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="%23666"/></svg>';
+        // Set the bookmarks factory
+        slotSystem.setItemFactory(this.bookmarksFactory);
+        
+        // Store the slot system
+        this.folderSlotSystems.set(folderId, slotSystem);
+        
+        // Populate with existing bookmarks
+        for (let i = 0; i < bookmarks.length && i < this.slotsPerFolder; i++) {
+            const bookmark = bookmarks[i];
+            const slotId = `slot-${folderId}-${i}`;
+            
+            await slotSystem.addItemWithData({
+                id: bookmark.id,
+                title: bookmark.title,
+                url: bookmark.url
+            }, document.querySelector(`[data-slot-id="${slotId}"]`));
         }
+    }
+
+    showAddBookmarkModal(folderId) {
+        // Find first empty slot
+        const slotSystem = this.folderSlotSystems.get(folderId);
+        if (!slotSystem) return;
+        
+        const emptySlot = slotSystem.findEmptySlot();
+        if (!emptySlot) {
+            alert('No empty slots available in this folder. Remove some bookmarks first.');
+            return;
+        }
+        
+        // Show modal for adding bookmark
+        this.openBookmarkModal(folderId, emptySlot);
+    }
+
+    openBookmarkModal(folderId, targetSlot) {
+        // Create modal if it doesn't exist
+        if (!document.getElementById('bookmark-modal')) {
+            const modalHTML = `
+                <div class="modal-overlay" id="bookmark-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title">Add Bookmark</div>
+                            <button class="modal-close" id="bookmark-modal-close">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="bookmark-title">Title:</label>
+                                <input type="text" id="bookmark-title" placeholder="Enter bookmark title" maxlength="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="bookmark-url">URL:</label>
+                                <input type="url" id="bookmark-url" placeholder="https://example.com">
+                                <div class="url-error" id="bookmark-url-error" style="display: none;">Please enter a valid URL</div>
+                            </div>
+                            <div class="modal-actions">
+                                <button id="bookmark-save" class="btn-primary">Save</button>
+                                <button id="bookmark-cancel" class="btn-secondary">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            this.setupModalEvents();
+        }
+        
+        // Store current context
+        this.currentFolderId = folderId;
+        this.currentTargetSlot = targetSlot;
+        
+        // Clear and show modal
+        document.getElementById('bookmark-title').value = '';
+        document.getElementById('bookmark-url').value = '';
+        document.getElementById('bookmark-modal').classList.add('active');
+        document.getElementById('bookmark-title').focus();
+    }
+
+    setupModalEvents() {
+        const modal = document.getElementById('bookmark-modal');
+        const titleInput = document.getElementById('bookmark-title');
+        const urlInput = document.getElementById('bookmark-url');
+        const urlError = document.getElementById('bookmark-url-error');
+        const saveBtn = document.getElementById('bookmark-save');
+        const cancelBtn = document.getElementById('bookmark-cancel');
+        const closeBtn = document.getElementById('bookmark-modal-close');
+        
+        const closeModal = () => {
+            modal.classList.remove('active');
+            this.currentFolderId = null;
+            this.currentTargetSlot = null;
+        };
+        
+        const validateUrl = () => {
+            const url = urlInput.value.trim();
+            if (!url) {
+                urlError.style.display = 'none';
+                return true;
+            }
+            
+            try {
+                const testUrl = url.startsWith('http') ? url : `https://${url}`;
+                new URL(testUrl);
+                urlError.style.display = 'none';
+                return true;
+            } catch (e) {
+                urlError.style.display = 'block';
+                return false;
+            }
+        };
+        
+        const saveBookmark = async () => {
+            const title = titleInput.value.trim();
+            const url = urlInput.value.trim();
+            
+            if (!title) {
+                alert('Please enter a title for the bookmark');
+                titleInput.focus();
+                return;
+            }
+            
+            if (!url) {
+                alert('Please enter a URL');
+                urlInput.focus();
+                return;
+            }
+            
+            if (!validateUrl()) {
+                urlInput.focus();
+                return;
+            }
+            
+            // Ensure URL has protocol
+            const finalUrl = url.startsWith('http') ? url : `https://${url}`;
+            
+            try {
+                // Create bookmark in Chrome
+                const chromeBookmark = await chrome.bookmarks.create({
+                    parentId: this.currentFolderId,
+                    title: title,
+                    url: finalUrl
+                });
+                
+                // Add to slot system
+                const slotSystem = this.folderSlotSystems.get(this.currentFolderId);
+                if (slotSystem) {
+                    await slotSystem.addItemWithData({
+                        id: chromeBookmark.id,
+                        title: title,
+                        url: finalUrl
+                    }, this.currentTargetSlot);
+                }
+                
+                closeModal();
+            } catch (error) {
+                console.error('Failed to create bookmark:', error);
+                alert('Failed to create bookmark');
+            }
+        };
+        
+        // Event listeners
+        saveBtn.addEventListener('click', saveBookmark);
+        cancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
+        
+        [titleInput, urlInput].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveBookmark();
+            });
+        });
+        
+        urlInput.addEventListener('input', validateUrl);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
 
     setupListeners() {
-        // Listen for bookmark changes
-        chrome.bookmarks.onCreated.addListener(() => this.loadBookmarks());
+        // Listen for bookmark changes from Chrome
+        chrome.bookmarks.onCreated.addListener((id, bookmark) => {
+            // Only reload if it's not created by our modal (to avoid double creation)
+            if (!this.currentFolderId) {
+                this.loadBookmarks();
+            }
+        });
+        
         chrome.bookmarks.onRemoved.addListener(() => this.loadBookmarks());
         chrome.bookmarks.onChanged.addListener(() => this.loadBookmarks());
-        chrome.bookmarks.onMoved.addListener(() => this.loadBookmarks());
+        chrome.bookmarks.onMoved.addListener((id, moveInfo) => {
+            // Handle bookmark moves between Chrome folders
+            this.handleBookmarkMove(id, moveInfo);
+        });
         
-        // Listen for bookmark reordering
         chrome.bookmarks.onChildrenReordered?.addListener(() => this.loadBookmarks());
     }
 
-    // Edit bookmark
-    async editBookmark(bookmark) {
-        const newTitle = prompt('Edit bookmark name:', bookmark.title);
-        if (newTitle !== null && newTitle.trim() !== '') {
-            try {
-                await chrome.bookmarks.update(bookmark.id, { title: newTitle.trim() });
-                // The onChanged listener will trigger a reload
-            } catch (error) {
-                console.error('Failed to update bookmark:', error);
-                alert('Failed to update bookmark');
+    async handleBookmarkMove(bookmarkId, moveInfo) {
+        // Remove from old slot system if it exists
+        for (const [folderId, slotSystem] of this.folderSlotSystems) {
+            const items = slotSystem.getItems();
+            const item = items.find(item => item.data && item.data.id === bookmarkId);
+            
+            if (item) {
+                slotSystem.removeItemProgrammatically(item.id);
+                break;
             }
         }
-    }
-
-    // Delete bookmark
-    async deleteBookmark(bookmarkId, element) {
-        if (confirm('Are you sure you want to delete this bookmark?')) {
+        
+        // Add to new folder if we have a slot system for it
+        const newFolderId = moveInfo.parentId;
+        const newSlotSystem = this.folderSlotSystems.get(newFolderId);
+        
+        if (newSlotSystem) {
             try {
-                // Add fade out animation
-                element.style.transition = 'opacity 0.3s ease';
-                element.style.opacity = '0';
+                const [bookmark] = await chrome.bookmarks.get(bookmarkId);
+                const emptySlot = newSlotSystem.findEmptySlot();
                 
-                await chrome.bookmarks.remove(bookmarkId);
-                // The onRemoved listener will trigger a reload
+                if (emptySlot && bookmark) {
+                    await newSlotSystem.addItemWithData({
+                        id: bookmark.id,
+                        title: bookmark.title,
+                        url: bookmark.url
+                    }, emptySlot);
+                }
             } catch (error) {
-                console.error('Failed to delete bookmark:', error);
-                alert('Failed to delete bookmark');
-                element.style.opacity = '1';
+                console.error('Failed to handle bookmark move:', error);
             }
-        }
-    }
-
-    // Add new bookmark to a folder
-    async addBookmark(folderId) {
-        const url = prompt('Enter URL:');
-        if (!url) return;
-        
-        const title = prompt('Enter bookmark name:');
-        if (!title) return;
-        
-        try {
-            await chrome.bookmarks.create({
-                parentId: folderId,
-                title: title.trim(),
-                url: url.trim()
-            });
-            // The onCreated listener will trigger a reload
-        } catch (error) {
-            console.error('Failed to create bookmark:', error);
-            alert('Failed to create bookmark');
         }
     }
 
@@ -466,7 +530,7 @@ class BookmarksService {
         return this.loadBookmarks();
     }
 
-    // Get bookmark by ID
+    // Get bookmark by ID across all folders
     async getBookmark(bookmarkId) {
         try {
             const bookmarks = await chrome.bookmarks.get(bookmarkId);
@@ -477,7 +541,7 @@ class BookmarksService {
         }
     }
 
-    // Search bookmarks
+    // Search bookmarks across all folders
     async searchBookmarks(query) {
         try {
             const results = await chrome.bookmarks.search(query);
@@ -487,10 +551,185 @@ class BookmarksService {
             return [];
         }
     }
+
+    // Get slot system for a specific folder
+    getFolderSlotSystem(folderId) {
+        return this.folderSlotSystems.get(folderId);
+    }
+
+    // Add bookmark programmatically to specific folder and slot
+    async addBookmarkToSlot(folderId, slotIndex, bookmarkData) {
+        const slotSystem = this.folderSlotSystems.get(folderId);
+        if (!slotSystem) {
+            console.error(`No slot system found for folder ${folderId}`);
+            return false;
+        }
+
+        const slotId = `slot-${folderId}-${slotIndex}`;
+        const targetSlot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        
+        if (!targetSlot) {
+            console.error(`Slot ${slotId} not found`);
+            return false;
+        }
+
+        // Check if slot is empty
+        if (targetSlot.querySelector('.bookmark-item')) {
+            console.error(`Slot ${slotId} is already occupied`);
+            return false;
+        }
+
+        try {
+            // Create bookmark in Chrome first
+            const chromeBookmark = await chrome.bookmarks.create({
+                parentId: folderId,
+                title: bookmarkData.title,
+                url: bookmarkData.url
+            });
+
+            // Add to slot system
+            await slotSystem.addItemWithData({
+                id: chromeBookmark.id,
+                title: bookmarkData.title,
+                url: bookmarkData.url
+            }, targetSlot);
+
+            return true;
+        } catch (error) {
+            console.error('Failed to add bookmark to slot:', error);
+            return false;
+        }
+    }
+
+    // Remove bookmark from slot
+    async removeBookmarkFromSlot(folderId, slotIndex) {
+        const slotSystem = this.folderSlotSystems.get(folderId);
+        if (!slotSystem) return false;
+
+        const slotId = `slot-${folderId}-${slotIndex}`;
+        const targetSlot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        
+        if (!targetSlot) return false;
+
+        const bookmarkElement = targetSlot.querySelector('.bookmark-item');
+        if (!bookmarkElement) return false;
+
+        const items = slotSystem.getItems();
+        const item = items.find(item => item.id === bookmarkElement.id);
+        
+        if (item && item.data && item.data.id) {
+            try {
+                // Remove from Chrome bookmarks
+                await chrome.bookmarks.remove(item.data.id);
+                
+                // Remove from slot system
+                slotSystem.removeItemProgrammatically(item.id);
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to remove bookmark:', error);
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    // Get all bookmarks data from all folders
+    getAllBookmarksData() {
+        const allData = {};
+        
+        for (const [folderId, slotSystem] of this.folderSlotSystems) {
+            const items = slotSystem.getItems();
+            allData[folderId] = items.map(item => ({
+                slotId: item.slotId,
+                bookmarkData: item.data,
+                position: item.position
+            }));
+        }
+        
+        return allData;
+    }
+
+    // Import bookmarks data to folders
+    async importBookmarksData(data) {
+        for (const [folderId, bookmarksData] of Object.entries(data)) {
+            const slotSystem = this.folderSlotSystems.get(folderId);
+            if (!slotSystem) continue;
+
+            for (const bookmarkInfo of bookmarksData) {
+                const targetSlot = document.querySelector(`[data-slot-id="${bookmarkInfo.slotId}"]`);
+                if (targetSlot && !targetSlot.querySelector('.bookmark-item')) {
+                    try {
+                        await slotSystem.addItemWithData(
+                            bookmarkInfo.bookmarkData,
+                            targetSlot
+                        );
+                    } catch (error) {
+                        console.error('Failed to import bookmark:', error);
+                    }
+                }
+            }
+        }
+    }
 }
 
-// Initialize the service
+/* –––––––––––––––––––––––––––
+  ENHANCED BOOKMARK ITEM WITH CHROME API INTEGRATION
+––––––––––––––––––––––––––– */
+
+// Override the bookmark factory to handle Chrome bookmark deletion
+class EnhancedBookmarksFactory extends BookmarksFactory {
+    async createItem(id, bookmarkData, slotId, position = { x: 0, y: 0 }) {
+        const element = await super.createItem(id, bookmarkData, slotId, position);
+        
+        // Add enhanced remove functionality that also removes from Chrome
+        const bookmark = this.activeBookmarks.get(id);
+        if (bookmark) {
+            bookmark.originalCleanup = bookmark.cleanup;
+            bookmark.cleanup = async () => {
+                // Remove from Chrome bookmarks if it has a Chrome ID
+                if (bookmark.data && bookmark.data.id) {
+                    try {
+                        await chrome.bookmarks.remove(bookmark.data.id);
+                    } catch (error) {
+                        console.error('Failed to remove bookmark from Chrome:', error);
+                    }
+                }
+                
+                // Call original cleanup
+                if (bookmark.originalCleanup) {
+                    bookmark.originalCleanup();
+                }
+            };
+        }
+        
+        return element;
+    }
+}
+
+/* –––––––––––––––––––––––––––
+  INITIALIZATION
+––––––––––––––––––––––––––– */
+
+// Create enhanced bookmarks service
 const bookmarksService = new BookmarksService();
 
+// Override the factory with enhanced version
+bookmarksService.bookmarksFactory = new EnhancedBookmarksFactory();
+
+// Update all slot systems to use enhanced factory
+setTimeout(() => {
+    for (const [folderId, slotSystem] of bookmarksService.folderSlotSystems) {
+        slotSystem.setItemFactory(bookmarksService.bookmarksFactory);
+    }
+}, 1000);
+
 // Export for use in other modules
-export { bookmarksService };
+export { 
+    bookmarksService, 
+    BookmarksService, 
+    BookmarksFactory, 
+    BookmarkItem,
+    EnhancedBookmarksFactory 
+};
