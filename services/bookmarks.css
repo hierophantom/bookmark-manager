@@ -529,3 +529,41 @@ body:has(.bookmark-item.dragging) .bookmark-slot:empty {
 .btn-secondary:hover {
     background: var(--container-dim-40);
 }
+
+
+/* –––––––––––––––––––––––––––
+  FOLDER SLOT ITEMS - REVIEW ALL
+––––––––––––––––––––––––––– */
+
+.bookmarks .slot-item.folder-item {
+    background-color: var(--container-dim-20);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+}
+
+.bookmarks .slot-item.folder-item:hover {
+    background-color: var(--container-dim-30);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.bookmarks .slot-item.folder-item .slot-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--content-bright-80);
+}
+
+.bookmarks .slot-item.folder-item.drag-swap {
+    background: rgba(255, 193, 7, 0.2) !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+}
+
+.bookmark-folder.highlighted {
+    background-color: var(--container-bright-20);
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    transform: scale(1.02);
+    transition: all 0.5s ease;
+}
+
+html {
+    scroll-behavior: smooth;
+}
