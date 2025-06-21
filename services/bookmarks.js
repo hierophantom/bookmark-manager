@@ -182,36 +182,53 @@ class BookmarksService {
             emptySlot.style.background = 'transparent';
         });
         
-        // Add drop zone functionality
+        // Add drop zone functionality - use same pattern as original system
         emptySlot.addEventListener('dragover', (e) => {
             e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
             emptySlot.style.borderColor = '#4CAF50';
             emptySlot.style.background = 'rgba(76, 175, 80, 0.1)';
         });
         
-        emptySlot.addEventListener('dragleave', () => {
-            emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            emptySlot.style.background = 'transparent';
+        emptySlot.addEventListener('dragleave', (e) => {
+            // Only reset if leaving the empty slot itself, not its children
+            if (!emptySlot.contains(e.relatedTarget)) {
+                emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                emptySlot.style.background = 'transparent';
+            }
         });
         
         emptySlot.addEventListener('drop', async (e) => {
             e.preventDefault();
             e.stopPropagation();
             
-            // Get the drag data - check both bookmark and folder item formats
-            const bookmarkId = e.dataTransfer.getData('bookmarkId');
-            const itemId = e.dataTransfer.getData('itemId');
-            const draggedId = bookmarkId || itemId;
+            console.log('Empty slot drop triggered', e.dataTransfer.types);
             
-            if (draggedId) {
+            // Get the drag data using the same format as the original system
+            const bookmarkId = e.dataTransfer.getData('bookmarkId');
+            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
+            
+            console.log('Drop data:', { bookmarkId, sourceFolderId, targetFolderId: folderId });
+            
+            if (bookmarkId) {
                 try {
-                    await chrome.bookmarks.move(draggedId, {
+                    // Get current items in target folder to determine correct index
+                    const targetItems = await chrome.bookmarks.getChildren(folderId);
+                    const newIndex = targetItems.length; // Add at the end (before empty slot)
+                    
+                    console.log('Moving bookmark', bookmarkId, 'to folder', folderId, 'at index', newIndex);
+                    
+                    await chrome.bookmarks.move(bookmarkId, {
                         parentId: folderId,
-                        index: 999 // Move to end
+                        index: newIndex
                     });
+                    
+                    console.log('Move successful');
                 } catch (error) {
-                    console.error('Failed to move item:', error);
+                    console.error('Failed to move item to empty slot:', error);
                 }
+            } else {
+                console.log('No bookmarkId found in drag data');
             }
             
             // Reset styles
@@ -335,19 +352,25 @@ class BookmarksService {
         element.addEventListener('dragstart', (e) => {
             e.dataTransfer.effectAllowed = 'move';
             
+            console.log('Drag start:', { itemId, itemType });
+            
             // Use the same data format as original bookmarks for consistency
+            e.dataTransfer.setData('bookmarkId', itemId);
+            e.dataTransfer.setData('sourceFolderId', element.closest('.bookmarks').id.replace('bookmarks-', ''));
+            
+            // Keep additional data for debugging
             if (itemType === 'folder') {
-                e.dataTransfer.setData('bookmarkId', itemId); // Folders use bookmarkId too
-                e.dataTransfer.setData('itemId', itemId); // Keep itemId for compatibility
                 e.dataTransfer.setData('itemType', itemType);
-            } else {
-                e.dataTransfer.setData('bookmarkId', itemId);
             }
             
-            e.dataTransfer.setData('sourceFolderId', element.closest('.bookmarks').id.replace('bookmarks-', ''));
             element.classList.add('dragging');
-            
             this.draggedElement = element;
+            
+            console.log('Drag data set:', {
+                bookmarkId: itemId,
+                sourceFolderId: element.closest('.bookmarks').id.replace('bookmarks-', ''),
+                itemType: itemType
+            });
         });
         
         element.addEventListener('dragend', (e) => {
