@@ -151,6 +151,8 @@ class BookmarksService {
         this.folderSlotSystems = new Map(); // Map folder ID to SlotSystem instance
         this.bookmarksFactory = new BookmarksFactory();
         this.slotsPerFolder = 8; // Number of slots per folder
+        this.currentFolderId = null;
+        this.currentTargetSlot = null;
         this.init();
     }
 
@@ -196,9 +198,7 @@ class BookmarksService {
         
         // Create folder for root level bookmarks
         const rootBookmarks = bookmarkNode.children.filter(child => !child.children);
-        if (rootBookmarks.length > 0 || true) { // Always show root folder
-            await this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', [], rootBookmarks);
-        }
+        await this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', [], rootBookmarks);
         
         // Process all folders recursively
         if (bookmarkNode.children) {
@@ -251,7 +251,7 @@ class BookmarksService {
             <div class="folder-header">
                 <h3 class="folder-title">${displayTitle}</h3>
                 <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
+                    <button class="add-bookmark-btn" title="Add bookmark to ${title}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -278,7 +278,7 @@ class BookmarksService {
         await this.initializeFolderSlotSystem(folderId, bookmarks);
         
         // Add event listeners
-        const addBtn = folderDiv.querySelector('.add-btn');
+        const addBtn = folderDiv.querySelector('.add-bookmark-btn');
         const addControlBtn = folderDiv.querySelector('.bookmark-btn');
         
         addBtn.addEventListener('click', () => this.showAddBookmarkModal(folderId));
@@ -633,44 +633,6 @@ class BookmarksService {
         }
 
         return false;
-    }
-
-    // Get all bookmarks data from all folders
-    getAllBookmarksData() {
-        const allData = {};
-        
-        for (const [folderId, slotSystem] of this.folderSlotSystems) {
-            const items = slotSystem.getItems();
-            allData[folderId] = items.map(item => ({
-                slotId: item.slotId,
-                bookmarkData: item.data,
-                position: item.position
-            }));
-        }
-        
-        return allData;
-    }
-
-    // Import bookmarks data to folders
-    async importBookmarksData(data) {
-        for (const [folderId, bookmarksData] of Object.entries(data)) {
-            const slotSystem = this.folderSlotSystems.get(folderId);
-            if (!slotSystem) continue;
-
-            for (const bookmarkInfo of bookmarksData) {
-                const targetSlot = document.querySelector(`[data-slot-id="${bookmarkInfo.slotId}"]`);
-                if (targetSlot && !targetSlot.querySelector('.bookmark-item')) {
-                    try {
-                        await slotSystem.addItemWithData(
-                            bookmarkInfo.bookmarkData,
-                            targetSlot
-                        );
-                    } catch (error) {
-                        console.error('Failed to import bookmark:', error);
-                    }
-                }
-            }
-        }
     }
 }
 

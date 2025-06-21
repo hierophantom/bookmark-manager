@@ -1,6 +1,6 @@
 /* 
 File name & path: services/bookmarks.css
-Role: Bookmarks styles
+Role: Bookmarks styles using slot system
 */
 
 /* –––––––––––––––––––––––––––
@@ -68,14 +68,288 @@ Role: Bookmarks styles
     color: var(--content-bright-100);
     font-weight: 600;
 }
+
 .subfolder-title {
     color: var(--content-bright-30);
 }
-.bookmarks {
+
+/* –––––––––––––––––––––––––––
+  SLOT CONTAINER
+––––––––––––––––––––––––––– */
+
+.bookmark-slots-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    min-height: 120px;
+    position: relative;
+    padding: 20px;
+}
+
+.bookmark-slots-container:hover .bookmark-controls {
+    visibility: visible;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK SLOTS
+––––––––––––––––––––––––––– */
+
+.bookmark-slot {
+    display: flex;
+    border-radius: 8px;
+    width: 120px;
+    height: 120px;
+    transition: background-color 0.3s, border-color 0.3s;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: 2px dashed transparent;
+}
+
+.bookmark-slots-container:hover .bookmark-slot {
+    background-color: var(--container-bright-10);
+    border-color: var(--container-dim-30);
+}
+
+.bookmark-slots-container:hover .bookmark-slot:hover {
+    background-color: var(--container-bright-30);
+}
+
+/* Slot states for drag and drop */
+.bookmark-slot.drop-active {
+    border-color: var(--content-bright-80);
+}
+
+.bookmark-slot.drop-target {
+    background-color: var(--container-bright-20);
+    border-style: solid;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK CONTROLS
+––––––––––––––––––––––––––– */
+
+.bookmark-controls {
+    position: absolute;
+    top: 14px;
+    right: 14px;
     display: flex;
     flex-direction: row;
-    gap: 15px;
-    min-height: 100px;
+    gap: 16px;
+    visibility: hidden;
+    fill: var(--content-bright-30);
+}
+
+.bookmark-controls:hover svg {
+    fill: var(--content-bright-100);
+}
+
+.bookmark-btn {
+    color: var(--content-bright-30);
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.bookmark-btn:hover {
+    color: var(--content-bright-100);
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK ITEMS
+––––––––––––––––––––––––––– */
+
+.bookmark-item {
+    background-color: var(--container-bright-80);
+    border-radius: 6px;
+    padding: 12px;
+    width: calc(100% - 24px);
+    height: calc(100% - 24px);
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    transition: transform 0.1s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bookmark-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.bookmark-item:hover .bookmark-item-controls {
+    display: flex;
+}
+
+.bookmark-item.dragging {
+    opacity: 0.8;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+}
+
+.bookmark-item.dragging:hover {
+    transform: none; /* Override hover transform when dragging */
+}
+
+/* Swap target highlighting */
+.bookmark-item.swap-target {
+    outline: 2px dashed var(--content-bright-80);
+    outline-offset: 2px;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK CONTENT
+––––––––––––––––––––––––––– */
+
+.bookmark-item-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.bookmark-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    color: var(--content-dim-60);
+    font-size: 0.75rem;
+    border: 2px dashed var(--container-dim-30);
+    border-radius: 4px;
+    transition: all 0.3s;
+    gap: 8px;
+}
+
+.bookmark-slot:hover .bookmark-placeholder {
+    border-color: var(--content-bright-50);
+    color: var(--content-bright-70);
+}
+
+.bookmark-placeholder-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.4;
+}
+
+.bookmark-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.bookmark-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.bookmark-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--content-dim-30);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+}
+
+/* –––––––––––––––––––––––––––
+  BOOKMARK ITEM CONTROLS
+––––––––––––––––––––––––––– */
+
+.bookmark-item-controls {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: none;
+}
+
+.bookmark-item-close-btn {
+    width: 18px;
+    height: 18px;
+    background-color: var(--container-bright-100);
+    border: none;
+    border-radius: 999px;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bookmark-item-close-btn svg {
+    margin-left: 1px;
+}
+
+/* Drag handle */
+.bookmark-item-drag-handle {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    cursor: move;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+    fill: var(--content-dim-100);
+}
+
+.bookmark-item-drag-handle:hover {
+    opacity: 1;
+}
+
+/* –––––––––––––––––––––––––––
+  ANIMATIONS
+––––––––––––––––––––––––––– */
+
+/* Entry animation */
+.bookmark-item-enter {
+    animation: bookmarkEnter 0.5s ease-out;
+}
+
+@keyframes bookmarkEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translate(var(--start-x, 0), var(--start-y, 0));
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translate(var(--start-x, 0), var(--start-y, 0));
+    }
+}
+
+/* Exit animation */
+.bookmark-item-exit {
+    animation: bookmarkExit 0.3s ease-in forwards;
+}
+
+@keyframes bookmarkExit {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
 }
 
 /* –––––––––––––––––––––––––––
@@ -83,443 +357,144 @@ Role: Bookmarks styles
 ––––––––––––––––––––––––––– */
 
 .add-bookmark-btn {
-    width: 100%;
-    height: 80px;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    background: transparent;
-    color: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
+    background: none;
+    border: none;
+    color: var(--content-bright-30);
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-}
-
-.add-bookmark-btn:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* –––––––––––––––––––––––––––
-  BOOKMARKS SLOTS
-––––––––––––––––––––––––––– */
-
-.bookmarks .slot-item {
-    display: flex;
-    flex-direction: column;
-    border-radius: 6px;
-    width: 120px;
-    height: 120px;
-    gap: 12px;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transition: all 0.3s;
-    background-color: var(--container-bright-80);
-}
-
-.bookmarks .slot-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s, background-color 0.1s, box-shadow 0.3s;
-}
-
-.bookmarks .slot-name {
-    font-size: 12px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: center;
-    max-width: 80%;
-    color: var(--content-dim-30);
-}
-
-.bookmarks .slot-icon {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 8px;
-}
-
-.bookmarks .slot-icon svg {
-  width: 40px;
-  height: 40px;
-  fill: var(--content-dim-100);
-  margin-left: 3px;
-  margin-top: 3px;
-}
-
-/* Empty state */
-.bookmarks:empty::after {
-    content: 'No bookmarks';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 14px;
-}
-
-/* –––––––––––––––––––––––––––
-  DRAG CONTROL
-––––––––––––––––––––––––––– */
-
-.slot-item.drag-before {
-    position: relative;
-}
-
-.slot-item.drag-before::before {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #4CAF50;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.slot-item.drag-after {
-    position: relative;
-}
-
-.slot-item.drag-after::after {
-    content: '';
-    position: absolute;
-    right: -4px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #4CAF50;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.slot-item.drag-swap {
-    background: rgba(76, 175, 80, 0.2) !important;
-    border-color: #4CAF50 !important;
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-}
-
-/* Visual feedback for drop zones */
-.slot-item {
-    position: relative;
-    overflow: visible;
-}
-
-/* Optional: Add visual hints on hover */
-.slot-item:not(.dragging)::before,
-.slot-item:not(.dragging)::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 20%;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-}
-
-.slot-item:not(.dragging)::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
-}
-
-.slot-item:not(.dragging)::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.05), transparent);
-}
-
-/* Show zones when dragging */
-.dragging ~ .slot-item:hover::before,
-.dragging ~ .slot-item:hover::after {
-    opacity: 1;
-}
-
-
-/*Newly added*/
-
-/* Enhanced drag and drop animations for smooth slot movement */
-
-/* Add transition for smooth repositioning */
-.bookmarks .slot-item {
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Disable transitions when dragging to avoid conflicts */
-.bookmarks .slot-item.dragging {
-    transition: none !important;
-}
-
-/* Enhanced drop zone indicators */
-.slot-item.drag-before::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 10%;
-    bottom: 10%;
-    width: 4px;
-    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
-    border-radius: 2px;
-    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
-    animation: pulse-before 1s ease-in-out infinite alternate;
-}
-
-.slot-item.drag-after::after {
-    content: '';
-    position: absolute;
-    right: -8px;
-    top: 10%;
-    bottom: 10%;
-    width: 4px;
-    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
-    border-radius: 2px;
-    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
-    animation: pulse-after 1s ease-in-out infinite alternate;
-}
-
-@keyframes pulse-before {
-    0% { 
-        opacity: 0.7; 
-        transform: translateX(-2px);
-    }
-    100% { 
-        opacity: 1; 
-        transform: translateX(0px);
-    }
-}
-
-@keyframes pulse-after {
-    0% { 
-        opacity: 0.7; 
-        transform: translateX(2px);
-    }
-    100% { 
-        opacity: 1; 
-        transform: translateX(0px);
-    }
-}
-
-/* Enhanced folder drop zone */
-.bookmarks.drag-over-folder {
-    background: rgba(76, 175, 80, 0.1);
-    border: 2px dashed #4CAF50;
-    border-radius: 8px;
-    min-height: 120px;
-    position: relative;
-}
-
-.bookmarks.drag-over-folder::before {
-    content: 'Drop here to add to folder';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #4CAF50;
-    font-size: 14px;
-    font-weight: 600;
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-/* Drop zones within folders */
-.bookmarks.has-drop-zones {
-    position: relative;
-}
-
-.drop-zone {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 60px;
-    z-index: 10;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.drop-zone.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.drop-zone::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    bottom: 10%;
-    left: 50%;
-    width: 4px;
-    background: linear-gradient(to bottom, transparent, #4CAF50, transparent);
-    border-radius: 2px;
-    transform: translateX(-50%);
-    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
-    animation: pulse-drop-zone 1s ease-in-out infinite alternate;
-}
-
-@keyframes pulse-drop-zone {
-    0% { opacity: 0.7; }
-    100% { opacity: 1; }
-}
-
-/* Empty slot placeholder for empty folders */
-.empty-slot {
-    display: flex;
-    flex-direction: column;
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    width: 120px;
-    height: 120px;
-    gap: 12px;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transition: all 0.3s ease;
-    background-color: transparent;
-    opacity: 0.6;
-}
-
-.empty-slot:hover,
-.empty-slot.drag-over {
-    border-color: #4CAF50;
-    background-color: rgba(76, 175, 80, 0.1);
-    opacity: 1;
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
-}
-
-.empty-slot .empty-icon {
-    width: 40px;
-    height: 40px;
-    opacity: 0.3;
-    transition: opacity 0.3s ease;
-}
-
-.empty-slot:hover .empty-icon,
-.empty-slot.drag-over .empty-icon {
-    opacity: 0.8;
-}
-
-.empty-slot .empty-text {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    text-align: center;
     transition: color 0.3s ease;
 }
 
-.empty-slot:hover .empty-text,
-.empty-slot.drag-over .empty-text {
-    color: #4CAF50;
+.add-bookmark-btn:hover {
+    color: var(--content-bright-100);
 }
 
-/* Animation for slots making space */
-.slot-item.shift-right {
-    transform: translateX(135px);
-}
-
-.slot-item.shift-left {
-    transform: translateX(-135px);
-}
-
-/* Enhanced dragging state */
-.slot-item.dragging {
-    opacity: 0.6;
-    transform: scale(1.05) rotate(3deg);
-    z-index: 1000;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-/* Folder highlight when dragging over */
-.bookmark-folder.drag-target {
-    background-color: var(--container-dim-30);
-    border: 2px solid rgba(76, 175, 80, 0.5);
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.2);
-    transition: all 0.3s ease;
-}
 /* –––––––––––––––––––––––––––
-  CONTORLS
+  MODAL STYLES
 ––––––––––––––––––––––––––– */
 
-.bookmarks .slot-item:hover .slot-actions {
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.modal-overlay.active {
     opacity: 1;
     visibility: visible;
 }
 
-.slot-actions {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    display: flex;
-    gap: 2px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
+.modal-content {
+    background-color: var(--container-bright-100);
+    color: var(--content-dim-100);
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.slot-action {
-    width: 20px;
-    height: 20px;
-    border: none;
-    background: rgba(0, 0, 0, 0.7);
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    cursor: pointer;
+.modal-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+    margin-bottom: 20px;
 }
 
-.slot-action:hover {
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
-.slot-action.edit-btn:hover {
-    background: rgba(59, 130, 246, 0.8);
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--content-dim-100);
 }
 
-.slot-action.delete-btn:hover {
-    background: rgba(239, 68, 68, 0.8);
+.form-group {
+    margin-bottom: 20px;
 }
 
-/* –––––––––––––––––––––––––––
-  OTHER STYLES
-––––––––––––––––––––––––––– */
-
-/* Loading state */
-.bookmarks.loading {
-    position: relative;
-    min-height: 150px;
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--content-bright-90);
 }
 
-.bookmarks.loading::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.1);
-    border-top-color: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--container-dim-30);
+    border-radius: 6px;
+    background: var(--container-bright-10);
+    color: var(--content-bright-90);
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
 }
 
-@keyframes spin {
-    to { transform: translate(-50%, -50%) rotate(360deg); }
+.form-group input:focus {
+    outline: none;
+    border-color: var(--content-bright-70);
 }
 
-/* Drag and drop support (future addition) */
-.bookmarks .slot-item.dragging {
-    opacity: 0.5;
+.form-group input::placeholder {
+    color: var(--content-dim-50);
 }
 
-.bookmarks .slot-item.drag-over {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.2);
+.url-error {
+    margin-top: 6px;
+    color: #ff6b6b;
+    font-size: 0.8rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: var(--content-bright-80);
+    color: var(--container-bright-100);
+}
+
+.btn-primary:hover {
+    background: var(--content-bright-90);
+}
+
+.btn-secondary {
+    background: var(--container-dim-30);
+    color: var(--content-bright-80);
+}
+
+.btn-secondary:hover {
+    background: var(--container-dim-40);
 }
