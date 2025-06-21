@@ -483,17 +483,41 @@ class BookmarksService {
             if (!bookmarkId) return;
             
             try {
+                // Get current bookmarks in the target folder to calculate correct index
+                const currentBookmarks = await chrome.bookmarks.getChildren(folderId);
+                const actualBookmarks = currentBookmarks.filter(b => !b.children); // Only actual bookmarks, not folders
+                
                 // Calculate the target index based on slot position
                 const slotId = slot.dataset.slotId;
                 const slotIndex = parseInt(slotId.split('-').pop());
                 
-                // Move bookmark to this specific position
+                // The correct index should be the number of actual bookmarks if dropping in the "extra" empty slot
+                // OR the slotIndex if it's a gap between existing bookmarks
+                let targetIndex;
+                
+                if (slotIndex >= actualBookmarks.length) {
+                    // Dropping in the "extra" empty slot - should go at the end
+                    targetIndex = actualBookmarks.length;
+                } else {
+                    // Dropping in a gap between existing bookmarks
+                    targetIndex = slotIndex;
+                }
+                
+                // If moving within the same folder, adjust index to account for the item being removed first
+                if (sourceFolderId === folderId) {
+                    const draggedBookmarkCurrentIndex = actualBookmarks.findIndex(b => b.id === bookmarkId);
+                    if (draggedBookmarkCurrentIndex !== -1 && draggedBookmarkCurrentIndex < targetIndex) {
+                        targetIndex--; // Adjust because the dragged item will be removed first
+                    }
+                }
+                
+                // Move bookmark to the calculated position
                 await chrome.bookmarks.move(bookmarkId, { 
                     parentId: folderId,
-                    index: slotIndex
+                    index: targetIndex
                 });
                 
-                console.log(`Moved bookmark ${bookmarkId} to folder ${folderId} at index ${slotIndex}`);
+                console.log(`Moved bookmark ${bookmarkId} to folder ${folderId} at index ${targetIndex} (slot ${slotIndex})`);
                 
             } catch (error) {
                 console.error('Failed to move bookmark to empty slot:', error);
