@@ -372,3 +372,93 @@ Role: Bookmarks styles
     border-color: rgba(255, 255, 255, 0.5);
     background: rgba(255, 255, 255, 0.2);
 }
+
+/* –––––––––––––––––––––––––––
+  CSS ADDITIONS
+––––––––––––––––––––––––––– */
+
+/* Dialog styles */
+.bookmark-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.bookmark-dialog-content {
+    background: var(--container-bright-80);
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+}
+
+.bookmark-dialog h3 {
+    margin: 0 0 16px 0;
+    color: var(--content-bright-100);
+}
+
+.bookmark-dialog-field {
+    margin-bottom: 16px;
+}
+
+.bookmark-dialog label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--content-bright-100);
+    font-size: 14px;
+}
+
+.bookmark-dialog input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--container-dim-20);
+    border-radius: 6px;
+    background: var(--container-dim-10);
+    color: var(--content-bright-100);
+    font-size: 14px;
+}
+
+.bookmark-dialog input:focus {
+    outline: none;
+    border-color: var(--content-bright-30);
+}
+
+.bookmark-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.bookmark-dialog-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.bookmark-dialog-btn.primary {
+    background: var(--content-bright-30);
+    color: var(--container-bright-80);
+}
+
+.bookmark-dialog-btn.primary:hover {
+    background: var(--content-bright-50);
+}
+
+.bookmark-dialog-btn.secondary {
+    background: var(--container-dim-20);
+    color: var(--content-bright-100);
+}
+
+.bookmark-dialog-btn.secondary:hover {
+    background: var(--container-dim-30);
+}

@@ -26,6 +26,124 @@ class BookmarksService {
         }
     }
 
+showAddBookmarkDialog(folderId) {
+    const dialog = document.createElement('div');
+    dialog.className = 'bookmark-dialog';
+    dialog.innerHTML = `
+        <div class="bookmark-dialog-content">
+            <h3>Add Bookmark</h3>
+            <div class="bookmark-dialog-field">
+                <label for="bookmark-url">URL *</label>
+                <input type="url" id="bookmark-url" placeholder="https://example.com" required>
+            </div>
+            <div class="bookmark-dialog-field">
+                <label for="bookmark-name">Name</label>
+                <input type="text" id="bookmark-name" placeholder="Bookmark name (optional)">
+            </div>
+            <div class="bookmark-dialog-actions">
+                <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                <button class="bookmark-dialog-btn primary" id="add-bookmark-confirm">Add</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    const urlInput = dialog.querySelector('#bookmark-url');
+    const nameInput = dialog.querySelector('#bookmark-name');
+    const confirmBtn = dialog.querySelector('#add-bookmark-confirm');
+    
+    urlInput.focus();
+    
+    confirmBtn.addEventListener('click', async () => {
+        const url = urlInput.value.trim();
+        const name = nameInput.value.trim();
+        
+        if (!url) {
+            urlInput.focus();
+            return;
+        }
+        
+        try {
+            await chrome.bookmarks.create({
+                parentId: folderId,
+                title: name || new URL(url).hostname,
+                url: url
+            });
+            dialog.remove();
+        } catch (error) {
+            console.error('Failed to create bookmark:', error);
+            alert('Failed to create bookmark. Please check the URL.');
+        }
+    });
+    
+    dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dialog.remove();
+        }
+    });
+    
+    dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) {
+            dialog.remove();
+        }
+    });
+}
+
+showAddFolderDialog() {
+    const dialog = document.createElement('div');
+    dialog.className = 'bookmark-dialog';
+    dialog.innerHTML = `
+        <div class="bookmark-dialog-content">
+            <h3>Add Folder</h3>
+            <div class="bookmark-dialog-field">
+                <label for="folder-name">Name</label>
+                <input type="text" id="folder-name" placeholder="Folder name (optional)">
+            </div>
+            <div class="bookmark-dialog-actions">
+                <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                <button class="bookmark-dialog-btn primary" id="add-folder-confirm">Add</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(dialog);
+    
+    const nameInput = dialog.querySelector('#folder-name');
+    const confirmBtn = dialog.querySelector('#add-folder-confirm');
+    
+    nameInput.focus();
+    
+    confirmBtn.addEventListener('click', async () => {
+        const name = nameInput.value.trim() || 'New Folder';
+        
+        try {
+            const bookmarksTree = await chrome.bookmarks.getTree();
+            const bookmarkBar = bookmarksTree[0].children.find(child => child.title === 'Bookmarks Bar');
+            
+            await chrome.bookmarks.create({
+                parentId: bookmarkBar.id,
+                title: name
+            });
+            dialog.remove();
+        } catch (error) {
+            console.error('Failed to create folder:', error);
+            alert('Failed to create folder.');
+        }
+    });
+    
+    dialog.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            dialog.remove();
+        }
+    });
+    
+    dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) {
+            dialog.remove();
+        }
+    });
+}
     async loadBookmarks() {
         try {
             // Get the bookmarks tree from Chrome API
@@ -81,15 +199,14 @@ class BookmarksService {
         }
     }
 
+
     createBookmarkFolder(folderId, title, parentPath) {
         const folderDiv = document.createElement('div');
         folderDiv.id = `bookmark-folder-${folderId}`;
         folderDiv.className = 'bookmark-folder';
         
-        // Create display title with breadcrumbs if it has parents
         let displayTitle = '';
         if (parentPath.length > 0) {
-            // Build breadcrumb with spans only for parent path
             const breadcrumbPath = parentPath.map(part => 
                 `<span class="subfolder-title">${part}</span>`
             ).join(' > ');
@@ -102,10 +219,17 @@ class BookmarksService {
             <div class="folder-header">
                 <h3 class="folder-title">${displayTitle}</h3>
                 <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
+                    <button class="folder-action-btn add-btn" id="add-bookmark" title="Add bookmark to ${title}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                    <button class="folder-action-btn add-btn" id="add-folder" title="Add folder">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            <line x1="12" y1="11" x2="12" y2="17"></line>
+                            <line x1="9" y1="14" x2="15" y2="14"></line>
                         </svg>
                     </button>
                 </div>
@@ -113,12 +237,15 @@ class BookmarksService {
             <div class="bookmarks" id="bookmarks-${folderId}"></div>
         `;
         
-        // Add event listener for add button
-        const addBtn = folderDiv.querySelector('.add-btn');
-        addBtn.addEventListener('click', () => this.addBookmark(folderId));
+        const addBookmarkBtn = folderDiv.querySelector('#add-bookmark');
+        const addFolderBtn = folderDiv.querySelector('#add-folder');
+        
+        addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
+        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog());
         
         return folderDiv;
     }
+
 
     async populateFolder(folderId, items) {
         const container = document.getElementById(`bookmarks-${folderId}`);
