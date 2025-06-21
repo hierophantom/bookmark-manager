@@ -198,12 +198,14 @@ class BookmarksService {
             e.preventDefault();
             e.stopPropagation();
             
-            const itemId = e.dataTransfer.getData('itemId') || e.dataTransfer.getData('bookmarkId');
-            const itemType = e.dataTransfer.getData('itemType') || 'bookmark';
+            // Get the drag data - check both bookmark and folder item formats
+            const bookmarkId = e.dataTransfer.getData('bookmarkId');
+            const itemId = e.dataTransfer.getData('itemId');
+            const draggedId = bookmarkId || itemId;
             
-            if (itemId) {
+            if (draggedId) {
                 try {
-                    await chrome.bookmarks.move(itemId, {
+                    await chrome.bookmarks.move(draggedId, {
                         parentId: folderId,
                         index: 999 // Move to end
                     });
@@ -332,8 +334,16 @@ class BookmarksService {
     addDragHandlers(element, itemId, itemType) {
         element.addEventListener('dragstart', (e) => {
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('itemId', itemId);
-            e.dataTransfer.setData('itemType', itemType);
+            
+            // Use the same data format as original bookmarks for consistency
+            if (itemType === 'folder') {
+                e.dataTransfer.setData('bookmarkId', itemId); // Folders use bookmarkId too
+                e.dataTransfer.setData('itemId', itemId); // Keep itemId for compatibility
+                e.dataTransfer.setData('itemType', itemType);
+            } else {
+                e.dataTransfer.setData('bookmarkId', itemId);
+            }
+            
             e.dataTransfer.setData('sourceFolderId', element.closest('.bookmarks').id.replace('bookmarks-', ''));
             element.classList.add('dragging');
             
@@ -382,8 +392,8 @@ class BookmarksService {
             e.preventDefault();
             e.stopPropagation();
             
-            const draggedItemId = e.dataTransfer.getData('itemId');
-            const draggedItemType = e.dataTransfer.getData('itemType');
+            const draggedItemId = e.dataTransfer.getData('bookmarkId'); // Use bookmarkId for consistency
+            const draggedItemType = e.dataTransfer.getData('itemType') || 'bookmark';
             const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
             
             if (!draggedItemId || !this.draggedElement) return;
