@@ -50,11 +50,10 @@ class BookmarksService {
         // Create folder for root level items in their natural order
         const allRootItems = bookmarkNode.children; // Preserve original order
         
-        if (allRootItems.length > 0) {
-            const rootFolder = this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', []);
-            this.bookmarksContainer.appendChild(rootFolder);
-            await this.populateFolder(bookmarkNode.id, allRootItems);
-        }
+        // Always create root folder (even if empty) to ensure empty slot
+        const rootFolder = this.createBookmarkFolder(bookmarkNode.id, 'Quick Bookmarks', []);
+        this.bookmarksContainer.appendChild(rootFolder);
+        await this.populateFolder(bookmarkNode.id, allRootItems);
         
         // Process all folders recursively and add them as individual sections
         const folders = bookmarkNode.children.filter(child => child.children);
@@ -72,10 +71,8 @@ class BookmarksService {
         // Get all items in their natural order from Chrome bookmarks
         const allItems = folder.children; // This preserves the original order
         
-        // Populate the folder with items in their natural order
-        if (allItems.length > 0) {
-            await this.populateFolder(folder.id, allItems);
-        }
+        // Always populate the folder (even if empty) to ensure empty slot is added
+        await this.populateFolder(folder.id, allItems);
         
         // Recursively process subfolders to create their own sections
         const subfolders = folder.children.filter(child => child.children);
@@ -146,13 +143,81 @@ class BookmarksService {
             }
         }
         
-        // Add the "add bookmark" button at the end
-        const addBookmarkBtn = document.createElement('button');
-        addBookmarkBtn.className = 'add-bookmark-btn';
-        addBookmarkBtn.title = 'Add new bookmark';
-        addBookmarkBtn.innerHTML = '+';
-        addBookmarkBtn.addEventListener('click', () => this.addBookmark(folderId));
-        container.appendChild(addBookmarkBtn);
+        // Always add an empty slot (even for empty folders)
+        const emptySlot = this.createEmptySlot(folderId);
+        container.appendChild(emptySlot);
+    }
+
+    /* –––––––––––––––––––––––––––
+      EMPTY SLOT
+    ––––––––––––––––––––––––––– */
+
+    createEmptySlot(folderId) {
+        const emptySlot = document.createElement('div');
+        emptySlot.className = 'slot-item empty-slot';
+        emptySlot.style.border = '2px dashed rgba(255, 255, 255, 0.2)';
+        emptySlot.style.background = 'transparent';
+        emptySlot.title = 'Drop bookmark here or click to add';
+        
+        emptySlot.innerHTML = `
+            <div class="slot-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.3)" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+        `;
+        
+        // Add click handler to add bookmark
+        emptySlot.addEventListener('click', () => this.addBookmark(folderId));
+        
+        // Add hover effect
+        emptySlot.addEventListener('mouseenter', () => {
+            emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            emptySlot.style.background = 'rgba(255, 255, 255, 0.05)';
+        });
+        
+        emptySlot.addEventListener('mouseleave', () => {
+            emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            emptySlot.style.background = 'transparent';
+        });
+        
+        // Add drop zone functionality
+        emptySlot.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            emptySlot.style.borderColor = '#4CAF50';
+            emptySlot.style.background = 'rgba(76, 175, 80, 0.1)';
+        });
+        
+        emptySlot.addEventListener('dragleave', () => {
+            emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            emptySlot.style.background = 'transparent';
+        });
+        
+        emptySlot.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const itemId = e.dataTransfer.getData('itemId') || e.dataTransfer.getData('bookmarkId');
+            const itemType = e.dataTransfer.getData('itemType') || 'bookmark';
+            
+            if (itemId) {
+                try {
+                    await chrome.bookmarks.move(itemId, {
+                        parentId: folderId,
+                        index: 999 // Move to end
+                    });
+                } catch (error) {
+                    console.error('Failed to move item:', error);
+                }
+            }
+            
+            // Reset styles
+            emptySlot.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            emptySlot.style.background = 'transparent';
+        });
+        
+        return emptySlot;
     }
 
     /* –––––––––––––––––––––––––––
@@ -296,15 +361,16 @@ class BookmarksService {
             
             element.classList.remove('drag-before', 'drag-after', 'drag-swap');
             
-            if (relativeX < 0.2) {
-                element.classList.add('drag-before');
-                this.dropAction = 'before';
-            } else if (relativeX > 0.8) {
-                element.classList.add('drag-after');
-                this.dropAction = 'after';
-            } else {
+            // Check if it's over center area (30-70%) for swap, otherwise position
+            if (relativeX >= 0.3 && relativeX <= 0.7) {
                 element.classList.add('drag-swap');
                 this.dropAction = 'swap';
+            } else if (relativeX < 0.3) {
+                element.classList.add('drag-before');
+                this.dropAction = 'before';
+            } else {
+                element.classList.add('drag-after');
+                this.dropAction = 'after';
             }
         });
         
