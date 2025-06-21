@@ -64,17 +64,38 @@ showAddBookmarkDialog(folderId) {
             return;
         }
         
+        // Validate URL format
+        let validUrl;
         try {
+            // Add protocol if missing
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                validUrl = 'https://' + url;
+            } else {
+                validUrl = url;
+            }
+            
+            // Test if URL is valid
+            new URL(validUrl);
+            
             await chrome.bookmarks.create({
                 parentId: folderId,
-                title: name || new URL(url).hostname,
-                url: url
+                title: name || validUrl,
+                url: validUrl
             });
             dialog.remove();
         } catch (error) {
             console.error('Failed to create bookmark:', error);
-            alert('Failed to create bookmark. Please check the URL.');
+            alert('Failed to create bookmark. Please check the URL format.');
         }
+    });
+    
+    // Enter key to submit
+    [urlInput, nameInput].forEach(input => {
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
     });
     
     dialog.addEventListener('keydown', (e) => {
@@ -89,6 +110,8 @@ showAddBookmarkDialog(folderId) {
         }
     });
 }
+
+
 
 showAddFolderDialog() {
     const dialog = document.createElement('div');
@@ -115,7 +138,7 @@ showAddFolderDialog() {
     nameInput.focus();
     
     confirmBtn.addEventListener('click', async () => {
-        const name = nameInput.value.trim() || 'New Folder';
+        const name = nameInput.value.trim(); // Don't provide fallback here
         
         try {
             const bookmarksTree = await chrome.bookmarks.getTree();
@@ -123,12 +146,19 @@ showAddFolderDialog() {
             
             await chrome.bookmarks.create({
                 parentId: bookmarkBar.id,
-                title: name
+                title: name // Use empty string if name is empty
             });
             dialog.remove();
         } catch (error) {
             console.error('Failed to create folder:', error);
             alert('Failed to create folder.');
+        }
+    });
+    
+    // Enter key to submit
+    nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            confirmBtn.click();
         }
     });
     
@@ -144,6 +174,8 @@ showAddFolderDialog() {
         }
     });
 }
+
+
     async loadBookmarks() {
         try {
             // Get the bookmarks tree from Chrome API
@@ -245,6 +277,7 @@ showAddFolderDialog() {
         
         return folderDiv;
     }
+
 
 
     async populateFolder(folderId, items) {
@@ -766,25 +799,6 @@ showAddFolderDialog() {
                 alert('Failed to delete bookmark');
                 element.style.opacity = '1';
             }
-        }
-    }
-
-    async addBookmark(folderId) {
-        const url = prompt('Enter URL:');
-        if (!url) return;
-        
-        const title = prompt('Enter bookmark name:');
-        if (!title) return;
-        
-        try {
-            await chrome.bookmarks.create({
-                parentId: folderId,
-                title: title.trim(),
-                url: url.trim()
-            });
-        } catch (error) {
-            console.error('Failed to create bookmark:', error);
-            alert('Failed to create bookmark');
         }
     }
 
