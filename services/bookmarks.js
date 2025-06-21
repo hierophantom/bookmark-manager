@@ -26,155 +26,150 @@ class BookmarksService {
         }
     }
 
-showAddBookmarkDialog(folderId) {
-    const dialog = document.createElement('div');
-    dialog.className = 'bookmark-dialog';
-    dialog.innerHTML = `
-        <div class="bookmark-dialog-content">
-            <h3>Add Bookmark</h3>
-            <div class="bookmark-dialog-field">
-                <label for="bookmark-url">URL *</label>
-                <input type="url" id="bookmark-url" placeholder="https://example.com" required>
+    showAddBookmarkDialog(folderId) {
+        const dialog = document.createElement('div');
+        dialog.className = 'bookmark-dialog';
+        dialog.innerHTML = `
+            <div class="bookmark-dialog-content">
+                <h3>Add Bookmark</h3>
+                <div class="bookmark-dialog-field">
+                    <label for="bookmark-url">URL *</label>
+                    <input type="url" id="bookmark-url" placeholder="https://example.com" required>
+                </div>
+                <div class="bookmark-dialog-field">
+                    <label for="bookmark-name">Name</label>
+                    <input type="text" id="bookmark-name" placeholder="Bookmark name (optional)">
+                </div>
+                <div class="bookmark-dialog-actions">
+                    <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                    <button class="bookmark-dialog-btn primary" id="add-bookmark-confirm">Add</button>
+                </div>
             </div>
-            <div class="bookmark-dialog-field">
-                <label for="bookmark-name">Name</label>
-                <input type="text" id="bookmark-name" placeholder="Bookmark name (optional)">
-            </div>
-            <div class="bookmark-dialog-actions">
-                <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
-                <button class="bookmark-dialog-btn primary" id="add-bookmark-confirm">Add</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(dialog);
-    
-    const urlInput = dialog.querySelector('#bookmark-url');
-    const nameInput = dialog.querySelector('#bookmark-name');
-    const confirmBtn = dialog.querySelector('#add-bookmark-confirm');
-    
-    urlInput.focus();
-    
-    confirmBtn.addEventListener('click', async () => {
-        const url = urlInput.value.trim();
-        const name = nameInput.value.trim();
+        `;
         
-        if (!url) {
-            urlInput.focus();
-            return;
-        }
+        document.body.appendChild(dialog);
         
-        // Validate URL format
-        let validUrl;
-        try {
-            // Add protocol if missing
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                validUrl = 'https://' + url;
-            } else {
-                validUrl = url;
+        const urlInput = dialog.querySelector('#bookmark-url');
+        const nameInput = dialog.querySelector('#bookmark-name');
+        const confirmBtn = dialog.querySelector('#add-bookmark-confirm');
+        
+        urlInput.focus();
+        
+        confirmBtn.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            const name = nameInput.value.trim();
+            
+            if (!url) {
+                urlInput.focus();
+                return;
             }
             
-            // Test if URL is valid
-            new URL(validUrl);
-            
-            await chrome.bookmarks.create({
-                parentId: folderId,
-                title: name || validUrl,
-                url: validUrl
+            // Validate URL format
+            let validUrl;
+            try {
+                // Add protocol if missing
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    validUrl = 'https://' + url;
+                } else {
+                    validUrl = url;
+                }
+                
+                // Test if URL is valid
+                new URL(validUrl);
+                
+                await chrome.bookmarks.create({
+                    parentId: folderId,
+                    title: name || validUrl,
+                    url: validUrl
+                });
+                dialog.remove();
+            } catch (error) {
+                console.error('Failed to create bookmark:', error);
+                alert('Failed to create bookmark. Please check the URL format.');
+            }
+        });
+        
+        // Enter key to submit
+        [urlInput, nameInput].forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    confirmBtn.click();
+                }
             });
-            dialog.remove();
-        } catch (error) {
-            console.error('Failed to create bookmark:', error);
-            alert('Failed to create bookmark. Please check the URL format.');
-        }
-    });
-    
-    // Enter key to submit
-    [urlInput, nameInput].forEach(input => {
-        input.addEventListener('keydown', (e) => {
+        });
+        
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dialog.remove();
+            }
+        });
+        
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                dialog.remove();
+            }
+        });
+    }
+
+
+    showAddFolderDialog(parentFolderId) {
+        const dialog = document.createElement('div');
+        dialog.className = 'bookmark-dialog';
+        dialog.innerHTML = `
+            <div class="bookmark-dialog-content">
+                <h3>Add Folder</h3>
+                <div class="bookmark-dialog-field">
+                    <label for="folder-name">Name</label>
+                    <input type="text" id="folder-name" placeholder="Folder name (optional)">
+                </div>
+                <div class="bookmark-dialog-actions">
+                    <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                    <button class="bookmark-dialog-btn primary" id="add-folder-confirm">Add</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(dialog);
+        
+        const nameInput = dialog.querySelector('#folder-name');
+        const confirmBtn = dialog.querySelector('#add-folder-confirm');
+        
+        nameInput.focus();
+        
+        confirmBtn.addEventListener('click', async () => {
+            const name = nameInput.value.trim(); // Don't provide fallback here
+            
+            try {
+                await chrome.bookmarks.create({
+                    parentId: parentFolderId,
+                    title: name // Use empty string if name is empty
+                });
+                dialog.remove();
+            } catch (error) {
+                console.error('Failed to create folder:', error);
+                alert('Failed to create folder.');
+            }
+        });
+        
+        // Enter key to submit
+        nameInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 confirmBtn.click();
             }
         });
-    });
-    
-    dialog.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            dialog.remove();
-        }
-    });
-    
-    dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) {
-            dialog.remove();
-        }
-    });
-}
-
-
-
-showAddFolderDialog() {
-    const dialog = document.createElement('div');
-    dialog.className = 'bookmark-dialog';
-    dialog.innerHTML = `
-        <div class="bookmark-dialog-content">
-            <h3>Add Folder</h3>
-            <div class="bookmark-dialog-field">
-                <label for="folder-name">Name</label>
-                <input type="text" id="folder-name" placeholder="Folder name (optional)">
-            </div>
-            <div class="bookmark-dialog-actions">
-                <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
-                <button class="bookmark-dialog-btn primary" id="add-folder-confirm">Add</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(dialog);
-    
-    const nameInput = dialog.querySelector('#folder-name');
-    const confirmBtn = dialog.querySelector('#add-folder-confirm');
-    
-    nameInput.focus();
-    
-    confirmBtn.addEventListener('click', async () => {
-        const name = nameInput.value.trim(); // Don't provide fallback here
         
-        try {
-            const bookmarksTree = await chrome.bookmarks.getTree();
-            const bookmarkBar = bookmarksTree[0].children.find(child => child.title === 'Bookmarks Bar');
-            
-            await chrome.bookmarks.create({
-                parentId: bookmarkBar.id,
-                title: name // Use empty string if name is empty
-            });
-            dialog.remove();
-        } catch (error) {
-            console.error('Failed to create folder:', error);
-            alert('Failed to create folder.');
-        }
-    });
-    
-    // Enter key to submit
-    nameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            confirmBtn.click();
-        }
-    });
-    
-    dialog.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            dialog.remove();
-        }
-    });
-    
-    dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) {
-            dialog.remove();
-        }
-    });
-}
-
+        dialog.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dialog.remove();
+            }
+        });
+        
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                dialog.remove();
+            }
+        });
+    }
 
     async loadBookmarks() {
         try {
@@ -273,12 +268,10 @@ showAddFolderDialog() {
         const addFolderBtn = folderDiv.querySelector('#add-folder');
         
         addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
-        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog());
+        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog(folderId));
         
         return folderDiv;
     }
-
-
 
     async populateFolder(folderId, items) {
         const container = document.getElementById(`bookmarks-${folderId}`);
