@@ -1,6 +1,7 @@
 /*
-File name & path: slots-system/modal.js
-Role: Generic modal system for all SAC (Slots And Cubes) interactions
+File name & path: root/slots-system/modal.js
+Role: Generic modal system for all SAC (Slots And Cubes) interactions providing reusable modal functionality
+Method: Creates dynamic modal HTML, manages modal lifecycle (open/close), handles form validation, supports content providers for custom modal behavior, includes keyboard shortcuts and error handling
 */
 
 /* –––––––––––––––––––––––––––

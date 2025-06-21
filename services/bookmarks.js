@@ -1,4 +1,8 @@
-// services/bookmarks.js
+/*
+File name & path: root/services/bookmarks.js
+Role: Chrome bookmarks API integration and management service
+Method: Loads Chrome bookmarks tree, renders folders hierarchically with breadcrumbs, implements drag/drop reordering with visual feedback (before/after/swap), handles bookmark CRUD operations, listens for bookmark changes and auto-refreshes
+*/
 
 class BookmarksService {
     constructor() {

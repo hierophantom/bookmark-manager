@@ -1,6 +1,7 @@
 /*
-File name & path: libs/icons.js
-Role: The icon store
+File name & path: root/libs/icons.js
+Role: SVG icon definitions and sprite sheet generation for consistent iconography across the application
+Method: Exports icon objects with paths and viewBoxes, creates SVG sprite sheet on page load for efficient icon usage via <use> references
 */
 
 export const ICONS = {

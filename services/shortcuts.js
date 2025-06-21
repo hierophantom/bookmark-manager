@@ -1,6 +1,7 @@
 /*
-File name & path: services/shortcuts.js
-Role: Pinned URLs shortcuts system using generic modal
+File name & path: root/services/shortcuts.js
+Role: Pinned URLs shortcuts system for creating and managing URL shortcuts
+Method: Factory pattern similar to widgets but specialized for URL shortcuts, includes favicon fetching, URL validation, custom modal for URL input, handles click-to-open functionality
 */
 
 import { ModalContentProvider } from '../slots-system/modal.js';

@@ -1,6 +1,7 @@
 /*
-File name & path: main/main.js
-Role: The main JS file with slot factory implementation
+File name & path: root/main/main.js
+Role: Main application controller coordinating slot systems, factories, modal managers, theme system, and page navigation
+Method: Initializes generic modal manager, widget/shortcut factories, slot systems, connects them together, handles theme switching, page management (homepage/bookmarks), drawer controls with hover zones, and keyboard/mouse navigation
 */
 
 /* –––––––––––––––––––––––––––

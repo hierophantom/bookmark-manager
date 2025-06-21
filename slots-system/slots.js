@@ -1,6 +1,7 @@
 /*
-File name & path: slots-system/slots.js
-Role: Core slot system handling drag/drop, swap, add/remove mechanics with dynamic slot creation
+File name & path: root/slots-system/slots.js
+Role: Core slot system handling drag/drop, swap, add/remove mechanics for any slottable items
+Method: Generic slot system using interact.js for drag/drop, manages item factories, persistence to localStorage, provides swap/reorder functionality, handles empty slot detection, and manages item lifecycle with proper cleanup
 */
 
 /* –––––––––––––––––––––––––––

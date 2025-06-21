@@ -1,6 +1,7 @@
 /*
-File name & path: main/background.js
-Role: The extension rvent handler
+File name & path: root/main/background.js
+Role: Chrome extension service worker handling extension lifecycle, bookmark/tab sync, and API message routing
+Method: Listens for bookmark/tab changes and broadcasts to extension pages, handles API requests for bookmarks/tab groups, manages extension installation and updates
 */
 
 // This will handle the extension icon click

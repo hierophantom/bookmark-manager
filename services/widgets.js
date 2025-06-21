@@ -1,6 +1,7 @@
 /*
-File name & path: services/widgets.js
-Role: Generic widget instances and content management using generic modal
+File name & path: root/services/widgets.js
+Role: Widget factory and management system for creating and managing widget instances
+Method: Factory pattern for widget creation, maintains registry of active widgets, provides base widget class with lifecycle methods, integrates with slot system through item factory interface
 */
 
 import { ModalContentProvider } from '../slots-system/modal.js';
