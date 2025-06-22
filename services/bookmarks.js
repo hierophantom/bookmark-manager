@@ -239,47 +239,66 @@ class BookmarksService {
         // Create display title with breadcrumbs if it has parents
         let displayTitle = '';
         if (parentPath.length > 0) {
-            // Build breadcrumb with spans, show "Untitled Folder" for empty names in breadcrumbs
-            const breadcrumbPath = parentPath.map(part => {
-                const displayPart = (!part || part.trim() === '') ? 'Untitled Folder' : part;
-                return `<span class="subfolder-title">${displayPart}</span>`;
-            }).join(' > ');
-            
-            // For the current folder title, show "Untitled Folder" if empty, otherwise show title
-            const currentTitle = (!title || title.trim() === '') ? 'Untitled Folder' : title;
-            displayTitle = `${breadcrumbPath} > ${currentTitle}`;
+            // Build breadcrumb with spans only for parent path
+            const breadcrumbPath = parentPath.map(part => 
+                `<span class="subfolder-title">${part}</span>`
+            ).join(' > ');
+            displayTitle = `${breadcrumbPath} > ${title}`;
         } else {
-            // For root level folders, show "Untitled Folder" if empty
-            displayTitle = (!title || title.trim() === '') ? 'Untitled Folder' : title;
+            displayTitle = title;
         }
         
         folderDiv.innerHTML = `
             <div class="folder-header">
                 <h3 class="folder-title">${displayTitle}</h3>
                 <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" id="add-bookmark" title="Add bookmark to ${title || 'folder'}">
+                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
                     </button>
-                    <button class="folder-action-btn add-btn" id="add-folder" title="Add folder">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            <line x1="12" y1="11" x2="12" y2="17"></line>
-                            <line x1="9" y1="14" x2="15" y2="14"></line>
-                        </svg>
-                    </button>
                 </div>
             </div>
             <div class="bookmarks" id="bookmarks-${folderId}"></div>
+            <div class="folder-drag-handle" title="Drag to reorder folder">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="1"></circle>
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="12" cy="19" r="1"></circle>
+                    <circle cx="19" cy="5" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="19" cy="19" r="1"></circle>
+                    <circle cx="5" cy="5" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                    <circle cx="5" cy="19" r="1"></circle>
+                </svg>
+            </div>
         `;
         
-        const addBookmarkBtn = folderDiv.querySelector('#add-bookmark');
-        const addFolderBtn = folderDiv.querySelector('#add-folder');
+        // Add event listener for add button
+        const addBtn = folderDiv.querySelector('.add-btn');
+        addBtn.addEventListener('click', () => this.addBookmark(folderId));
         
-        addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
-        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog(folderId));
+        // Make folder draggable only from handle
+        folderDiv.draggable = false;
+        const folderDragHandle = folderDiv.querySelector('.folder-drag-handle');
+        folderDragHandle.draggable = true;
+        
+        // Add folder drag events
+        folderDragHandle.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('folderId', folderId);
+            folderDiv.classList.add('dragging');
+        });
+        
+        folderDragHandle.addEventListener('dragend', (e) => {
+            folderDiv.classList.remove('dragging');
+        });
+        
+        folderDragHandle.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
         
         return folderDiv;
     }
@@ -698,7 +717,7 @@ class BookmarksService {
         slotItem.dataset.bookmarkId = bookmark.id;
         slotItem.dataset.url = bookmark.url;
         slotItem.title = bookmark.title || 'Untitled';
-        slotItem.draggable = true;
+        slotItem.draggable = false; // Remove draggable from main element
         
         const faviconUrl = await this.getFaviconUrl(bookmark.url);
         
@@ -716,7 +735,7 @@ class BookmarksService {
                 <button class="slot-action delete-btn" title="Delete bookmark">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
                 </button>
             </div>
@@ -737,6 +756,7 @@ class BookmarksService {
         
         // Add click handler for the main item
         slotItem.addEventListener('click', (e) => {
+            // Don't open if clicking on actions or drag handle
             if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
                 chrome.tabs.create({ url: bookmark.url });
             }
@@ -756,8 +776,142 @@ class BookmarksService {
             this.deleteBookmark(bookmark.id, slotItem);
         });
         
-        // Add drag and drop handlers
-        this.addDragHandlers(slotItem, bookmark.id, 'bookmark');
+        // Get drag handle and make only it draggable
+        const dragHandle = slotItem.querySelector('.slot-drag-handle');
+        dragHandle.draggable = true;
+        
+        // Add drag and drop handlers to drag handle only
+        dragHandle.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('bookmarkId', bookmark.id);
+            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
+            slotItem.classList.add('dragging');
+            
+            // Store the dragged element
+            this.draggedElement = slotItem;
+        });
+        
+        dragHandle.addEventListener('dragend', (e) => {
+            slotItem.classList.remove('dragging');
+            
+            // Remove all drag-over classes
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
+            document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
+            document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
+            
+            this.draggedElement = null;
+        });
+        
+        // Prevent drag handle click from opening bookmark
+        dragHandle.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+        
+        // Add dragover handler for reordering
+        slotItem.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!this.draggedElement || this.draggedElement === slotItem) return;
+            
+            const rect = slotItem.getBoundingClientRect();
+            const relativeX = (e.clientX - rect.left) / rect.width;
+            
+            // Remove previous indicators
+            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
+            
+            // Determine the drop zone: before (0-20%), swap (20-80%), after (80-100%)
+            if (relativeX < 0.2) {
+                slotItem.classList.add('drag-before');
+                this.dropAction = 'before';
+            } else if (relativeX > 0.8) {
+                slotItem.classList.add('drag-after');
+                this.dropAction = 'after';
+            } else {
+                slotItem.classList.add('drag-swap');
+                this.dropAction = 'swap';
+            }
+        });
+        
+        slotItem.addEventListener('dragleave', (e) => {
+            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
+        });
+        
+        slotItem.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const bookmarkId = e.dataTransfer.getData('bookmarkId');
+            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
+            
+            if (!bookmarkId || !this.draggedElement) return;
+            
+            try {
+                const parentId = slotItem.closest('.bookmarks').id.replace('bookmarks-', '');
+                
+                if (this.dropAction === 'swap') {
+                    // Swap the two bookmarks
+                    const targetBookmarkId = slotItem.dataset.bookmarkId;
+                    
+                    // Get both bookmarks
+                    const [sourceBookmark] = await chrome.bookmarks.get(bookmarkId);
+                    const [targetBookmark] = await chrome.bookmarks.get(targetBookmarkId);
+                    
+                    // Get their parent folders
+                    const sourceParent = await chrome.bookmarks.getChildren(sourceBookmark.parentId);
+                    const targetParent = await chrome.bookmarks.getChildren(targetBookmark.parentId);
+                    
+                    // Find their indices
+                    const sourceIndex = sourceParent.findIndex(b => b.id === bookmarkId);
+                    const targetIndex = targetParent.findIndex(b => b.id === targetBookmarkId);
+                    
+                    // Perform the swap
+                    if (sourceBookmark.parentId === targetBookmark.parentId) {
+                        // Same folder swap
+                        await chrome.bookmarks.move(bookmarkId, { index: targetIndex });
+                        await chrome.bookmarks.move(targetBookmarkId, { index: sourceIndex });
+                    } else {
+                        // Different folder swap
+                        await chrome.bookmarks.move(bookmarkId, { 
+                            parentId: targetBookmark.parentId, 
+                            index: targetIndex 
+                        });
+                        await chrome.bookmarks.move(targetBookmarkId, { 
+                            parentId: sourceBookmark.parentId, 
+                            index: sourceIndex 
+                        });
+                    }
+                } else {
+                    // Insert before or after
+                    const targetFolder = await chrome.bookmarks.getChildren(parentId);
+                    const targetIndex = targetFolder.findIndex(b => b.id === slotItem.dataset.bookmarkId);
+                    
+                    let newIndex = this.dropAction === 'before' ? targetIndex : targetIndex + 1;
+                    
+                    // If moving within the same folder and moving down, adjust index
+                    if (sourceFolderId === parentId) {
+                        const currentIndex = targetFolder.findIndex(b => b.id === bookmarkId);
+                        if (currentIndex < targetIndex) {
+                            newIndex--;
+                        }
+                    }
+                    
+                    // Move the bookmark
+                    await chrome.bookmarks.move(bookmarkId, {
+                        parentId: parentId,
+                        index: newIndex
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Failed to reorder bookmark:', error);
+            }
+            
+            // Clean up
+            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
+        });
+        
+        // Add hover effect
+        slotItem.style.cursor = 'pointer';
         
         return slotItem;
     }
