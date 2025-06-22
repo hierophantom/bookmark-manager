@@ -235,148 +235,53 @@ class BookmarksService {
         const folderDiv = document.createElement('div');
         folderDiv.id = `bookmark-folder-${folderId}`;
         folderDiv.className = 'bookmark-folder';
-        folderDiv.dataset.folderId = folderId;
         
         // Create display title with breadcrumbs if it has parents
         let displayTitle = '';
         if (parentPath.length > 0) {
-            const breadcrumbPath = parentPath.map(part => 
-                `<span class="subfolder-title">${part}</span>`
-            ).join(' > ');
-            displayTitle = `${breadcrumbPath} > ${title}`;
+            // Build breadcrumb with spans, show "Untitled Folder" for empty names in breadcrumbs
+            const breadcrumbPath = parentPath.map(part => {
+                const displayPart = (!part || part.trim() === '') ? 'Untitled Folder' : part;
+                return `<span class="subfolder-title">${displayPart}</span>`;
+            }).join(' > ');
+            
+            // For the current folder title, show "Untitled Folder" if empty, otherwise show title
+            const currentTitle = (!title || title.trim() === '') ? 'Untitled Folder' : title;
+            displayTitle = `${breadcrumbPath} > ${currentTitle}`;
         } else {
-            displayTitle = title;
+            // For root level folders, show "Untitled Folder" if empty
+            displayTitle = (!title || title.trim() === '') ? 'Untitled Folder' : title;
         }
         
         folderDiv.innerHTML = `
             <div class="folder-header">
                 <h3 class="folder-title">${displayTitle}</h3>
                 <div class="folder-actions">
-                    <button class="folder-action-btn add-btn" title="Add bookmark to ${title}">
+                    <button class="folder-action-btn add-btn" id="add-bookmark" title="Add bookmark to ${title || 'folder'}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
                     </button>
+                    <button class="folder-action-btn add-btn" id="add-folder" title="Add folder">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                            <line x1="12" y1="11" x2="12" y2="17"></line>
+                            <line x1="9" y1="14" x2="15" y2="14"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
             <div class="bookmarks" id="bookmarks-${folderId}"></div>
-            <div class="bookmark-folder-drag-handle" title="Drag to reorder folder">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                    <circle cx="19" cy="5" r="1"></circle>
-                    <circle cx="19" cy="12" r="1"></circle>
-                    <circle cx="19" cy="19" r="1"></circle>
-                    <circle cx="5" cy="5" r="1"></circle>
-                    <circle cx="5" cy="12" r="1"></circle>
-                    <circle cx="5" cy="19" r="1"></circle>
-                </svg>
-            </div>
         `;
         
-        // Add event listener for add button
-        const addBtn = folderDiv.querySelector('.add-btn');
-        addBtn.addEventListener('click', () => this.addBookmark(folderId));
+        const addBookmarkBtn = folderDiv.querySelector('#add-bookmark');
+        const addFolderBtn = folderDiv.querySelector('#add-folder');
         
-        // Add drag functionality to folder
-        this.setupFolderDragHandlers(folderDiv, folderId);
+        addBookmarkBtn.addEventListener('click', () => this.showAddBookmarkDialog(folderId));
+        addFolderBtn.addEventListener('click', () => this.showAddFolderDialog(folderId));
         
         return folderDiv;
-    }
-
-    setupFolderDragHandlers(folderDiv, folderId) {
-        const dragHandle = folderDiv.querySelector('.bookmark-folder-drag-handle');
-        
-        // Make only the drag handle draggable
-        dragHandle.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            slotItem.draggable = true;
-        });
-
-        slotItem.addEventListener('dragstart', (e) => {
-        // Only allow drag if started from handle
-        if (!e.target.closest('.slot-drag-handle')) {
-            e.preventDefault();
-            return false;
-        }
-        
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('bookmarkId', bookmark.id);
-        e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
-        slotItem.classList.add('dragging');
-        this.draggedElement = slotItem;
-    });
-
-
-        slotItem.addEventListener('dragend', (e) => {
-    slotItem.draggable = false; // ADD this line
-    slotItem.classList.remove('dragging');
-            
-            // Remove all drag-over classes
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
-            document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
-            document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
-            
-            this.draggedElement = null;
-        });
-
-        
-        // Handle folder reordering
-        folderDiv.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (!this.draggedElement || this.draggedElement === folderDiv) return;
-            
-            const rect = folderDiv.getBoundingClientRect();
-            const relativeY = (e.clientY - rect.top) / rect.height;
-            
-            folderDiv.classList.remove('drag-before', 'drag-after');
-            
-            if (relativeY < 0.5) {
-                folderDiv.classList.add('drag-before');
-                this.folderDropAction = 'before';
-            } else {
-                folderDiv.classList.add('drag-after');
-                this.folderDropAction = 'after';
-            }
-        });
-        
-        folderDiv.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const draggedFolderId = e.dataTransfer.getData('folderId');
-            const draggedType = e.dataTransfer.getData('type');
-            
-            if (draggedType === 'folder' && draggedFolderId && draggedFolderId !== folderId) {
-                try {
-                    // Get current folder order
-                    const allFolders = Array.from(this.bookmarksContainer.children);
-                    const targetIndex = allFolders.indexOf(folderDiv);
-                    const draggedIndex = allFolders.indexOf(this.draggedElement);
-                    
-                    let newIndex = this.folderDropAction === 'before' ? targetIndex : targetIndex + 1;
-                    
-                    if (draggedIndex < targetIndex && this.folderDropAction === 'after') {
-                        newIndex--;
-                    }
-                    
-                    // Reorder in DOM
-                    if (newIndex <= draggedIndex) {
-                        folderDiv.parentNode.insertBefore(this.draggedElement, folderDiv);
-                    } else {
-                        folderDiv.parentNode.insertBefore(this.draggedElement, folderDiv.nextSibling);
-                    }
-                    
-                } catch (error) {
-                    console.error('Failed to reorder folder:', error);
-                }
-            }
-            
-            folderDiv.classList.remove('drag-before', 'drag-after');
-        });
     }
 
 
@@ -509,6 +414,7 @@ class BookmarksService {
         folderSlotItem.dataset.folderId = folder.id;
         folderSlotItem.dataset.parentFolderId = parentFolderId;
         folderSlotItem.title = folder.title || 'Untitled Folder';
+        folderSlotItem.draggable = true;
         
         folderSlotItem.innerHTML = `
             <div class="slot-icon">
@@ -534,10 +440,9 @@ class BookmarksService {
         `;
         
         // Add click handler to scroll to folder section
-        slotItem.addEventListener('click', (e) => {
-            // Don't open if clicking on actions or drag handle
-            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
-                chrome.tabs.create({ url: bookmark.url });
+        folderSlotItem.addEventListener('click', (e) => {
+            if (!e.target.closest('.slot-actions')) {
+                this.scrollToFolder(folder.id);
             }
         });
         
@@ -788,61 +693,84 @@ class BookmarksService {
     }
 
     async createBookmarkSlotItem(bookmark) {
-        const slotItem = document.createElement('div');
-        slotItem.className = 'slot-item';
-        slotItem.dataset.bookmarkId = bookmark.id;
-        slotItem.dataset.url = bookmark.url;
-        slotItem.title = bookmark.title || 'Untitled';
-
-        const dragHandle = slotItem.querySelector('.slot-drag-handle');
-
-        dragHandle.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            slotItem.draggable = true;
-        });
-
-        const faviconUrl = await this.getFaviconUrl(bookmark.url);
-        
-        slotItem.innerHTML = `
-            <img class="slot-icon" src="${faviconUrl}" alt="${bookmark.title}" 
-                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22%23666%22/></svg>'">
-            <div class="slot-name">${bookmark.title || 'Untitled'}</div>
-            <div class="slot-actions">
-                <button class="slot-action edit-btn" title="Edit bookmark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                </button>
-                <button class="slot-action delete-btn" title="Delete bookmark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="slot-drag-handle" title="Drag to reorder">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="12" cy="5" r="1"></circle>
-                    <circle cx="12" cy="12" r="1"></circle>
-                    <circle cx="12" cy="19" r="1"></circle>
-                    <circle cx="19" cy="5" r="1"></circle>
-                    <circle cx="19" cy="12" r="1"></circle>
-                    <circle cx="19" cy="19" r="1"></circle>
-                    <circle cx="5" cy="5" r="1"></circle>
-                    <circle cx="5" cy="12" r="1"></circle>
-                    <circle cx="5" cy="19" r="1"></circle>
+    const slotItem = document.createElement('div');
+    slotItem.className = 'slot-item';
+    slotItem.dataset.bookmarkId = bookmark.id;
+    slotItem.dataset.url = bookmark.url;
+    slotItem.title = bookmark.title || 'Untitled';
+    // Remove this line: slotItem.draggable = true;
+    
+    const faviconUrl = await this.getFaviconUrl(bookmark.url);
+    
+    slotItem.innerHTML = `
+        <img class="slot-icon" src="${faviconUrl}" alt="${bookmark.title}" 
+             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22%23666%22/></svg>'">
+        <div class="slot-name">${bookmark.title || 'Untitled'}</div>
+        <div class="slot-actions">
+            <button class="slot-action edit-btn" title="Edit bookmark">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-            </div>
-        `;
-        
-        // Add click handler for the main item
-        slotItem.addEventListener('click', (e) => {
-            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
-                chrome.tabs.create({ url: bookmark.url });
-            }
-        });
-        
+            </button>
+            <button class="slot-action delete-btn" title="Delete bookmark">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="slot-drag-handle" draggable="true" title="Drag to reorder">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="9" cy="5" r="1"></circle>
+                <circle cx="9" cy="12" r="1"></circle>
+                <circle cx="9" cy="19" r="1"></circle>
+                <circle cx="15" cy="5" r="1"></circle>
+                <circle cx="15" cy="12" r="1"></circle>
+                <circle cx="15" cy="19" r="1"></circle>
+            </svg>
+        </div>
+    `;
+    
+    // Get the drag handle element
+    const dragHandle = slotItem.querySelector('.slot-drag-handle');
+    
+    // Add click handler for the main item (unchanged)
+    slotItem.addEventListener('click', (e) => {
+        if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
+            chrome.tabs.create({ url: bookmark.url });
+        }
+    });
+    
+    // Move all drag event listeners to the drag handle instead of slotItem
+    dragHandle.addEventListener('dragstart', (e) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('bookmarkId', bookmark.id);
+    e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
+    
+    // Calculate offset from the click point to the slot-item center
+    const slotRect = slotItem.getBoundingClientRect();
+    const handleRect = dragHandle.getBoundingClientRect();
+    
+    // Offset from handle position to slot-item center
+    const offsetX = (slotRect.width / 2) - (handleRect.left - slotRect.left) - (handleRect.width / 2);
+    const offsetY = (slotRect.height / 2) - (handleRect.top - slotRect.top) - (handleRect.height / 2);
+    
+    e.dataTransfer.setDragImage(slotItem, 60 - offsetX, 60 - offsetY);
+    
+    slotItem.classList.add('dragging');
+    this.draggedElement = slotItem;
+});
+
+    dragHandle.addEventListener('dragend', (e) => {
+        slotItem.classList.remove('dragging');
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
+        document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
+        document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
+        this.draggedElement = null;
+    });
+
         // Add action handlers
         const editBtn = slotItem.querySelector('.edit-btn');
         const deleteBtn = slotItem.querySelector('.delete-btn');
@@ -858,7 +786,7 @@ class BookmarksService {
         });
         
         // Add drag and drop handlers
-        this.addDragHandlers(slotItem, bookmark.id, 'bookmark');
+        // this.addDragHandlers(slotItem, bookmark.id, 'bookmark');
         
         return slotItem;
     }
