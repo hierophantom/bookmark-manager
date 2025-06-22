@@ -35,7 +35,8 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
     border-radius: 16px;
     backdrop-filter: blur(3px);
     position: relative;
-}
+    cursor: default;
+
 
 .bookmark-folder:hover {
     background-color: var(--container-dim-20);
@@ -153,6 +154,7 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
     position: relative;
     transition: all 0.3s;
     background-color: var(--container-bright-80);
+    cursor: default;
 }
 
 .bookmarks .slot-item:hover {
@@ -196,55 +198,43 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 }
 
 /* –––––––––––––––––––––––––––
-BOOKMARK DRAG HANDLE STYLES
+  DRAG CONTROL
 ––––––––––––––––––––––––––– */
 
-.bookmarks .slot-item .slot-drag-handle {
+.slot-drag-handle {
     position: absolute;
     bottom: 4px;
-    left: 4px;
+    right: 4px;
     width: 16px;
     height: 16px;
     cursor: move;
     opacity: 0.3;
     transition: opacity 0.2s;
     fill: var(--content-dim-100);
+    z-index: 10;
 }
 
-.bookmarks .slot-item:hover .slot-drag-handle {
+.slot-drag-handle:hover {
     opacity: 1;
 }
 
-.bookmarks .slot-item .slot-drag-handle svg {
-    width: 16px;
-    height: 16px;
-}
-
-
-/* –––––––––––––––––––––––––––
-FOLDER DRAG HANDLE STYLES
-––––––––––––––––––––––––––– */
-
-.bookmark-folder .folder-drag-handle {
+.bookmark-folder-drag-handle {
     position: absolute;
     bottom: 4px;
-    left: 4px;
+    right: 4px;
     width: 16px;
     height: 16px;
     cursor: move;
     opacity: 0.3;
     transition: opacity 0.2s;
     fill: var(--content-dim-100);
+    z-index: 10;
 }
 
-.bookmark-folder:hover .folder-drag-handle {
+.bookmark-folder-drag-handle:hover {
     opacity: 1;
 }
 
-.folder-drag-handle svg {
-    width: 16px;
-    height: 16px;
-}
 
 /* –––––––––––––––––––––––––––
   CONTORLS

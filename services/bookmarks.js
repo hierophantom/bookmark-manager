@@ -235,11 +235,11 @@ class BookmarksService {
         const folderDiv = document.createElement('div');
         folderDiv.id = `bookmark-folder-${folderId}`;
         folderDiv.className = 'bookmark-folder';
+        folderDiv.dataset.folderId = folderId;
         
         // Create display title with breadcrumbs if it has parents
         let displayTitle = '';
         if (parentPath.length > 0) {
-            // Build breadcrumb with spans only for parent path
             const breadcrumbPath = parentPath.map(part => 
                 `<span class="subfolder-title">${part}</span>`
             ).join(' > ');
@@ -261,7 +261,7 @@ class BookmarksService {
                 </div>
             </div>
             <div class="bookmarks" id="bookmarks-${folderId}"></div>
-            <div class="folder-drag-handle" title="Drag to reorder folder">
+            <div class="bookmark-folder-drag-handle" title="Drag to reorder folder">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <circle cx="12" cy="5" r="1"></circle>
                     <circle cx="12" cy="12" r="1"></circle>
@@ -280,27 +280,103 @@ class BookmarksService {
         const addBtn = folderDiv.querySelector('.add-btn');
         addBtn.addEventListener('click', () => this.addBookmark(folderId));
         
-        // Make folder draggable only from handle
-        folderDiv.draggable = false;
-        const folderDragHandle = folderDiv.querySelector('.folder-drag-handle');
-        folderDragHandle.draggable = true;
-        
-        // Add folder drag events
-        folderDragHandle.addEventListener('dragstart', (e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('folderId', folderId);
-            folderDiv.classList.add('dragging');
-        });
-        
-        folderDragHandle.addEventListener('dragend', (e) => {
-            folderDiv.classList.remove('dragging');
-        });
-        
-        folderDragHandle.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+        // Add drag functionality to folder
+        this.setupFolderDragHandlers(folderDiv, folderId);
         
         return folderDiv;
+    }
+
+    setupFolderDragHandlers(folderDiv, folderId) {
+        const dragHandle = folderDiv.querySelector('.bookmark-folder-drag-handle');
+        
+        // Make only the drag handle draggable
+        dragHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            slotItem.draggable = true;
+        });
+
+        slotItem.addEventListener('dragstart', (e) => {
+            // Only allow drag if started from handle
+            if (!e.target.closest('.slot-drag-handle')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('bookmarkId', bookmark.id);
+            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
+            e.dataTransfer.setData('type', 'bookmark');
+            slotItem.classList.add('dragging');
+            this.draggedElement = slotItem;
+        });
+
+        slotItem.addEventListener('dragend', (e) => {
+            slotItem.draggable = false;
+            slotItem.classList.remove('dragging');
+            
+            // Remove all drag-over classes
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
+            document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
+            document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
+            
+            this.draggedElement = null;
+        });
+
+        
+        // Handle folder reordering
+        folderDiv.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!this.draggedElement || this.draggedElement === folderDiv) return;
+            
+            const rect = folderDiv.getBoundingClientRect();
+            const relativeY = (e.clientY - rect.top) / rect.height;
+            
+            folderDiv.classList.remove('drag-before', 'drag-after');
+            
+            if (relativeY < 0.5) {
+                folderDiv.classList.add('drag-before');
+                this.folderDropAction = 'before';
+            } else {
+                folderDiv.classList.add('drag-after');
+                this.folderDropAction = 'after';
+            }
+        });
+        
+        folderDiv.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const draggedFolderId = e.dataTransfer.getData('folderId');
+            const draggedType = e.dataTransfer.getData('type');
+            
+            if (draggedType === 'folder' && draggedFolderId && draggedFolderId !== folderId) {
+                try {
+                    // Get current folder order
+                    const allFolders = Array.from(this.bookmarksContainer.children);
+                    const targetIndex = allFolders.indexOf(folderDiv);
+                    const draggedIndex = allFolders.indexOf(this.draggedElement);
+                    
+                    let newIndex = this.folderDropAction === 'before' ? targetIndex : targetIndex + 1;
+                    
+                    if (draggedIndex < targetIndex && this.folderDropAction === 'after') {
+                        newIndex--;
+                    }
+                    
+                    // Reorder in DOM
+                    if (newIndex <= draggedIndex) {
+                        folderDiv.parentNode.insertBefore(this.draggedElement, folderDiv);
+                    } else {
+                        folderDiv.parentNode.insertBefore(this.draggedElement, folderDiv.nextSibling);
+                    }
+                    
+                } catch (error) {
+                    console.error('Failed to reorder folder:', error);
+                }
+            }
+            
+            folderDiv.classList.remove('drag-before', 'drag-after');
+        });
     }
 
 
@@ -459,9 +535,10 @@ class BookmarksService {
         `;
         
         // Add click handler to scroll to folder section
-        folderSlotItem.addEventListener('click', (e) => {
-            if (!e.target.closest('.slot-actions')) {
-                this.scrollToFolder(folder.id);
+        slotItem.addEventListener('click', (e) => {
+            // Don't open if clicking on actions or drag handle
+            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
+                chrome.tabs.create({ url: bookmark.url });
             }
         });
         
@@ -717,8 +794,8 @@ class BookmarksService {
         slotItem.dataset.bookmarkId = bookmark.id;
         slotItem.dataset.url = bookmark.url;
         slotItem.title = bookmark.title || 'Untitled';
-        slotItem.draggable = false; // Remove draggable from main element
-        
+
+        const dragHandle = slotItem.querySelector('.slot-drag-handle');
         const faviconUrl = await this.getFaviconUrl(bookmark.url);
         
         slotItem.innerHTML = `
@@ -735,7 +812,7 @@ class BookmarksService {
                 <button class="slot-action delete-btn" title="Delete bookmark">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
                 </button>
             </div>
@@ -756,7 +833,6 @@ class BookmarksService {
         
         // Add click handler for the main item
         slotItem.addEventListener('click', (e) => {
-            // Don't open if clicking on actions or drag handle
             if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
                 chrome.tabs.create({ url: bookmark.url });
             }
@@ -776,142 +852,8 @@ class BookmarksService {
             this.deleteBookmark(bookmark.id, slotItem);
         });
         
-        // Get drag handle and make only it draggable
-        const dragHandle = slotItem.querySelector('.slot-drag-handle');
-        dragHandle.draggable = true;
-        
-        // Add drag and drop handlers to drag handle only
-        dragHandle.addEventListener('dragstart', (e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('bookmarkId', bookmark.id);
-            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
-            slotItem.classList.add('dragging');
-            
-            // Store the dragged element
-            this.draggedElement = slotItem;
-        });
-        
-        dragHandle.addEventListener('dragend', (e) => {
-            slotItem.classList.remove('dragging');
-            
-            // Remove all drag-over classes
-            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-            document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
-            document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
-            document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
-            
-            this.draggedElement = null;
-        });
-        
-        // Prevent drag handle click from opening bookmark
-        dragHandle.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-        
-        // Add dragover handler for reordering
-        slotItem.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            if (!this.draggedElement || this.draggedElement === slotItem) return;
-            
-            const rect = slotItem.getBoundingClientRect();
-            const relativeX = (e.clientX - rect.left) / rect.width;
-            
-            // Remove previous indicators
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-            
-            // Determine the drop zone: before (0-20%), swap (20-80%), after (80-100%)
-            if (relativeX < 0.2) {
-                slotItem.classList.add('drag-before');
-                this.dropAction = 'before';
-            } else if (relativeX > 0.8) {
-                slotItem.classList.add('drag-after');
-                this.dropAction = 'after';
-            } else {
-                slotItem.classList.add('drag-swap');
-                this.dropAction = 'swap';
-            }
-        });
-        
-        slotItem.addEventListener('dragleave', (e) => {
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-        });
-        
-        slotItem.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const bookmarkId = e.dataTransfer.getData('bookmarkId');
-            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
-            
-            if (!bookmarkId || !this.draggedElement) return;
-            
-            try {
-                const parentId = slotItem.closest('.bookmarks').id.replace('bookmarks-', '');
-                
-                if (this.dropAction === 'swap') {
-                    // Swap the two bookmarks
-                    const targetBookmarkId = slotItem.dataset.bookmarkId;
-                    
-                    // Get both bookmarks
-                    const [sourceBookmark] = await chrome.bookmarks.get(bookmarkId);
-                    const [targetBookmark] = await chrome.bookmarks.get(targetBookmarkId);
-                    
-                    // Get their parent folders
-                    const sourceParent = await chrome.bookmarks.getChildren(sourceBookmark.parentId);
-                    const targetParent = await chrome.bookmarks.getChildren(targetBookmark.parentId);
-                    
-                    // Find their indices
-                    const sourceIndex = sourceParent.findIndex(b => b.id === bookmarkId);
-                    const targetIndex = targetParent.findIndex(b => b.id === targetBookmarkId);
-                    
-                    // Perform the swap
-                    if (sourceBookmark.parentId === targetBookmark.parentId) {
-                        // Same folder swap
-                        await chrome.bookmarks.move(bookmarkId, { index: targetIndex });
-                        await chrome.bookmarks.move(targetBookmarkId, { index: sourceIndex });
-                    } else {
-                        // Different folder swap
-                        await chrome.bookmarks.move(bookmarkId, { 
-                            parentId: targetBookmark.parentId, 
-                            index: targetIndex 
-                        });
-                        await chrome.bookmarks.move(targetBookmarkId, { 
-                            parentId: sourceBookmark.parentId, 
-                            index: sourceIndex 
-                        });
-                    }
-                } else {
-                    // Insert before or after
-                    const targetFolder = await chrome.bookmarks.getChildren(parentId);
-                    const targetIndex = targetFolder.findIndex(b => b.id === slotItem.dataset.bookmarkId);
-                    
-                    let newIndex = this.dropAction === 'before' ? targetIndex : targetIndex + 1;
-                    
-                    // If moving within the same folder and moving down, adjust index
-                    if (sourceFolderId === parentId) {
-                        const currentIndex = targetFolder.findIndex(b => b.id === bookmarkId);
-                        if (currentIndex < targetIndex) {
-                            newIndex--;
-                        }
-                    }
-                    
-                    // Move the bookmark
-                    await chrome.bookmarks.move(bookmarkId, {
-                        parentId: parentId,
-                        index: newIndex
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Failed to reorder bookmark:', error);
-            }
-            
-            // Clean up
-            slotItem.classList.remove('drag-before', 'drag-after', 'drag-swap');
-        });
-        
-        // Add hover effect
-        slotItem.style.cursor = 'pointer';
+        // Add drag and drop handlers
+        this.addDragHandlers(slotItem, bookmark.id, 'bookmark');
         
         return slotItem;
     }
