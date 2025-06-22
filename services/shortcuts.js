@@ -126,85 +126,86 @@ class BaseShortcut {
 /* –––––––––––––––––––––––––––
   PINNED URL SHORTCUT
 ––––––––––––––––––––––––––– */
-class PinnedUrlShortcut extends BaseShortcut {
-  getContent() {
-    if (!this.data || !this.data.url) {
-      return `<div class="shortcut-placeholder">Empty Slot</div>`;
-    }
-    
-    const { name, url } = this.data;
-    const hostname = this.extractHostname(url);
-    
-    // Only fetch favicon for valid hostnames
-    let faviconUrl;
-    let fallbackIcon;
-    
-    if (hostname === 'invalid-url') {
-      faviconUrl = null;
-      fallbackIcon = `<svg width="24" height="24"><use href="#globe-icon" /></svg>`;
-    } else {
-      faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-      fallbackIcon = `<svg width="16" height="16"><use href="#globe-icon" /></svg>`;
-    }
-    
-    return `
-      <div class="shortcut-link">
-        <div class="shortcut-favicon">
-          ${faviconUrl ? 
-            `<img src="${faviconUrl}" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-             <span style="display:none;">${fallbackIcon}</span>` :
-            fallbackIcon
-          }
-        </div>
-        <div class="shortcut-info">
-          <div class="shortcut-name">${name}</div>
-          <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
-        </div>
-      </div>
-    `;
-  }
-
-  bindEvents() {
-    if (this.data && this.data.url) {
-      // Make the shortcut clickable
-      this.element.addEventListener('click', (e) => {
-        // Don't trigger if clicking on controls
-        if (!e.target.closest('.slot-controls')) {
-          window.open(this.data.url, '_blank');
-        }
-      });
-      
-      // Add hover effect
-      this.element.style.cursor = 'pointer';
-    }
-  }
-
-  extractHostname(url) {
-    try {
-      // First, try to create a proper URL
-      let testUrl;
-      if (url.startsWith('http://') || url.startsWith('https://')) {
-        testUrl = url;
-      } else {
-        testUrl = `https://${url}`;
+  class PinnedUrlShortcut extends BaseShortcut {
+    getContent() {
+      if (!this.data || !this.data.url) {
+        return `<div class="shortcut-placeholder">Empty Slot</div>`;
       }
       
-      const urlObj = new URL(testUrl);
+      const { name, url } = this.data;
+      const hostname = this.extractHostname(url);
       
-      // Additional validation - check if hostname is valid
-      const hostname = urlObj.hostname.replace('www.', '');
+      // Only fetch favicon for valid hostnames
+      let faviconUrl;
+      let fallbackIcon;
       
-      // Basic hostname validation (must contain at least one dot and valid characters)
-      if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
-        return hostname;
+      if (hostname === 'invalid-url') {
+        faviconUrl = null;
+        fallbackIcon = `<svg width="24" height="24"><use href="#globe-icon" /></svg>`;
       } else {
+        faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+        fallbackIcon = `<svg width="16" height="16"><use href="#globe-icon" /></svg>`;
+      }
+      
+      return `
+        <div class="shortcut-link">
+          <div class="shortcut-favicon">
+            ${faviconUrl ? 
+              `<img src="${faviconUrl}" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+               <span style="display:none;">${fallbackIcon}</span>` :
+              fallbackIcon
+            }
+          </div>
+          <div class="shortcut-info">
+            <div class="shortcut-name">${name}</div>
+            <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    bindEvents() {
+      if (this.data && this.data.url) {
+        // Make the shortcut clickable
+        this.element.addEventListener('click', (e) => {
+          // Don't trigger if clicking on controls
+          if (!e.target.closest('.shortcut-controls')) {
+            window.open(this.data.url, '_blank');
+          }
+        });
+        
+        // Add hover effect
+        this.element.style.cursor = 'pointer';
+      }
+    }
+
+    extractHostname(url) {
+      try {
+        // First, try to create a proper URL
+        let testUrl;
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          testUrl = url;
+        } else {
+          testUrl = `https://${url}`;
+        }
+        
+        const urlObj = new URL(testUrl);
+        
+        // Additional validation - check if hostname is valid
+        const hostname = urlObj.hostname.replace('www.', '');
+        
+        // Basic hostname validation (must contain at least one dot and valid characters)
+        if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
+          return hostname;
+        } else {
+          return 'invalid-url'; // This will show a default icon
+        }
+      } catch (e) {
         return 'invalid-url'; // This will show a default icon
       }
-    } catch (e) {
-      return 'invalid-url'; // This will show a default icon
     }
   }
-}
+
 
 /* –––––––––––––––––––––––––––
   SHORTCUTS MODAL CONTENT PROVIDER

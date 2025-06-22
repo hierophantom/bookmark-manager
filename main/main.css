@@ -81,6 +81,7 @@ table {
   --content-bright-60: var(--white-60);
   --content-bright-30: var(--white-30);
   --content-dim-30: var(--black-30);
+  --content-dim-60: var(--black-60);
   --content-dim-80: var(--black-80);
   --content-dim-100: var(--black-100);
   --primary-100: var(--blue-100);
@@ -106,6 +107,7 @@ table {
   --content-bright-60: var(--black-60);
   --content-bright-30: var(--black-30);
   --content-dim-30: var(--white-30);
+  --content-dim-60: var(--white-60);
   --content-dim-80: var(--white-80);
   --content-dim-100: var(--white-100);
   --primary-100: var(--blue-100);
