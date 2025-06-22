@@ -296,23 +296,23 @@ class BookmarksService {
         });
 
         slotItem.addEventListener('dragstart', (e) => {
-            // Only allow drag if started from handle
-            if (!e.target.closest('.slot-drag-handle')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('bookmarkId', bookmark.id);
-            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
-            e.dataTransfer.setData('type', 'bookmark');
-            slotItem.classList.add('dragging');
-            this.draggedElement = slotItem;
-        });
+        // Only allow drag if started from handle
+        if (!e.target.closest('.slot-drag-handle')) {
+            e.preventDefault();
+            return false;
+        }
+        
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('bookmarkId', bookmark.id);
+        e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
+        slotItem.classList.add('dragging');
+        this.draggedElement = slotItem;
+    });
+
 
         slotItem.addEventListener('dragend', (e) => {
-            slotItem.draggable = false;
-            slotItem.classList.remove('dragging');
+    slotItem.draggable = false; // ADD this line
+    slotItem.classList.remove('dragging');
             
             // Remove all drag-over classes
             document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -509,7 +509,6 @@ class BookmarksService {
         folderSlotItem.dataset.folderId = folder.id;
         folderSlotItem.dataset.parentFolderId = parentFolderId;
         folderSlotItem.title = folder.title || 'Untitled Folder';
-        folderSlotItem.draggable = true;
         
         folderSlotItem.innerHTML = `
             <div class="slot-icon">
@@ -796,6 +795,12 @@ class BookmarksService {
         slotItem.title = bookmark.title || 'Untitled';
 
         const dragHandle = slotItem.querySelector('.slot-drag-handle');
+
+        dragHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            slotItem.draggable = true;
+        });
+
         const faviconUrl = await this.getFaviconUrl(bookmark.url);
         
         slotItem.innerHTML = `
