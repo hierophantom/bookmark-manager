@@ -198,6 +198,86 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 /* –––––––––––––––––––––––––––
   DRAG CONTROL
 ––––––––––––––––––––––––––– */
+
+.slot-drag-handle {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.slot-item:hover .slot-drag-handle {
+    opacity: 1;
+}
+
+.slot-drag-handle:active {
+    cursor: grabbing;
+}
+
+.slot-drag-handle svg {
+    width: 12px;
+    height: 12px;
+    fill: rgba(255, 255, 255, 0.8);
+}
+
+/* Placeholder slot for better drop visualization */
+.slot-placeholder {
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    width: 120px;
+    height: 120px;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all 0.2s ease;
+    background: rgba(76, 175, 80, 0.1);
+    border: 2px dashed #4CAF50;
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+}
+
+.slot-placeholder.show {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.slot-placeholder::before {
+    content: '';
+    width: 40px;
+    height: 40px;
+    border: 2px dashed #4CAF50;
+    border-radius: 50%;
+    margin-bottom: 8px;
+}
+
+.slot-placeholder::after {
+    content: 'Drop here';
+    font-size: 10px;
+    color: #4CAF50;
+    text-align: center;
+}
+
+/* Remove the old drag indicators since we're using placeholders */
+.slot-item.drag-before::before,
+.slot-item.drag-after::after {
+    display: none;
+}
+
+
+
 .slot-drag-handle {
     position: absolute;
     bottom: 4px;

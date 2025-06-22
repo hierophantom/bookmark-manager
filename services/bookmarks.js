@@ -211,6 +211,110 @@ class BookmarksService {
         }
     }
 
+
+    setupDragPlaceholders() {
+        // Add placeholders between all slots in all containers
+        const containers = document.querySelectorAll('.bookmarks');
+        containers.forEach(container => {
+            const slots = Array.from(container.children).filter(child => 
+                !child.classList.contains('slot-placeholder')
+            );
+            
+            // Add placeholder at the beginning
+            this.insertPlaceholder(container, 0);
+            
+            // Add placeholders between existing slots
+            slots.forEach((slot, index) => {
+                this.insertPlaceholder(container, index + 1);
+            });
+        });
+    }
+
+insertPlaceholder(container, index) {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'slot-placeholder';
+    
+    // Add drop handler to placeholder
+    placeholder.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!this.draggedElement) return;
+        
+        this.showPlaceholder(placeholder);
+        this.dropAction = 'insert';
+        
+        // Remove swap styling from all slots
+        document.querySelectorAll('.drag-swap').forEach(el => 
+            el.classList.remove('drag-swap')
+        );
+    });
+    
+    placeholder.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const bookmarkId = e.dataTransfer.getData('bookmarkId');
+        if (!bookmarkId) return;
+        
+        try {
+            const parentId = container.id.replace('bookmarks-', '');
+            const allElements = Array.from(container.children);
+            const placeholderIndex = allElements.indexOf(placeholder);
+            
+            // Count actual slots before this placeholder
+            const actualSlotsBefore = allElements.slice(0, placeholderIndex)
+                .filter(el => !el.classList.contains('slot-placeholder')).length;
+            
+            await chrome.bookmarks.move(bookmarkId, {
+                parentId: parentId,
+                index: actualSlotsBefore
+            });
+        } catch (error) {
+            console.error('Failed to move bookmark:', error);
+        }
+    });
+    
+    // Insert at the correct position
+    const children = Array.from(container.children);
+    const nonPlaceholders = children.filter(child => 
+        !child.classList.contains('slot-placeholder')
+    );
+    
+    if (index >= nonPlaceholders.length) {
+        container.appendChild(placeholder);
+    } else {
+        container.insertBefore(placeholder, nonPlaceholders[index]);
+    }
+}
+
+showPlaceholderAt(container, index) {
+    this.hideAllPlaceholders();
+    const placeholders = container.querySelectorAll('.slot-placeholder');
+    if (placeholders[index]) {
+        this.showPlaceholder(placeholders[index]);
+    }
+}
+
+showPlaceholder(placeholder) {
+    if (this.currentPlaceholder && this.currentPlaceholder !== placeholder) {
+        this.currentPlaceholder.classList.remove('show');
+    }
+    placeholder.classList.add('show');
+    this.currentPlaceholder = placeholder;
+}
+
+hideAllPlaceholders() {
+    document.querySelectorAll('.slot-placeholder').forEach(placeholder => {
+        placeholder.classList.remove('show');
+    });
+    this.currentPlaceholder = null;
+}
+
+removePlaceholders() {
+    document.querySelectorAll('.slot-placeholder').forEach(placeholder => {
+        placeholder.remove();
+    });
+}
+
     async processFolderHierarchy(folder, parentPath) {
         // Create the current folder
         const currentPath = [...parentPath, folder.title];
@@ -693,85 +797,56 @@ class BookmarksService {
     }
 
     async createBookmarkSlotItem(bookmark) {
-    const slotItem = document.createElement('div');
-    slotItem.className = 'slot-item';
-    slotItem.dataset.bookmarkId = bookmark.id;
-    slotItem.dataset.url = bookmark.url;
-    slotItem.title = bookmark.title || 'Untitled';
-    // Remove this line: slotItem.draggable = true;
-    
-    const faviconUrl = await this.getFaviconUrl(bookmark.url);
-    
-    slotItem.innerHTML = `
-        <img class="slot-icon" src="${faviconUrl}" alt="${bookmark.title}" 
-             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22%23666%22/></svg>'">
-        <div class="slot-name">${bookmark.title || 'Untitled'}</div>
-        <div class="slot-actions">
-            <button class="slot-action edit-btn" title="Edit bookmark">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        const slotItem = document.createElement('div');
+        slotItem.className = 'slot-item';
+        slotItem.dataset.bookmarkId = bookmark.id;
+        slotItem.dataset.url = bookmark.url;
+        slotItem.title = bookmark.title || 'Untitled';
+        // Don't make the whole item draggable
+        
+        const faviconUrl = await this.getFaviconUrl(bookmark.url);
+        
+        slotItem.innerHTML = `
+            <img class="slot-icon" src="${faviconUrl}" alt="${bookmark.title}" 
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22><rect width=%2216%22 height=%2216%22 fill=%22%23666%22/></svg>'">
+            <div class="slot-name">${bookmark.title || 'Untitled'}</div>
+            <div class="slot-actions">
+                <button class="slot-action edit-btn" title="Edit bookmark">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button class="slot-action delete-btn" title="Delete bookmark">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="slot-drag-handle" draggable="true" title="Drag to reorder">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="5" r="1"></circle>
+                    <circle cx="9" cy="12" r="1"></circle>
+                    <circle cx="9" cy="19" r="1"></circle>
+                    <circle cx="15" cy="5" r="1"></circle>
+                    <circle cx="15" cy="12" r="1"></circle>
+                    <circle cx="15" cy="19" r="1"></circle>
                 </svg>
-            </button>
-            <button class="slot-action delete-btn" title="Delete bookmark">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2 2v4a2 2 0 0 1 2 2v2"></path>
-                </svg>
-            </button>
-        </div>
-        <div class="slot-drag-handle" draggable="true" title="Drag to reorder">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="9" cy="5" r="1"></circle>
-                <circle cx="9" cy="12" r="1"></circle>
-                <circle cx="9" cy="19" r="1"></circle>
-                <circle cx="15" cy="5" r="1"></circle>
-                <circle cx="15" cy="12" r="1"></circle>
-                <circle cx="15" cy="19" r="1"></circle>
-            </svg>
-        </div>
-    `;
-    
-    // Get the drag handle element
-    const dragHandle = slotItem.querySelector('.slot-drag-handle');
-    
-    // Add click handler for the main item (unchanged)
-    slotItem.addEventListener('click', (e) => {
-        if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
-            chrome.tabs.create({ url: bookmark.url });
-        }
-    });
-    
-    // Move all drag event listeners to the drag handle instead of slotItem
-    dragHandle.addEventListener('dragstart', (e) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('bookmarkId', bookmark.id);
-    e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
-    
-    // Calculate offset from the click point to the slot-item center
-    const slotRect = slotItem.getBoundingClientRect();
-    const handleRect = dragHandle.getBoundingClientRect();
-    
-    // Offset from handle position to slot-item center
-    const offsetX = (slotRect.width / 2) - (handleRect.left - slotRect.left) - (handleRect.width / 2);
-    const offsetY = (slotRect.height / 2) - (handleRect.top - slotRect.top) - (handleRect.height / 2);
-    
-    e.dataTransfer.setDragImage(slotItem, 60 - offsetX, 60 - offsetY);
-    
-    slotItem.classList.add('dragging');
-    this.draggedElement = slotItem;
-});
-
-    dragHandle.addEventListener('dragend', (e) => {
-        slotItem.classList.remove('dragging');
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        document.querySelectorAll('.drag-before').forEach(el => el.classList.remove('drag-before'));
-        document.querySelectorAll('.drag-after').forEach(el => el.classList.remove('drag-after'));
-        document.querySelectorAll('.drag-swap').forEach(el => el.classList.remove('drag-swap'));
-        this.draggedElement = null;
-    });
-
-        // Add action handlers
+            </div>
+        `;
+        
+        // Get the drag handle
+        const dragHandle = slotItem.querySelector('.slot-drag-handle');
+        
+        // Click handler for main item
+        slotItem.addEventListener('click', (e) => {
+            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
+                chrome.tabs.create({ url: bookmark.url });
+            }
+        });
+        
+        // Action handlers
         const editBtn = slotItem.querySelector('.edit-btn');
         const deleteBtn = slotItem.querySelector('.delete-btn');
         
@@ -785,9 +860,131 @@ class BookmarksService {
             this.deleteBookmark(bookmark.id, slotItem);
         });
         
-        // Add drag and drop handlers
-        // this.addDragHandlers(slotItem, bookmark.id, 'bookmark');
+        // DRAG INITIATION - Only on drag handle
+        dragHandle.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('bookmarkId', bookmark.id);
+            e.dataTransfer.setData('sourceFolderId', slotItem.closest('.bookmarks').id.replace('bookmarks-', ''));
+            
+            // Set whole slot-item as drag image
+            e.dataTransfer.setDragImage(slotItem, 60, 60);
+            
+            slotItem.classList.add('dragging');
+            this.draggedElement = slotItem;
+            
+            // Initialize placeholder management
+            this.currentPlaceholder = null;
+            this.setupDragPlaceholders();
+        });
         
+        dragHandle.addEventListener('dragend', (e) => {
+            slotItem.classList.remove('dragging');
+            this.removePlaceholders();
+            this.draggedElement = null;
+            this.currentPlaceholder = null;
+        });
+        
+        // DROP RECEPTION - Simplified since placeholders handle positioning
+        slotItem.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!this.draggedElement || this.draggedElement === slotItem) return;
+            
+            const rect = slotItem.getBoundingClientRect();
+            const relativeX = (e.clientX - rect.left) / rect.width;
+            
+            // Clear previous styling
+            slotItem.classList.remove('drag-swap');
+            
+            // Only handle swap in the middle area (30-70%)
+            if (relativeX >= 0.3 && relativeX <= 0.7) {
+                slotItem.classList.add('drag-swap');
+                this.dropAction = 'swap';
+                this.hideAllPlaceholders();
+            } else {
+                // Handle before/after with placeholders
+                const container = slotItem.closest('.bookmarks');
+                const allSlots = Array.from(container.children).filter(child => 
+                    !child.classList.contains('slot-placeholder')
+                );
+                const currentIndex = allSlots.indexOf(slotItem);
+                
+                if (relativeX < 0.3) {
+                    this.showPlaceholderAt(container, currentIndex);
+                    this.dropAction = 'before';
+                } else {
+                    this.showPlaceholderAt(container, currentIndex + 1);
+                    this.dropAction = 'after';
+                }
+            }
+        });
+        
+        slotItem.addEventListener('dragleave', (e) => {
+            // Only remove swap styling, keep placeholders for better UX
+            slotItem.classList.remove('drag-swap');
+        });
+        
+        slotItem.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const bookmarkId = e.dataTransfer.getData('bookmarkId');
+            const sourceFolderId = e.dataTransfer.getData('sourceFolderId');
+            
+            if (!bookmarkId || !this.draggedElement) return;
+            
+            try {
+                const parentId = slotItem.closest('.bookmarks').id.replace('bookmarks-', '');
+                
+                if (this.dropAction === 'swap') {
+                    // Swap logic
+                    const targetBookmarkId = slotItem.dataset.bookmarkId;
+                    const [sourceBookmark] = await chrome.bookmarks.get(bookmarkId);
+                    const [targetBookmark] = await chrome.bookmarks.get(targetBookmarkId);
+                    const sourceParent = await chrome.bookmarks.getChildren(sourceBookmark.parentId);
+                    const targetParent = await chrome.bookmarks.getChildren(targetBookmark.parentId);
+                    const sourceIndex = sourceParent.findIndex(b => b.id === bookmarkId);
+                    const targetIndex = targetParent.findIndex(b => b.id === targetBookmarkId);
+                    
+                    if (sourceBookmark.parentId === targetBookmark.parentId) {
+                        await chrome.bookmarks.move(bookmarkId, { index: targetIndex });
+                        await chrome.bookmarks.move(targetBookmarkId, { index: sourceIndex });
+                    } else {
+                        await chrome.bookmarks.move(bookmarkId, { 
+                            parentId: targetBookmark.parentId, 
+                            index: targetIndex 
+                        });
+                        await chrome.bookmarks.move(targetBookmarkId, { 
+                            parentId: sourceBookmark.parentId, 
+                            index: sourceIndex 
+                        });
+                    }
+                } else {
+                    // Insert before/after using placeholder position
+                    const container = slotItem.closest('.bookmarks');
+                    const placeholder = container.querySelector('.slot-placeholder.show');
+                    
+                    if (placeholder) {
+                        const allElements = Array.from(container.children);
+                        const placeholderIndex = allElements.indexOf(placeholder);
+                        
+                        // Count only actual slots before the placeholder
+                        const actualSlotsBefore = allElements.slice(0, placeholderIndex)
+                            .filter(el => !el.classList.contains('slot-placeholder')).length;
+                        
+                        await chrome.bookmarks.move(bookmarkId, {
+                            parentId: parentId,
+                            index: actualSlotsBefore
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to reorder bookmark:', error);
+            }
+            
+            slotItem.classList.remove('drag-swap');
+        });
+        
+        slotItem.style.cursor = 'pointer';
         return slotItem;
     }
 
