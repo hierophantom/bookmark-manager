@@ -466,16 +466,27 @@ class BookmarksService {
 
         return folderSlotItem;
     }
-
+    
     scrollToFolder(folderId) {
         const targetFolder = document.getElementById(`folder-section-${folderId}`);
-        if (targetFolder) {
-            targetFolder.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+        const bookmarksWrapper = document.querySelector('.bookmarks-wrapper');
+        
+        if (targetFolder && bookmarksWrapper) {
+            // Get positions relative to the wrapper
+            const wrapperRect = bookmarksWrapper.getBoundingClientRect();
+            const folderRect = targetFolder.getBoundingClientRect();
+            const scrollTop = bookmarksWrapper.scrollTop;
+            
+            // Calculate new scroll position
+            const newScrollTop = scrollTop + folderRect.top - wrapperRect.top;
+            
+            // Scroll within the wrapper
+            bookmarksWrapper.scrollTo({
+                top: newScrollTop,
+                behavior: 'smooth'
             });
-
-            // Add a brief highlight effect
+            
+            // Add highlight effect
             targetFolder.style.background = 'rgba(76, 175, 80, 0.2)';
             setTimeout(() => {
                 targetFolder.style.background = '';

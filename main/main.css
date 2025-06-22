@@ -102,8 +102,8 @@ table {
 }
 
 :root.dark-theme {
-  --content-bright-100: var(--white-100);
-  --content-bright-80: var(--white-80);
+  --content-bright-100: var(--black-100);
+  --content-bright-80: var(--black-80);
   --content-bright-60: var(--black-60);
   --content-bright-30: var(--black-30);
   --content-dim-30: var(--white-30);
@@ -490,7 +490,7 @@ header {
 [class*="tooltip-"]::after {
   content: attr(data-tooltip);
   position: absolute;
-  background-color: var(--container-bright-100);
+  background-color: var(--container-dim-80);
   color: var(--content-bright-100);
   padding: 6px 8px;
   border-radius: 4px;
