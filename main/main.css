@@ -72,7 +72,8 @@ table {
   --black-100: rgba(0, 0, 0, 1);
 
   --blue-100: rgba(11, 153, 255, 1);
-  --blue-90: rgba(11, 153, 255, 0.8);
+  --blue-90: rgba(11, 153, 255, 0.9);
+  --blue-20: rgba(11, 153, 255, 0.2);
 }
 
 :root {
@@ -86,6 +87,7 @@ table {
   --content-dim-100: var(--black-100);
   --primary-100: var(--blue-100);
   --primary-90: var(--blue-90);
+  --primary-20: var(--blue-20);
 
   --container-bright-100: var(--white-100);
   --container-bright-80: var(--white-80);

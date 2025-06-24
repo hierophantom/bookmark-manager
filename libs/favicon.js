@@ -47,13 +47,13 @@ function createFaviconHtml(url, name = '', options = {}) {
   const { size = 24, fallbackIcon = 'globe-icon' } = options;
   
   if (!url) {
-    return `<svg width="${size}" height="${size}"><use href="#${fallbackIcon}" /></svg>`;
+    return `<svg viewBox="0 0 40 40><use href="#${fallbackIcon}" /></svg>`;
   }
   
   const hostname = extractHostname(url);
   
   let faviconUrl;
-  let fallbackSvg = `<svg width="${size}" height="${size}"><use href="#${fallbackIcon}" /></svg>`;
+  let fallbackSvg = `<svg width="${size}" height="${size}" viewBox="0 0 40 40"><use href="#${fallbackIcon}" /></svg>`;
   
   if (hostname === 'invalid-url') {
     return fallbackSvg;

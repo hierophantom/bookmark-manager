@@ -1,3 +1,9 @@
+1.141
+Lot of changes in slot, separation of functions etc 
+Underling slot system
+Copied DND from shortcuts and widgets but not good enough
+Standing issues: DND is not good enough. Try to match again current example of shortcuts and widgets.
+
 1.14
 Arranged CSS
 

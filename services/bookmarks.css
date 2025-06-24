@@ -1,6 +1,7 @@
 /*
 File name & path: root/services/bookmarks.css
 Role: Bookmarks page styles including folder layouts, bookmark items, drag indicators, and hover controls
+Updated: Empty slots now hidden by default, shown only during drag operations
 */
 
 /* –––––––––––––––––––––––––––
@@ -10,17 +11,19 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 .bookmarks-wrapper {
     width: calc(100% - 48px);
     height: 100vh;
-    overflow: scroll;
+    overflow-y: scroll;
     margin-right: 24px;
     padding-bottom: 126px;
+    overflow-x: hidden;
 }
 
 .bookmarks-container {
     padding: 24px;
     display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 20px;
+    margin: 20px auto;
 }
 
 /* –––––––––––––––––––––––––––
@@ -28,13 +31,20 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 ––––––––––––––––––––––––––– */
 
 .folder-section {
+    flex: 1 1 calc(50% - 10px);
     display: flex;
     flex-direction: column;
+    gap: 15px;
     padding: 20px;
     background-color: var(--container-dim-10);
     border-radius: 16px;
     backdrop-filter: blur(3px);
     position: relative;
+    box-sizing: border-box;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
 }
 
 .folder-section:hover {
@@ -87,11 +97,46 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
     flex-wrap: wrap;
 }
 
+/* –––––––––––––––––––––––––––
+  EMPTY SLOT VISIBILITY
+––––––––––––––––––––––––––– */
+
 .empty-slot {
     cursor: pointer;
-    visibility: hidden;
     width: 120px;
     height: 120px;
+    display: none;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background-color: transparent;
+    box-sizing: border-box;
+    fill: var(--content-bright-60);
+}
+
+.empty-slot.visible {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-slot.visible:hover {
+    border-color: var(--primary-100);
+    fill: var(--primary-100);
+    background-color: var(--primary-20);
+}   
+
+.empty-slot .slot-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+}
+
+.empty-slot.visible:hover .slot-placeholder .slot-icon svg {
+    fill: var(--primary-100);
 }
 
 /* –––––––––––––––––––––––––––
@@ -109,7 +154,7 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
     height: 24px;
     width: 24px;
     justify-content: center;
-  
+    cursor: pointer;
 }
 
 .folder-action-btn:hover svg {
@@ -122,53 +167,7 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 }
 
 /* –––––––––––––––––––––––––––
-  FOLDER ITEMS
-––––––––––––––––––––––––––– */
-
-.bookmarks .folder-slot-item {
-    display: flex;
-    flex-direction: column;
-    border-radius: 6px;
-    width: 120px;
-    height: 120px;
-    gap: 12px;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transition: all 0.3s;
-    background-color: var(--container-bright-80);
-    cursor: pointer;
-}
-
-.bookmarks .folder-slot-item:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: transform 0.1s, background-color 0.1s, box-shadow 0.3s;
-}
-
-.bookmarks .folder-slot-item .slot-icon {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 8px;
-}
-
-.bookmarks .folder-slot-item .slot-icon svg {
-    width: 40px;
-    height: 40px;
-    fill: var(--content-dim-60);
-}
-
-.bookmarks .folder-slot-item .slot-name {
-    font-size: 12px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    text-align: center;
-    max-width: 80%;
-    color: var(--content-dim-30);
-}
-
-/* –––––––––––––––––––––––––––
-  BOOKMARKS SLOTS
+  SLOT ITEMS
 ––––––––––––––––––––––––––– */
 
 .bookmarks .slot-item {
@@ -183,11 +182,11 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
     position: relative;
     transition: all 0.3s;
     background-color: var(--container-bright-80);
+    cursor: pointer;
 }
 
 .bookmarks .slot-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s, background-color 0.1s, box-shadow 0.3s;
+  box-shadow: 0px 7px 12px 2px rgba(0, 0, 0, 0.30);
 }
 
 .bookmarks .slot-name {
@@ -203,15 +202,19 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 .bookmarks .slot-icon {
     width: 40px;
     height: 40px;
-    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .bookmarks .slot-icon svg {
   width: 40px;
   height: 40px;
   fill: var(--content-dim-60);
-  margin-left: 3px;
-  margin-top: 3px;
+}
+
+.bookmarks .folder-item .slot-icon {
+    margin-left: 9px;
 }
 
 /* Empty state */
@@ -262,124 +265,20 @@ Role: Bookmarks page styles including folder layouts, bookmark items, drag indic
 ––––––––––––––––––––––––––– */
 
 .slot-drag-handle {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  cursor: move;
-  opacity: 0;
-  transition: opacity 0.2s;
-  fill: var(--content-dim-30);
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    cursor: move;
+    opacity: 0;
+    transition: opacity 0.2s;
+    fill: var(--content-dim-30);
 }
 
 .slot-drag-handle:hover {
-  opacity: 1;
-}
-
-.slot-item.drag-before,
-.folder-slot-item.drag-before {
-    position: relative;
-}
-
-.slot-item.drag-before::before,
-.folder-slot-item.drag-before::before {
-    content: '';
-    position: absolute;
-    left: -4px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #4CAF50;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.slot-item.drag-after,
-.folder-slot-item.drag-after {
-    position: relative;
-}
-
-.slot-item.drag-after::after,
-.folder-slot-item.drag-after::after {
-    content: '';
-    position: absolute;
-    right: -4px;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #4CAF50;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.slot-item.drag-swap,
-.folder-slot-item.drag-swap {
-    background: rgba(76, 175, 80, 0.2) !important;
-    border-color: #4CAF50 !important;
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-}
-
-/* Visual feedback for drop zones */
-.slot-item,
-.folder-slot-item {
-    position: relative;
-    overflow: visible;
-}
-
-/* Optional: Add visual hints on hover */
-.slot-item:not(.dragging)::before,
-.slot-item:not(.dragging)::after,
-.folder-slot-item:not(.dragging)::before,
-.folder-slot-item:not(.dragging)::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 20%;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-}
-
-.slot-item:not(.dragging)::before,
-.folder-slot-item:not(.dragging)::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
-}
-
-.slot-item:not(.dragging)::after,
-.folder-slot-item:not(.dragging)::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.05), transparent);
-}
-
-/* Show zones when dragging */
-.dragging ~ .slot-item:hover::before,
-.dragging ~ .slot-item:hover::after,
-.dragging ~ .folder-slot-item:hover::before,
-.dragging ~ .folder-slot-item:hover::after {
     opacity: 1;
 }
-
-/* Drag and drop support (future addition) */
-.bookmarks .slot-item.dragging,
-.bookmarks .folder-slot-item.dragging {
-    opacity: 0.5;
-}
-
-.bookmarks .slot-item.drag-over,
-.bookmarks .folder-slot-item.drag-over {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.2);
-}
-.bookmarks .slot-item:hover .slot-actions,
-.bookmarks .folder-slot-item:hover .slot-actions {
-    opacity: 1;
-    visibility: visible;
-}
-
 
 /* –––––––––––––––––––––––––––
   OTHER STYLES

@@ -201,6 +201,7 @@ class SlotManager {
   ITEM POPULATOR
 ––––––––––––––––––––––––––– */
 
+
 class ItemPopulator {
     constructor(bookmarksService) {
         this.bookmarksService = bookmarksService;
@@ -213,7 +214,7 @@ class ItemPopulator {
         slotItem.dataset.url = bookmark.url;
         slotItem.dataset.itemType = 'bookmark';
         slotItem.title = bookmark.title || 'Untitled';
-        slotItem.draggable = true;
+        // Remove draggable attribute - using interact.js instead
         
         const hostname = this.extractHostname(bookmark.url);
         const faviconHtml = this.buildFaviconHtml(hostname, bookmark.title);
@@ -251,11 +252,11 @@ class ItemPopulator {
         folderSlotItem.dataset.parentFolderId = parentFolderId;
         folderSlotItem.dataset.itemType = 'folder';
         folderSlotItem.title = folder.title || 'Untitled Folder';
-        folderSlotItem.draggable = true;
+        // Remove draggable attribute - using interact.js instead
 
         folderSlotItem.innerHTML = `
             <div class="slot-icon">
-                <svg width="24" height="24">
+                <svg viewBox="0 0 40 40" >
                     <use href="#folder-icon" />
                 </svg>
             </div>
@@ -309,7 +310,7 @@ class ItemPopulator {
     setupFolderActions(folderSlotItem, folder) {
         // Main click handler - scroll to folder section
         folderSlotItem.addEventListener('click', (e) => {
-            if (!e.target.closest('.slot-actions')) {
+            if (!e.target.closest('.slot-actions') && !e.target.closest('.slot-drag-handle')) {
                 this.bookmarksService.folderSectionManager.scrollToFolder(folder.id);
             }
         });
@@ -364,15 +365,20 @@ class ItemPopulator {
 class DragDropManager {
     constructor(bookmarksService) {
         this.bookmarksService = bookmarksService;
-        this.draggedElement = null;
+        this.draggedItem = null;
         this.dropAction = null;
     }
 
     initializeSlotItem(slotItem) {
+        // Remove any existing drag handlers first
+        if (slotItem.hasAttribute('draggable')) {
+            slotItem.removeAttribute('draggable');
+        }
+        
         const itemId = slotItem.dataset.bookmarkId || slotItem.dataset.folderId;
         const itemType = slotItem.dataset.itemType || 'bookmark';
         
-        this.addDragHandlers(slotItem, itemId, itemType);
+        this.addInteractDragHandlers(slotItem, itemId, itemType);
     }
 
     initializeSlot(slot) {
@@ -387,112 +393,236 @@ class DragDropManager {
         this.setupContainerDropZone(container, folderId);
     }
 
-    addDragHandlers(element, itemId, itemType) {
-        element.addEventListener('dragstart', (e) => {
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('bookmarkId', itemId);
-            e.dataTransfer.setData('sourceFolderId', element.closest('.bookmarks').id.replace('bookmarks-', ''));
-            e.dataTransfer.setData('itemType', itemType);
+    addInteractDragHandlers(element, itemId, itemType) {
+        // Store reference to this for use in interact callbacks
+        const self = this;
+        
+        // Make sure interact is available
+        if (typeof interact === 'undefined') {
+            console.error('interact.js is not loaded!');
+            return;
+        }
+        
+        // Make items draggable only from the handle
+        interact(element)
+            .draggable({
+                // Only allow dragging from the handle
+                allowFrom: '.slot-drag-handle',
+                
+                // Enable inertial throwing
+                inertia: false,
+                
+                // Keep the element within its parent
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent',
+                        endOnly: true
+                    })
+                ],
+                
+                // Enable autoScroll
+                autoScroll: true,
+                
+                // Call this function on every dragmove event
+                listeners: {
+                    start: function(event) {
+                        const target = event.target;
+                        target.classList.add('dragging');
+                        self.draggedItem = target;
+                        
+                        // Store drag data
+                        target.dataset.dragItemId = itemId;
+                        target.dataset.dragSourceFolderId = target.closest('.bookmarks').id.replace('bookmarks-', '');
+                        target.dataset.dragItemType = itemType;
+                        
+                        // Show all empty slots when dragging starts
+                        self.showEmptySlots();
+                    },
+                    move: dragMoveListener,
+                    end: function(event) {
+                        const target = event.target;
+                        target.classList.remove('dragging');
+                        self.clearAllDropIndicators();
+                        self.draggedItem = null;
+                        
+                        // Clean up drag data
+                        delete target.dataset.dragItemId;
+                        delete target.dataset.dragSourceFolderId;
+                        delete target.dataset.dragItemType;
+                        
+                        // Hide all empty slots when dragging ends
+                        self.hideEmptySlots();
+                    }
+                }
+            });
 
-            element.classList.add('dragging');
-            this.draggedElement = element;
+        function dragMoveListener(event) {
+            const target = event.target;
+            
+            // Get the current position
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            
+            // Translate the element
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            
+            // Update the position attributes
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+        }
+    }
+
+    showEmptySlots() {
+        document.querySelectorAll('.empty-slot').forEach(slot => {
+            slot.classList.add('visible');
         });
+    }
 
-        element.addEventListener('dragend', (e) => {
-            element.classList.remove('dragging');
-            this.clearAllDropIndicators();
-            this.draggedElement = null;
+    hideEmptySlots() {
+        document.querySelectorAll('.empty-slot').forEach(slot => {
+            slot.classList.remove('visible');
         });
     }
 
     setupSlotDropZone(slot, folderId, slotIndex, isEmptySlot) {
-        slot.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            if (!isEmptySlot) {
-                this.updateSlotDropIndicator(slot, e);
-            } else {
-                slot.style.borderColor = '#4CAF50';
-                slot.style.background = 'rgba(76, 175, 80, 0.1)';
-            }
-        });
-
-        slot.addEventListener('dragleave', (e) => {
-            if (!slot.contains(e.relatedTarget)) {
-                this.clearSlotDropIndicator(slot);
-            }
-        });
-
-        slot.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const bookmarkId = e.dataTransfer.getData('bookmarkId');
-            if (bookmarkId) {
-                try {
-                    if (isEmptySlot) {
-                        await this.handleEmptySlotDrop(bookmarkId, folderId);
-                    } else {
-                        await this.handleSlotDrop(bookmarkId, slot, folderId, slotIndex);
+        // Store reference to this for use in interact callbacks
+        const self = this;
+        
+        // Set up dropzones
+        interact(slot)
+            .dropzone({
+                // Only accept elements matching this CSS selector
+                accept: '.slot-item',
+                
+                // Require a 50% element overlap for a drop to be possible
+                overlap: 0.5,
+                
+                // Listen for drop related events
+                listeners: {
+                    activate: function(event) {
+                        event.target.classList.add('drop-active');
+                    },
+                    
+                    dragenter: function(event) {
+                        const dropzone = event.target;
+                        dropzone.classList.add('drop-target');
+                        
+                        if (!isEmptySlot) {
+                            // Check if the slot already has an item
+                            const existingItem = Array.from(dropzone.children).find(
+                                child => child !== event.relatedTarget && child.classList.contains('slot-item')
+                            );
+                            
+                            // If there's an existing item, highlight it for swap
+                            if (existingItem) {
+                                existingItem.classList.add('swap-target');
+                            }
+                        } 
+                    },
+                    
+                    dragleave: function(event) {
+                        const dropzone = event.target;
+                        dropzone.classList.remove('drop-target');
+                        
+                        // Remove swap highlight from any items
+                        dropzone.querySelectorAll('.swap-target').forEach(el => {
+                            el.classList.remove('swap-target');
+                        });
+                        
+                        if (isEmptySlot) {
+                            self.clearSlotDropIndicator(slot);
+                        }
+                    },
+                    
+                    drop: async function(event) {
+                        const dropzone = event.target;
+                        const draggable = event.relatedTarget;
+                        
+                        const bookmarkId = draggable.dataset.dragItemId;
+                        if (bookmarkId) {
+                            try {
+                                if (isEmptySlot) {
+                                    await self.handleEmptySlotDrop(bookmarkId, folderId);
+                                } else {
+                                    // Check if the slot already has an item
+                                    const existingItem = Array.from(dropzone.children).find(
+                                        child => child !== draggable && child.classList.contains('slot-item')
+                                    );
+                                    
+                                    if (existingItem) {
+                                        // Perform a swap
+                                        await self.swapItems(draggable, existingItem, dropzone);
+                                    } else {
+                                        // Move to empty slot
+                                        await self.moveItemToSlot(draggable, dropzone, folderId, slotIndex);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Failed to move item in slot:', error);
+                            }
+                        }
+                        
+                        self.clearSlotDropIndicator(dropzone);
+                    },
+                    
+                    deactivate: function(event) {
+                        const dropzone = event.target;
+                        dropzone.classList.remove('drop-active');
+                        dropzone.classList.remove('drop-target');
+                        
+                        // Remove swap highlight from any items
+                        dropzone.querySelectorAll('.swap-target').forEach(el => {
+                            el.classList.remove('swap-target');
+                        });
+                        
+                        if (isEmptySlot) {
+                            self.clearSlotDropIndicator(dropzone);
+                        }
                     }
-                } catch (error) {
-                    console.error('Failed to move item in slot:', error);
                 }
-            }
-
-            this.clearSlotDropIndicator(slot);
-        });
+            });
     }
 
     setupContainerDropZone(container, folderId) {
-        container.addEventListener('dragover', (e) => {
-            if (e.target === container) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                container.classList.add('drag-over');
-            }
-        });
-
-        container.addEventListener('dragleave', (e) => {
-            if (e.target === container) {
-                container.classList.remove('drag-over');
-            }
-        });
-
-        container.addEventListener('drop', async (e) => {
-            if (e.target === container) {
-                e.preventDefault();
-                container.classList.remove('drag-over');
-
-                const bookmarkId = e.dataTransfer.getData('bookmarkId');
-                if (bookmarkId) {
-                    try {
-                        await this.handleEmptySlotDrop(bookmarkId, folderId);
-                    } catch (error) {
-                        console.error('Failed to move item to container:', error);
+        // Store reference to this for use in interact callbacks
+        const self = this;
+        
+        // Set up container dropzone
+        interact(container)
+            .dropzone({
+                accept: '.slot-item',
+                overlap: 0.1,
+                
+                listeners: {
+                    dragenter: function(event) {
+                        if (event.target === container) {
+                            container.classList.add('drag-over');
+                        }
+                    },
+                    
+                    dragleave: function(event) {
+                        if (event.target === container && !container.contains(event.relatedTarget)) {
+                            container.classList.remove('drag-over');
+                        }
+                    },
+                    
+                    drop: async function(event) {
+                        if (event.target === container) {
+                            container.classList.remove('drag-over');
+                            
+                            const draggable = event.relatedTarget;
+                            const bookmarkId = draggable.dataset.dragItemId;
+                            if (bookmarkId) {
+                                try {
+                                    await self.handleEmptySlotDrop(bookmarkId, folderId);
+                                } catch (error) {
+                                    console.error('Failed to move item to container:', error);
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
-    }
-
-    updateSlotDropIndicator(slot, event) {
-        const rect = slot.getBoundingClientRect();
-        const relativeX = (event.clientX - rect.left) / rect.width;
-
-        slot.classList.remove('drop-before', 'drop-after', 'drop-swap');
-
-        if (relativeX < 0.3) {
-            slot.classList.add('drop-before');
-            slot.dropAction = 'before';
-        } else if (relativeX > 0.7) {
-            slot.classList.add('drop-after');
-            slot.dropAction = 'after';
-        } else {
-            slot.classList.add('drop-swap');
-            slot.dropAction = 'swap';
-        }
+            });
     }
 
     clearSlotDropIndicator(slot) {
@@ -516,41 +646,81 @@ class DragDropManager {
         });
     }
 
-    async handleSlotDrop(draggedItemId, targetSlot, folderId, targetSlotIndex) {
-        const dropAction = targetSlot.dropAction || 'swap';
+    async moveItemToSlot(draggable, dropzone, folderId, targetSlotIndex) {
+        const draggedItemId = draggable.dataset.dragItemId;
         const targetItems = await chrome.bookmarks.getChildren(folderId);
-        const targetItem = targetItems[targetSlotIndex];
         
-        if (!targetItem) return;
-
-        if (dropAction === 'swap') {
-            await this.swapItems(draggedItemId, targetItem.id, folderId);
-        } else {
-            let newIndex = dropAction === 'before' ? targetSlotIndex : targetSlotIndex + 1;
-
-            // Adjust index if moving within same folder
-            const [draggedItem] = await chrome.bookmarks.get(draggedItemId);
-            if (draggedItem.parentId === folderId) {
-                const currentIndex = targetItems.findIndex(item => item.id === draggedItemId);
-                if (currentIndex < targetSlotIndex) {
-                    newIndex--;
-                }
-            }
-
-            await chrome.bookmarks.move(draggedItemId, {
-                parentId: folderId,
-                index: newIndex
-            });
+        // Move the draggable element to the drop target
+        const originalSlot = draggable.parentNode;
+        if (originalSlot) {
+            originalSlot.removeChild(draggable);
         }
+        
+        dropzone.appendChild(draggable);
+        
+        // Reset the transform and position with animation
+        draggable.style.transition = 'transform 0.3s ease';
+        draggable.style.transform = 'translate(0, 0)';
+        draggable.setAttribute('data-x', 0);
+        draggable.setAttribute('data-y', 0);
+        
+        setTimeout(() => {
+            draggable.style.transition = '';
+        }, 300);
+        
+        // Update bookmark position in Chrome bookmarks
+        let newIndex = targetSlotIndex;
+        
+        // Adjust index if moving within same folder
+        const [draggedItem] = await chrome.bookmarks.get(draggedItemId);
+        if (draggedItem.parentId === folderId) {
+            const currentIndex = targetItems.findIndex(item => item.id === draggedItemId);
+            if (currentIndex < targetSlotIndex) {
+                newIndex--;
+            }
+        }
+        
+        await chrome.bookmarks.move(draggedItemId, {
+            parentId: folderId,
+            index: newIndex
+        });
     }
 
-    async swapItems(itemId1, itemId2, parentId) {
+    async swapItems(draggedItem, existingItem, dropzone) {
+        const originalSlot = draggedItem.parentNode;
+        const draggedItemId = draggedItem.dataset.dragItemId || draggedItem.dataset.bookmarkId || draggedItem.dataset.folderId;
+        const existingItemId = existingItem.dataset.bookmarkId || existingItem.dataset.folderId;
+        
+        // Swap the items in DOM
+        originalSlot.appendChild(existingItem);
+        dropzone.appendChild(draggedItem);
+        
+        // Reset positions for both items with animation
+        [draggedItem, existingItem].forEach(item => {
+            item.style.transition = 'transform 0.3s ease';
+            item.style.transform = 'translate(0, 0)';
+            item.setAttribute('data-x', 0);
+            item.setAttribute('data-y', 0);
+            item.classList.remove('swap-target');
+            
+            setTimeout(() => {
+                item.style.transition = '';
+            }, 300);
+        });
+        
+        // Swap items in Chrome bookmarks
+        await this.swapBookmarkItems(draggedItemId, existingItemId);
+    }
+
+    async swapBookmarkItems(itemId1, itemId2) {
         const [item1] = await chrome.bookmarks.get(itemId1);
         const [item2] = await chrome.bookmarks.get(itemId2);
 
-        const parentItems = await chrome.bookmarks.getChildren(parentId);
-        const index1 = parentItems.findIndex(item => item.id === itemId1);
-        const index2 = parentItems.findIndex(item => item.id === itemId2);
+        const parentItems1 = await chrome.bookmarks.getChildren(item1.parentId);
+        const parentItems2 = await chrome.bookmarks.getChildren(item2.parentId);
+        
+        const index1 = parentItems1.findIndex(item => item.id === itemId1);
+        const index2 = parentItems2.findIndex(item => item.id === itemId2);
 
         if (item1.parentId === item2.parentId) {
             // Same folder swap

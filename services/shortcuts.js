@@ -156,13 +156,12 @@ class BaseShortcut {
               fallbackIcon
             }
           </div>
-          <div class="shortcut-info">
             <div class="shortcut-name">${name}</div>
-            <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
-          </div>
         </div>
       `;
     }
+// shortcut name: Removed for now    
+// <div class="shortcut-url">${hostname === 'invalid-url' ? 'Invalid URL' : hostname}</div>
 
     bindEvents() {
       if (this.data && this.data.url) {
