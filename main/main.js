@@ -15,7 +15,7 @@ import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.j
 import { ModalManager } from '../slots-system/modal.js';
 
 /* –––––––––––––––––––––––––––
-  INITIALIZATION
+  INITIALIZATION WITH TAB GROUPS
 ––––––––––––––––––––––––––– */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -133,6 +133,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Initialize tab groups controls
+  const refreshTabGroupsBtn = document.getElementById('refresh-tab-groups-btn');
+
+  if (refreshTabGroupsBtn) {
+    refreshTabGroupsBtn.addEventListener('click', () => {
+      // Refresh tab groups
+      if (window.tabGroupsService) {
+        window.tabGroupsService.refresh();
+      }
+    });
+  }
+
   // Initialize other managers
   const pageManager = new PageManager();
   const drawerManager = new DrawerManager();
@@ -142,6 +154,19 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize main menu
   initializeMainMenu();
+});
+
+// Make services globally available for debugging and cross-component access
+window.addEventListener('load', () => {
+  // Wait a bit for all modules to load
+  setTimeout(() => {
+    if (typeof tabGroupsService !== 'undefined') {
+      window.tabGroupsService = tabGroupsService;
+    }
+    if (typeof bookmarksService !== 'undefined') {
+      window.bookmarksService = bookmarksService;
+    }
+  }, 100);
 });
 
 /* –––––––––––––––––––––––––––
@@ -235,18 +260,50 @@ class ThemeManager {
 /* –––––––––––––––––––––––––––
   PAGE MANAGEMENT
 ––––––––––––––––––––––––––– */
+
 class PageManager {
-  constructor() {
-    this.pages = ['homepage', 'bookmarks'];
-    this.currentPageIndex = 0;
+  constructor(pageConfig = null) {
+    // Default page configuration - uses existing HTML structure
+    this.defaultPages = [
+      { id: 'homepage', label: 'Home' },
+      { id: 'bookmarks', label: 'Bookmarks' },
+      { id: 'journey', label: 'Journey' }
+    ];
+    
+    // Use provided config or default
+    this.pageConfig = pageConfig || this.defaultPages;
+    this.pages = this.pageConfig.map(page => page.id);
+    this.pageLabels = this.pageConfig.map(page => page.label);
+    
+    // Load last visited page from localStorage, default to homepage (index 0)
+    this.currentPageIndex = parseInt(localStorage.getItem('lastVisitedPage')) || 0;
+    
+    // Ensure the loaded page index is valid
+    if (this.currentPageIndex >= this.pages.length) {
+      this.currentPageIndex = 0;
+    }
+
+    // Mouse gesture tracking
+    this.gestureTimeout = null;
+    this.gestureThreshold = 50; // pixels
+    this.gestureCooldown = 500; // milliseconds
 
     // Initialize elements
     this.initializeElements();
 
     // Only proceed if required elements exist
     if (this.pagesContainer) {
+      // Validate that all configured pages exist in HTML
+      this.validatePages();
+      
+      // Create page indicator buttons
+      this.createPageIndicators();
+      
       // Initialize page positions
       this.updatePagePositions();
+      
+      // Update navigation buttons
+      this.updateNavigationButtons();
       
       // Bind event listeners
       this.bindEvents();
@@ -259,6 +316,67 @@ class PageManager {
     this.prevBtn = document.getElementById('prev-page');
     this.nextBtn = document.getElementById('next-page');
     this.pagesContainer = document.querySelector('.pages-container');
+    this.footer = document.querySelector('footer');
+  }
+
+  validatePages() {
+    // Check that all configured pages exist in the HTML
+    const missingPages = [];
+    this.pages.forEach(pageId => {
+      const pageElement = document.getElementById(pageId);
+      if (!pageElement) {
+        missingPages.push(pageId);
+      }
+    });
+    
+    if (missingPages.length > 0) {
+      console.warn('Missing page elements:', missingPages);
+      // Filter out missing pages from configuration
+      this.pageConfig = this.pageConfig.filter(page => !missingPages.includes(page.id));
+      this.pages = this.pageConfig.map(page => page.id);
+      this.pageLabels = this.pageConfig.map(page => page.label);
+      
+      // Adjust current page index if necessary
+      if (this.currentPageIndex >= this.pages.length) {
+        this.currentPageIndex = 0;
+      }
+    }
+  }
+
+  createPageIndicators() {
+    if (!this.footer) return;
+
+    // Remove existing indicators if they exist
+    const existingIndicators = this.footer.querySelector('.page-indicators');
+    if (existingIndicators) {
+      existingIndicators.remove();
+    }
+
+    // Create container for page indicators
+    const indicatorsContainer = document.createElement('div');
+    indicatorsContainer.className = 'page-indicators';
+
+    // Create individual page indicator buttons
+    this.pages.forEach((pageId, index) => {
+      const indicator = document.createElement('button');
+      indicator.className = 'page-indicator';
+      indicator.textContent = (index + 1).toString();
+      indicator.title = this.pageLabels[index];
+      indicator.dataset.pageIndex = index;
+      
+      // Add click handler
+      indicator.addEventListener('click', () => {
+        this.navigateToPage(index);
+      });
+      
+      indicatorsContainer.appendChild(indicator);
+    });
+
+    // Insert before the existing navigation buttons
+    this.footer.insertBefore(indicatorsContainer, this.prevBtn);
+    
+    // Store reference to indicators
+    this.pageIndicators = indicatorsContainer.querySelectorAll('.page-indicator');
   }
 
   bindEvents() {
@@ -270,18 +388,105 @@ class PageManager {
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') this.navigatePage('prev');
-      if (e.key === 'ArrowRight') this.navigatePage('next');
+      // Allow arrow keys for page navigation
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        this.navigatePage('prev');
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        this.navigatePage('next');
+      }
+      
+      // Number keys for direct page navigation
+      const num = parseInt(e.key);
+      if (num >= 1 && num <= this.pages.length) {
+        e.preventDefault();
+        this.navigateToPage(num - 1);
+      }
     });
 
-    // Mouse gesture navigation (Magic Mouse)
+    // Enhanced mouse gesture navigation
+    this.bindMouseGestures();
+  }
+
+  bindMouseGestures() {
+    let isGestureActive = false;
+    
     document.addEventListener('wheel', (e) => {
-      // Check if it's a horizontal scroll (Magic Mouse gesture)
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        if (e.deltaX > 50) this.navigatePage('next');
-        if (e.deltaX < -50) this.navigatePage('prev');
+      // Prevent gesture handling if we're in cooldown
+      if (isGestureActive) return;
+      
+      // Check if it's a horizontal scroll (Magic Mouse gesture or trackpad)
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > this.gestureThreshold) {
+        // Prevent default scrolling
+        e.preventDefault();
+        
+        // Set gesture active flag
+        isGestureActive = true;
+        
+        // Clear any existing timeout
+        if (this.gestureTimeout) {
+          clearTimeout(this.gestureTimeout);
+        }
+        
+        // Simple next/previous navigation - same as arrow keys and buttons
+        if (e.deltaX > this.gestureThreshold) {
+          // Swipe left on Magic Mouse - go to previous page
+          this.navigatePage('next');
+        } else if (e.deltaX < -this.gestureThreshold) {
+          // Swipe right on Magic Mouse - go to next page
+          this.navigatePage('prev');
+        }
+        
+        // Reset gesture flag after cooldown
+        this.gestureTimeout = setTimeout(() => {
+          isGestureActive = false;
+        }, this.gestureCooldown);
       }
-    }, { passive: true });
+    }, { passive: false });
+  }
+
+  handleGestureNavigation(direction) {
+    const totalPages = this.pages.length;
+    
+    console.log(`Gesture: ${direction}, Current page: ${this.currentPageIndex}, Total pages: ${totalPages}`);
+    
+    // For 3 pages: implement skipping behavior ONLY when on first/last pages
+    if (totalPages === 3) {
+      if (direction === 'next') {
+        if (this.currentPageIndex === 0) {
+          // From first page: jump to last page (skip middle)
+          console.log('From page 0 -> jumping to page 2 (skip middle)');
+          this.navigateToPage(2);
+        } else if (this.currentPageIndex === 1) {
+          // From middle page: normal navigation to next
+          console.log('From page 1 -> going to page 2 (normal)');
+          this.navigateToPage(2);
+        } else {
+          // From last page: wrap to first
+          console.log('From page 2 -> wrapping to page 0');
+          this.navigateToPage(0);
+        }
+      } else { // direction === 'prev'
+        if (this.currentPageIndex === 0) {
+          // From first page: wrap to last
+          console.log('From page 0 -> wrapping to page 2');
+          this.navigateToPage(2);
+        } else if (this.currentPageIndex === 1) {
+          // From middle page: normal navigation to previous
+          console.log('From page 1 -> going to page 0 (normal)');
+          this.navigateToPage(0);
+        } else {
+          // From last page: jump to first page (skip middle)
+          console.log('From page 2 -> jumping to page 0 (skip middle)');
+          this.navigateToPage(0);
+        }
+      }
+    } else {
+      // For other numbers of pages, use normal navigation
+      this.navigatePage(direction);
+    }
   }
 
   navigatePage(direction) {
@@ -297,6 +502,16 @@ class PageManager {
     if (prevIndex !== this.currentPageIndex) {
       this.updatePagePositions();
       this.updateNavigationButtons();
+      this.saveCurrentPage();
+    }
+  }
+
+  navigateToPage(pageIndex) {
+    if (pageIndex >= 0 && pageIndex < this.pages.length && pageIndex !== this.currentPageIndex) {
+      this.currentPageIndex = pageIndex;
+      this.updatePagePositions();
+      this.updateNavigationButtons();
+      this.saveCurrentPage();
     }
   }
 
@@ -315,6 +530,13 @@ class PageManager {
         }
       }
     });
+
+    // Update page indicators
+    if (this.pageIndicators) {
+      this.pageIndicators.forEach((indicator, index) => {
+        indicator.classList.toggle('active', index === this.currentPageIndex);
+      });
+    }
   }
 
   updateNavigationButtons() {
@@ -322,6 +544,76 @@ class PageManager {
       this.prevBtn.disabled = this.currentPageIndex === 0;
       this.nextBtn.disabled = this.currentPageIndex === this.pages.length - 1;
     }
+  }
+
+  saveCurrentPage() {
+    localStorage.setItem('lastVisitedPage', this.currentPageIndex.toString());
+  }
+
+  // Public API for adding custom pages (creates HTML element)
+  addPage(pageConfig) {
+    // Create the page element
+    const pageElement = document.createElement('div');
+    pageElement.id = pageConfig.id;
+    pageElement.className = 'page';
+    
+    // Add content if provided
+    if (pageConfig.content) {
+      pageElement.innerHTML = pageConfig.content;
+    }
+    
+    // Append to pages container
+    this.pagesContainer.appendChild(pageElement);
+    
+    // Update configuration
+    this.pageConfig.push(pageConfig);
+    this.pages.push(pageConfig.id);
+    this.pageLabels.push(pageConfig.label);
+    
+    // Recreate indicators and update positions
+    this.createPageIndicators();
+    this.updatePagePositions();
+    this.updateNavigationButtons();
+  }
+
+  // Public API for removing pages (removes HTML element)
+  removePage(pageId) {
+    const index = this.pages.indexOf(pageId);
+    if (index === -1) return false;
+    
+    // Remove the HTML element
+    const pageElement = document.getElementById(pageId);
+    if (pageElement) {
+      pageElement.remove();
+    }
+    
+    // Remove from arrays
+    this.pageConfig.splice(index, 1);
+    this.pages.splice(index, 1);
+    this.pageLabels.splice(index, 1);
+    
+    // Adjust current page index if necessary
+    if (this.currentPageIndex >= index && this.currentPageIndex > 0) {
+      this.currentPageIndex--;
+    }
+    
+    // Recreate indicators and update positions
+    this.createPageIndicators();
+    this.updatePagePositions();
+    this.updateNavigationButtons();
+    this.saveCurrentPage();
+    
+    return true;
+  }
+
+  // Public API for getting current page info
+  getCurrentPage() {
+    return {
+      index: this.currentPageIndex,
+      id: this.pages[this.currentPageIndex],
+      label: this.pageLabels[this.currentPageIndex],
+      config: this.pageConfig[this.currentPageIndex]
+    };
   }
 }
 

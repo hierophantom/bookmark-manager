@@ -218,6 +218,15 @@ header {
   justify-content: flex-start;
 }
 
+#journey {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
 footer {
   position: fixed;
   bottom: 0px;
@@ -229,7 +238,7 @@ footer {
   flex-shrink: 0; 
   flex-wrap: nowrap;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
   align-content: normal;
   background-color: var(--container-bright-10);
   border-top: 1px solid var(--container-bright-20);
@@ -238,8 +247,7 @@ footer {
   color: var(--content-bright-100);
   backdrop-filter: blur(7px);
   border-radius: 12px 12px 0px 0px;
-  justify-content: center;
-  align-items: center;
+  gap: 16px; /* Added gap for better spacing between elements */
 }
 
 /* –––––––––––––––––––––––––––
@@ -464,7 +472,7 @@ header {
 }
 
 /* –––––––––––––––––––––––––––
-  NAVIGATION BUTTONS
+  NAVIGATION BUTTONS & PAGE INDICATORS
 ––––––––––––––––––––––––––– */
 .page-nav-btn {
   padding: 8px 16px;
@@ -479,6 +487,63 @@ header {
 
 .page-nav-btn:disabled {
   opacity: 0.5;
+}
+
+/* Page Indicators */
+.page-indicators {
+  display: flex;
+  gap: 8px;
+  margin: 0 16px;
+  align-items: center;
+}
+
+.page-indicator {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--container-bright-30);
+  color: var(--content-bright-100);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.page-indicator:hover {
+  background-color: var(--container-bright-80);
+  transform: translateY(-1px);
+}
+
+.page-indicator.active {
+  background-color: var(--primary-100);
+  color: var(--white-100);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(11, 153, 255, 0.3);
+}
+
+.page-indicator.active:hover {
+  background-color: var(--primary-90);
+  transform: scale(1.1) translateY(-1px);
+}
+
+/* Focus styles for accessibility */
+.page-indicator:focus {
+  outline: 2px solid var(--primary-100);
+  outline-offset: 2px;
+}
+
+.page-indicator:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Dark theme adjustments for page indicators */
+:root.dark-theme .page-indicator.active {
+  box-shadow: 0 2px 8px rgba(11, 153, 255, 0.4);
 }
 
 /* –––––––––––––––––––––––––––
@@ -558,6 +623,57 @@ header {
   cursor: pointer;
 }
 
+/* –––––––––––––––––––––––––––
+  RESPONSIVE DESIGN
+––––––––––––––––––––––––––– */
+
+/* Tablet and smaller screens */
+@media (max-width: 768px) {
+  .page-indicators {
+    gap: 4px;
+    margin: 0 8px;
+  }
+  
+  .page-indicator {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+  
+  footer {
+    padding: 0px 16px;
+    gap: 12px;
+  }
+}
+
+/* Mobile screens */
+@media (max-width: 480px) {
+  .page-indicators {
+    gap: 2px;
+    margin: 0 4px;
+  }
+  
+  .page-indicator {
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+  }
+  
+  footer {
+    padding: 0px 12px;
+    gap: 8px;
+  }
+  
+  .page-nav-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+
+/* –––––––––––––––––––––––––––
+  TRANSITIONS
+––––––––––––––––––––––––––– */
+
 nav a,
 .main-menu,
 .menu-drop-down,
@@ -567,6 +683,7 @@ nav a,
 header,
 footer,
 .page-nav-btn,
+.page-indicator,
 .theme-selector {
   transition: 
     color 0.3s ease,
@@ -594,6 +711,15 @@ footer,
     transform 0.2s ease,
     fill 0.3s ease,
     stroke 0.3s ease;
+}
+
+/* Page indicator specific transitions */
+.page-indicator {
+  transition: 
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Optional: Add transition for text shadow if used */

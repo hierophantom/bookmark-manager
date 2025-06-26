@@ -1,0 +1,336 @@
+/*
+File name & path: root/services/tab-groups.css
+Role: Tab groups styles for active groups only
+*/
+
+/* –––––––––––––––––––––––––––
+  CONTAINER
+––––––––––––––––––––––––––– */
+
+.tab-groups-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 20px auto;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP SECTION
+––––––––––––––––––––––––––– */
+
+.tab-group-section {
+    flex: 1 1 calc(50% - 10px);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    background-color: var(--container-dim-10);
+    border-radius: 16px;
+    backdrop-filter: blur(3px);
+    position: relative;
+    box-sizing: border-box;
+    border: 3px solid var(--content-bright-30);
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.3);
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.tab-group-section:hover {
+    background-color: var(--container-dim-20);
+    backdrop-filter: blur(7px);
+    transition: background-color 0.3s, backdrop-filter 0.3s;
+}
+
+.tab-group-header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    align-content: normal;
+    gap: 8px;
+    padding-bottom: 16px;
+}
+
+.tab-group-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tab-group-badge {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* Chrome tab group badge colors */
+.tab-group-badge.grey { background-color: #5f6368; }
+.tab-group-badge.blue { background-color: #1a73e8; }
+.tab-group-badge.red { background-color: #d93025; }
+.tab-group-badge.yellow { background-color: #fbbc04; }
+.tab-group-badge.green { background-color: #34a853; }
+.tab-group-badge.pink { background-color: #ff69b4; }
+.tab-group-badge.purple { background-color: #9c27b0; }
+.tab-group-badge.cyan { background-color: #00bcd4; }
+.tab-group-badge.orange { background-color: #ff9800; }
+
+.tab-group-title {
+    font-size: 16px;
+    color: var(--content-bright-100);
+    font-weight: 600;
+}
+
+.tab-group-actions {
+    visibility: hidden;
+    position: absolute;
+    top: 7px;
+    right: 6px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+.tab-group-section:hover .tab-group-actions {
+    visibility: visible;
+}
+
+.tab-group-action-btn {
+    display: flex;
+    flex-direction: row;
+    padding: 4px;
+    background: none;
+    border: none;
+    fill: var(--content-bright-60);
+    align-items: center;
+    height: 24px;
+    width: 24px;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.tab-group-action-btn:hover svg {
+    fill: var(--content-bright-100);
+    transition: fill 0.3s;
+}
+
+/* –––––––––––––––––––––––––––
+  TABS CONTAINER
+––––––––––––––––––––––––––– */
+
+.tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    min-height: 120px;
+    flex-wrap: wrap;
+}
+
+.tabs-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    min-height: 120px;
+    flex-wrap: wrap;
+}
+
+.empty-group-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    font-style: italic;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB ITEMS
+––––––––––––––––––––––––––– */
+
+.tabs .slot-item,
+.tabs-grid .slot-item {
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    width: 120px;
+    height: 120px;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: all 0.3s;
+    background-color: var(--container-bright-80);
+    cursor: pointer;
+}
+
+.tabs .slot-item:hover,
+.tabs-grid .slot-item:hover {
+    box-shadow: 0px 7px 12px 2px rgba(0, 0, 0, 0.30);
+}
+
+.tabs-grid .slot-item:hover .slot-actions {
+    visibility: visible;
+}
+
+.tabs .slot-name,
+.tabs-grid .slot-name {
+    font-size: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    max-width: 80%;
+    color: var(--content-dim-30);
+}
+
+.tabs .slot-icon,
+.tabs-grid .slot-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tabs .slot-icon svg,
+.tabs-grid .slot-icon svg {
+    width: 40px;
+    height: 40px;
+    fill: var(--content-dim-60);
+}
+
+.tabs .slot-icon img,
+.tabs-grid .slot-icon img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+/* –––––––––––––––––––––––––––
+  SLOT ACTIONS
+––––––––––––––––––––––––––– */
+
+.slot-actions {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 4px;
+    visibility: hidden;
+}
+
+.slot-action {
+    width: 18px;
+    height: 18px;
+    background-color: var(--white-100);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    fill: var(--black-100);
+}
+
+.slot-actions .delete-btn svg {
+    padding-left: 1.2px;
+}
+
+/* –––––––––––––––––––––––––––
+  TAB GROUP DIALOG STYLES
+––––––––––––––––––––––––––– */
+
+.tab-group-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.tab-group-dialog-content {
+    background: var(--container-bright-80);
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+}
+
+.tab-group-dialog h3 {
+    margin: 0 0 16px 0;
+    color: var(--content-bright-100);
+}
+
+.tab-group-dialog-field {
+    margin-bottom: 16px;
+}
+
+.tab-group-dialog label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--content-bright-100);
+    font-size: 14px;
+}
+
+.tab-group-dialog input,
+.tab-group-dialog select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--container-dim-20);
+    border-radius: 6px;
+    background: var(--container-dim-10);
+    color: var(--content-bright-100);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.tab-group-dialog input:focus,
+.tab-group-dialog select:focus {
+    outline: none;
+    border-color: var(--content-bright-30);
+}
+
+.tab-group-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.tab-group-dialog-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.tab-group-dialog-btn.primary {
+    background: var(--content-bright-30);
+    color: var(--container-bright-80);
+}
+
+.tab-group-dialog-btn.primary:hover {
+    background: var(--content-bright-50);
+}
+
+.tab-group-dialog-btn.secondary {
+    background: var(--container-dim-20);
+    color: var(--content-bright-100);
+}
+
+.tab-group-dialog-btn.secondary:hover {
+    background: var(--container-dim-30);
+}

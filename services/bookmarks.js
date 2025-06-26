@@ -10,6 +10,12 @@ Architecture:
 */
 
 /* –––––––––––––––––––––––––––
+  IMPORTS
+––––––––––––––––––––––––––– */
+
+import { tabGroupsService } from './tab-groups.js';
+
+/* –––––––––––––––––––––––––––
   FOLDER SECTION MANAGER
 ––––––––––––––––––––––––––– */
 
@@ -216,8 +222,8 @@ class ItemPopulator {
         slotItem.title = bookmark.title || 'Untitled';
         // Remove draggable attribute - using interact.js instead
         
-        const hostname = this.extractHostname(bookmark.url);
-        const faviconHtml = this.buildFaviconHtml(hostname, bookmark.title);
+    const faviconHtml = window.FaviconUtils.createFaviconHtml(bookmark.url, bookmark.title);
+
         
         slotItem.innerHTML = `
             <div class="slot-icon">${faviconHtml}</div>
@@ -328,33 +334,6 @@ class ItemPopulator {
             e.stopPropagation();
             this.bookmarksService.deleteFolder(folder.id, folderSlotItem);
         });
-    }
-
-    buildFaviconHtml(hostname, title) {
-        if (hostname === 'invalid-url') {
-            return `<svg width="40" height="40"><use href="#globe-icon" /></svg>`;
-        }
-        
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
-        const fallbackIcon = `<svg width="40" height="40"><use href="#globe-icon" /></svg>`;
-        
-        return `<img src="${faviconUrl}" alt="${title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                <span style="display:none;">${fallbackIcon}</span>`;
-    }
-
-    extractHostname(url) {
-        try {
-            let testUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-            const urlObj = new URL(testUrl);
-            const hostname = urlObj.hostname.replace('www.', '');
-            
-            if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
-                return hostname;
-            }
-            return 'invalid-url';
-        } catch (e) {
-            return 'invalid-url';
-        }
     }
 }
 
@@ -770,6 +749,28 @@ class BookmarksService {
         this.setupListeners();
     }
 
+    async renderTabGroups() {
+        try {
+            if (tabGroupsService && typeof tabGroupsService.renderTabGroups === 'function') {
+                const tabGroupsContainer = document.createElement('div');
+                tabGroupsContainer.className = 'tab-groups-section';
+                tabGroupsContainer.innerHTML = '<div id="tab-groups-container-bookmarks" class="tab-groups-container"></div>';
+                
+                this.bookmarksContainer.appendChild(tabGroupsContainer);
+                
+                const originalContainer = tabGroupsService.tabGroupsContainer;
+                tabGroupsService.tabGroupsContainer = document.getElementById('tab-groups-container-bookmarks');
+                
+                await tabGroupsService.loadTabGroups();
+                
+                tabGroupsService.tabGroupsContainer = originalContainer;
+            }
+        } catch (error) {
+            console.error('Failed to render tab groups in bookmarks:', error);
+        }
+    }
+
+
     async waitForDOM() {
         if (document.readyState === 'loading') {
             await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
@@ -777,17 +778,26 @@ class BookmarksService {
     }
 
     async loadBookmarks() {
-        try {
-            const bookmarksTree = await chrome.bookmarks.getTree();
-            const bookmarkBar = bookmarksTree[0].children.find(child => child.title === 'Bookmarks Bar');
+    try {
+        // Clear existing content
+        this.bookmarksContainer.innerHTML = '';
+        this.folderSectionManager.clearAllSections();
+        this.slotManager.clearAllSlots();
 
-            if (bookmarkBar) {
-                await this.renderBookmarks(bookmarkBar);
-            }
-        } catch (error) {
-            console.error('Failed to load bookmarks:', error);
+        // First, render tab groups sections
+        await this.renderTabGroups();
+
+        // Then, render bookmark folders
+        const bookmarksTree = await chrome.bookmarks.getTree();
+        const bookmarkBar = bookmarksTree[0].children.find(child => child.title === 'Bookmarks Bar');
+
+        if (bookmarkBar) {
+            await this.renderBookmarks(bookmarkBar);
         }
+    } catch (error) {
+        console.error('Failed to load bookmarks:', error);
     }
+}
 
     async renderBookmarks(bookmarkNode) {
         // Clear existing content
@@ -887,7 +897,7 @@ class BookmarksService {
                     <input type="text" id="bookmark-name" placeholder="Bookmark name (optional)">
                 </div>
                 <div class="bookmark-dialog-actions">
-                    <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                    <button class="bookmark-dialog-btn secondary" id="cancel-bookmark">Cancel</button>
                     <button class="bookmark-dialog-btn primary" id="add-bookmark-confirm">Add</button>
                 </div>
             </div>
@@ -898,8 +908,14 @@ class BookmarksService {
         const urlInput = dialog.querySelector('#bookmark-url');
         const nameInput = dialog.querySelector('#bookmark-name');
         const confirmBtn = dialog.querySelector('#add-bookmark-confirm');
+        const cancelBtn = dialog.querySelector('#cancel-bookmark');
 
         urlInput.focus();
+
+        // FIXED: Replace onclick with addEventListener
+        cancelBtn.addEventListener('click', () => {
+            dialog.remove();
+        });
 
         confirmBtn.addEventListener('click', async () => {
             const url = urlInput.value.trim();
@@ -941,6 +957,7 @@ class BookmarksService {
         });
     }
 
+
     showAddFolderDialog(parentFolderId) {
         const dialog = document.createElement('div');
         dialog.className = 'bookmark-dialog';
@@ -952,7 +969,7 @@ class BookmarksService {
                     <input type="text" id="folder-name" placeholder="Folder name (optional)">
                 </div>
                 <div class="bookmark-dialog-actions">
-                    <button class="bookmark-dialog-btn secondary" onclick="this.closest('.bookmark-dialog').remove()">Cancel</button>
+                    <button class="bookmark-dialog-btn secondary" id="cancel-folder">Cancel</button>
                     <button class="bookmark-dialog-btn primary" id="add-folder-confirm">Add</button>
                 </div>
             </div>
@@ -962,8 +979,14 @@ class BookmarksService {
 
         const nameInput = dialog.querySelector('#folder-name');
         const confirmBtn = dialog.querySelector('#add-folder-confirm');
+        const cancelBtn = dialog.querySelector('#cancel-folder');
 
         nameInput.focus();
+
+        // FIXED: Replace onclick with addEventListener
+        cancelBtn.addEventListener('click', () => {
+            dialog.remove();
+        });
 
         confirmBtn.addEventListener('click', async () => {
             const name = nameInput.value.trim();
@@ -1104,6 +1127,10 @@ class BookmarksService {
 
 // Initialize and export
 const bookmarksService = new BookmarksService();
+
+/* –––––––––––––––––––––––––––
+  EXPORTS
+––––––––––––––––––––––––––– */
 
 export {
     bookmarksService,

@@ -1,6 +1,6 @@
 <!--
 File name & path: root/main/main.html
-Role: Main extension UI with header, content areas, slots for widgets/shortcuts, and modal structures
+Role: Main extension UI with header, content areas, slots for widgets/shortcuts, tab groups, and modal structures
 -->
 
 <!DOCTYPE html>
@@ -12,6 +12,7 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
     <link rel="stylesheet" href="../slots-system/modal.css">
     <link rel="stylesheet" href="../services/widgets.css">
     <link rel="stylesheet" href="../services/shortcuts.css">
+    <link rel="stylesheet" href="../services/tab-groups.css">
     <link rel="stylesheet" href="../services/bookmarks.css">
     
     <script src="../libs/interact.min.js"></script>
@@ -19,6 +20,7 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
     <script type="module" src="../slots-system/slots.js"></script>
     <script type="module" src="../services/widgets.js"></script>
     <script type="module" src="../services/shortcuts.js"></script>
+    <script type="module" src="../services/tab-groups.js"></script>
     <script type="module" src="../services/bookmarks.js"></script>
     <script type="module" src="../libs/favicon.js"></script>
     <script type="module" src="main.js"></script>
@@ -63,6 +65,7 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
 
             <div class="pages-container">
 
+                <!-- Homepage -->
                 <div id="homepage" class="page">
 
                     <!-- Pinned URLs Section -->
@@ -93,9 +96,9 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
                         </div>
                     </div>
 
-
                 </div>
 
+                <!-- Bookmarks Page -->
                 <div class="page" id="bookmarks">
                     <h2>BOOKMARKS</h2>
                     <div class="drawer-controls">
@@ -108,6 +111,20 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
                         </div>
                     </div>
                 </div>
+
+                <!-- Journey Page -->
+                <div class="page" id="journey">
+                    <h2>JOURNEY</h2>
+                    <div class="drawer-controls">
+                        <button data-action="refresh-tab-groups" id="refresh-tab-groups-btn">Refresh</button>
+                    </div>
+                    <div class="tab-groups-wrapper">
+                        <div id="tab-groups-container" class="tab-groups-container">
+                            <!-- Tab groups will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div id="right-drawer" class="drawer drawer-right">
                 <button class="pin-button" data-drawer="left">📌</button>
