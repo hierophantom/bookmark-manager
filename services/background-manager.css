@@ -1,287 +1,878 @@
-/*
-File name & path: root/services/background-manager.css
-Role: Background modal and selection styles
-*/
+/*------
+Base Styles
+------*/
 
-/* Background Modal Specific Styles */
-.background-modal .modal-content {
-    width: 600px;
-    max-width: 90vw;
-    max-height: 80vh;
-    overflow-y: auto;
+/* General page styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
 }
 
-.background-modal-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* Main content area styling */
+main {
+  position: relative;
+  padding: 20px;
+  border-radius: 5px;
+  margin-top: 20px;
+  min-height: 300px;
+  background-color: red; /* Default color */
+  background-size: cover;
+  background-position: center;
+  color: white; /* For better text visibility on various backgrounds */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* For better text visibility */
+  overflow: hidden;
 }
 
-/* Background Tabs */
-.background-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--container-dim-20);
-    margin-bottom: 20px;
+/* Z-index handling for content above overlay */
+main > * {
+  position: relative;
+  z-index: 2; /* Higher than the overlay */
 }
 
-.bg-tab {
-    flex: 1;
-    padding: 12px 16px;
-    border: none;
-    background: transparent;
-    color: var(--content-bright-60);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    font-weight: 500;
+/*------
+Modal Button
+------*/
+
+/* Open modal button styling */
+#openModalBtn {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-.bg-tab:hover {
-    color: var(--content-bright-100);
-    background: var(--container-dim-10);
+#openModalBtn:hover {
+  background-color: #45a049;
 }
 
-.bg-tab.active {
-    color: var(--primary-100);
-    border-bottom-color: var(--primary-100);
+/*------
+Modal structure
+------*/
+
+/* Modal container */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* Tab Content */
-.bg-tab-content {
-    display: none;
+/* Modal content box */
+.modal-content {
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 5px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.bg-tab-content.active {
-    display: block;
+/* Option containers */
+.background-options {
+  margin: 20px 0;
 }
 
-/* Color Grid */
-.color-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+.option {
+  margin-bottom: 15px;
 }
 
-.color-option {
-    position: relative;
-    height: 80px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: end;
-    padding: 12px;
-    overflow: hidden;
+.option label {
+  font-weight: bold;
+  margin-left: 5px;
 }
 
-.color-option:hover {
-    border-color: var(--content-bright-30);
-    transform: scale(1.02);
+.option-content {
+  margin: 10px 0 10px 25px;
 }
 
-.color-option.selected {
-    border-color: var(--primary-100);
-    box-shadow: 0 0 12px rgba(11, 153, 255, 0.4);
+/*------
+Form elements
+------*/
+
+/* Input fields */
+#colorSelect,
+#imageUrlInput {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
 }
 
-.color-option.selected::after {
-    content: '✓';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    background: var(--primary-100);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-shadow: none;
+/* Custom color picker styling */
+#customColorPicker {
+  height: 30px;
+  width: 100%;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.color-name {
-    color: white;
-    font-size: 12px;
-    font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-    background: rgba(0, 0, 0, 0.3);
-    padding: 4px 8px;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
+#customColorPicker::-webkit-color-swatch-wrapper {
+  padding: 0;
 }
 
-/* Unsplash Controls */
+#customColorPicker::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+/* Button styling */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#cancelBtn {
+  background-color: #f1f1f1;
+}
+
+#applyBtn {
+  background-color: #4caf50;
+  color: white;
+}
+
+#cancelBtn:hover {
+  background-color: #ddd;
+}
+
+#applyBtn:hover {
+  background-color: #45a049;
+}
+
+/*------
+Image Upload Section
+------*/
+
+/* Upload input styling */
+#imageUpload {
+  width: 100%;
+  margin: 5px 0;
+}
+
+.upload-requirements {
+  font-size: 12px;
+  color: #666;
+  margin: 5px 0;
+}
+
+/* Status messages */
+#uploadStatus,
+#unsplashStatus {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.error {
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 12px;
+  margin: 5px 0 0;
+  display: none;
+}
+
+.success {
+  color: #388e3c;
+}
+
+.success strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.loading {
+  color: #666;
+  font-style: italic;
+}
+
+/*------
+Unsplash controls
+------*/
+/* Control groups */
+.control-group {
+  margin-bottom: 10px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #666;
+  margin: 5px 0 0;
+  font-style: italic;
+}
+
+/* Categories selector */
+#unsplashCategories {
+  width: 100%;
+  height: auto;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+}
+
 .unsplash-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* Auto-refresh section */
+.auto-refresh {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 3px solid #4caf50;
 }
 
-.form-group label {
-    font-weight: 600;
-    color: var(--content-bright-100);
-    font-size: 14px;
+#autoRefreshInterval {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
-.category-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+/* Unsplash preview image */
+#unsplashPreviewImage {
+  max-width: 100%;
+  max-height: 150px;
+  display: none;
+  margin: 0 auto 10px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.category-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--container-dim-10);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    font-size: 13px;
+/* Credit text */
+.unsplash-credit {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 5px;
 }
 
-.category-option:hover {
-    background: var(--container-dim-20);
+.unsplash-credit a {
+  color: #0066cc;
+  text-decoration: none;
 }
 
-.category-option input[type="checkbox"] {
-    accent-color: var(--primary-100);
+.unsplash-credit a:hover {
+  text-decoration: underline;
 }
 
-.category-option input[type="checkbox"]:checked + span {
-    color: var(--primary-100);
-    font-weight: 600;
+/*------
+Attribution footer
+------*/
+/* Footer container */
+.attribution-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 100;
+  display: none; /* Hidden by default */
+  backdrop-filter: blur(5px); /* Modern browsers will have a nice blur effect */
+  -webkit-backdrop-filter: blur(5px);
 }
 
-#refresh-interval {
-    padding: 8px 12px;
-    border: 1px solid var(--container-dim-20);
-    border-radius: 6px;
-    background: var(--container-dim-10);
-    color: var(--content-bright-100);
-    font-size: 14px;
+.attribution-content {
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.4;
 }
 
-#refresh-interval:focus {
-    outline: none;
-    border-color: var(--primary-100);
+.attribution-footer a {
+  color: #4caf50;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.2s ease;
 }
 
-.btn-secondary {
-    padding: 10px 16px;
-    border: 1px solid var(--container-dim-30);
-    border-radius: 6px;
-    background: var(--container-dim-20);
-    color: var(--content-bright-100);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    align-self: flex-start;
+.attribution-footer a:hover {
+  color: #81c784;
+  text-decoration: underline;
 }
 
-.btn-secondary:hover {
-    background: var(--container-dim-30);
-    border-color: var(--content-bright-30);
+#photoTitle {
+  font-style: italic;
 }
 
-#unsplash-preview {
-    text-align: center;
+/*------
+Brightness control
+------*/
+
+/* Brightness control container */
+.brightness-control {
+  margin: 25px 0;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  border-left: 3px solid #2196f3;
 }
 
-/* Upload Area */
-.upload-area {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.brightness-control label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 
-.upload-zone {
-    border: 2px dashed var(--container-dim-30);
-    border-radius: 8px;
-    padding: 40px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--container-dim-10);
+/* Slider container */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
 }
 
-.upload-zone:hover {
-    border-color: var(--primary-100);
-    background: var(--container-dim-20);
+.slider-label {
+  font-size: 12px;
+  color: #666;
+  width: 50px;
 }
 
-.upload-zone.dragover {
-    border-color: var(--primary-100);
-    background: var(--primary-20);
+/* Slider styling */
+#brightnessSlider {
+  flex-grow: 1;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #000000, #666666, #cccccc, #ffffff);
+  outline: none;
+  border-radius: 5px;
 }
 
-.upload-icon {
-    font-size: 48px;
-    margin-bottom: 12px;
+#brightnessSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.upload-zone p {
-    margin: 8px 0;
-    color: var(--content-bright-100);
-    font-size: 16px;
+#brightnessSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.upload-zone small {
-    color: var(--content-bright-60);
-    font-size: 12px;
+/* Slider labels */
+.brightness-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 10px;
+  color: #666;
+  padding: 0 9px;
 }
 
-#upload-preview {
-    text-align: center;
-    padding: 16px;
-    background: var(--container-dim-10);
-    border-radius: 8px;
+#brightnessValue {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #2196f3;
 }
 
-#upload-preview img {
-    margin-bottom: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+/*------
+Background Overlay
+------*/
+
+/* Overlay for brightness/shade effect */
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none; /* Allow clicks to pass through */
+  z-index: 1; /* Between background and content */
+  transition: background-color 0.3s ease;
+}
+/*------
+Base Styles
+------*/
+
+/* General page styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
 }
 
-#image-info {
-    color: var(--content-bright-60);
-    font-size: 12px;
-    margin: 0;
+/* Main content area styling */
+main {
+  position: relative;
+  padding: 20px;
+  border-radius: 5px;
+  margin-top: 20px;
+  min-height: 300px;
+  background-color: red; /* Default color */
+  background-size: cover;
+  background-position: center;
+  color: white; /* For better text visibility on various backgrounds */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* For better text visibility */
+  overflow: hidden;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .background-modal .modal-content {
-        width: 95vw;
-        margin: 20px;
-    }
-    
-    .color-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .category-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .background-tabs {
-        flex-wrap: wrap;
-    }
-    
-    .bg-tab {
-        flex: 1 1 50%;
-        min-width: 120px;
-    }
+/* Z-index handling for content above overlay */
+main > * {
+  position: relative;
+  z-index: 2; /* Higher than the overlay */
+}
+
+/*------
+Modal Button
+------*/
+
+/* Open modal button styling */
+#openModalBtn {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#openModalBtn:hover {
+  background-color: #45a049;
+}
+
+/*------
+Modal structure
+------*/
+
+/* Modal container */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal content box */
+.modal-content {
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 5px;
+  width: 500px;
+  max-width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Option containers */
+.background-options {
+  margin: 20px 0;
+}
+
+.option {
+  margin-bottom: 15px;
+}
+
+.option label {
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.option-content {
+  margin: 10px 0 10px 25px;
+}
+
+/*------
+Form elements
+------*/
+
+/* Input fields */
+#colorSelect,
+#imageUrlInput {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* Custom color picker styling */
+#customColorPicker {
+  height: 30px;
+  width: 100%;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#customColorPicker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+#customColorPicker::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+/* Button styling */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#cancelBtn {
+  background-color: #f1f1f1;
+}
+
+#applyBtn {
+  background-color: #4caf50;
+  color: white;
+}
+
+#cancelBtn:hover {
+  background-color: #ddd;
+}
+
+#applyBtn:hover {
+  background-color: #45a049;
+}
+
+/*------
+Image Upload Section
+------*/
+
+/* Upload input styling */
+#imageUpload {
+  width: 100%;
+  margin: 5px 0;
+}
+
+.upload-requirements {
+  font-size: 12px;
+  color: #666;
+  margin: 5px 0;
+}
+
+/* Status messages */
+#uploadStatus,
+#unsplashStatus {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.error {
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-size: 12px;
+  margin: 5px 0 0;
+  display: none;
+}
+
+.success {
+  color: #388e3c;
+}
+
+.success strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.loading {
+  color: #666;
+  font-style: italic;
+}
+
+/*------
+Unsplash controls
+------*/
+/* Control groups */
+.control-group {
+  margin-bottom: 10px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #666;
+  margin: 5px 0 0;
+  font-style: italic;
+}
+
+/* Categories selector */
+#unsplashCategories {
+  width: 100%;
+  height: auto;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+}
+
+.unsplash-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+/* Auto-refresh section */
+.auto-refresh {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border-left: 3px solid #4caf50;
+}
+
+#autoRefreshInterval {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* Unsplash preview image */
+#unsplashPreviewImage {
+  max-width: 100%;
+  max-height: 150px;
+  display: none;
+  margin: 0 auto 10px;
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Credit text */
+.unsplash-credit {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.unsplash-credit a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.unsplash-credit a:hover {
+  text-decoration: underline;
+}
+
+/*------
+Attribution footer
+------*/
+/* Footer container */
+.attribution-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  font-size: 14px;
+  text-align: center;
+  z-index: 100;
+  display: none; /* Hidden by default */
+  backdrop-filter: blur(5px); /* Modern browsers will have a nice blur effect */
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.attribution-content {
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+.attribution-footer a {
+  color: #4caf50;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.2s ease;
+}
+
+.attribution-footer a:hover {
+  color: #81c784;
+  text-decoration: underline;
+}
+
+#photoTitle {
+  font-style: italic;
+}
+
+/*------
+Brightness control
+------*/
+
+/* Brightness control container */
+.brightness-control {
+  margin: 25px 0;
+  padding: 15px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  border-left: 3px solid #2196f3;
+}
+
+.brightness-control label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+/* Slider container */
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: #666;
+  width: 50px;
+}
+
+/* Slider styling */
+#brightnessSlider {
+  flex-grow: 1;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, #000000, #666666, #cccccc, #ffffff);
+  outline: none;
+  border-radius: 5px;
+}
+
+#brightnessSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+#brightnessSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #2196f3;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Slider labels */
+.brightness-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 10px;
+  color: #666;
+  padding: 0 9px;
+}
+
+#brightnessValue {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #2196f3;
+}
+
+/*------
+Background Overlay
+------*/
+
+/* Overlay for brightness/shade effect */
+.background-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none; /* Allow clicks to pass through */
+  z-index: 1; /* Between background and content */
+  transition: background-color 0.3s ease;
 }
