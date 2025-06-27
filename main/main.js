@@ -14,6 +14,9 @@ import { WidgetFactory, WidgetsModalManager } from '../services/widgets.js';
 import { ShortcutsFactory, ShortcutsModalManager } from '../services/shortcuts.js';
 import { ModalManager } from '../slots-system/modal.js';
 
+class AutoRefreshManager {
+
+
 /* –––––––––––––––––––––––––––
   INITIALIZATION WITH TAB GROUPS
 ––––––––––––––––––––––––––– */
@@ -46,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
       additionalAttributes: {} // Any additional attributes can be added here
     }
   });
+  // Initialize auto refresh manager
+  window.autoRefreshManager = new AutoRefreshManager();
 
   // Connect the widget factory to the widget slot system
   widgetSlotSystem.setItemFactory(widgetFactory);
@@ -154,7 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize main menu
   initializeMainMenu();
-});
+
+    // Auto-refresh every 5 minutes
+  if (!localStorage.getItem('refreshSet')) {
+    localStorage.setItem('refreshSet', '1');
+    setInterval(() => location.reload(), 300000); // 5 minutes
+  }
 
 // Make services globally available for debugging and cross-component access
 window.addEventListener('load', () => {
@@ -168,6 +178,8 @@ window.addEventListener('load', () => {
     }
   }, 100);
 });
+
+
 
 /* –––––––––––––––––––––––––––
   THEME SYSTEM

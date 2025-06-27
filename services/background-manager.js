@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelBtn = document.getElementById('cancelBtn');
     const applyBtn = document.getElementById('applyBtn');
     const colorSelect = document.getElementById('colorSelect');
-    const mainElement = document.querySelector('main');
+    const mainElement = document.querySelector('.background-manager');
     const solidColorOption = document.getElementById('solidColorOption');
     const imageUrlOption = document.getElementById('imageUrlOption');
     const uploadImageOption = document.getElementById('uploadImageOption');
@@ -755,4 +755,4 @@ document.addEventListener('DOMContentLoaded', function() {
     updateVisibleOptions();
     loadSavedSettings();
 
-}); // This closes the DOMContentLoaded callback function
+});

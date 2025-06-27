@@ -25,7 +25,7 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
     <script type="module" src="../services/bookmarks.js"></script>
     <script type="module" src="../libs/favicon.js"></script>
     <script type="module" src="main.js"></script>
-    <script type="module" src="background-manager.js"></script>
+    <script type="module" src="../services/background-manager.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +35,7 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
 </head>
 
 <body>
-    <main>
+    <main class="background-manager">
 
         <!-- Header -->
         <header>
@@ -53,6 +53,9 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
                         <li class="submenu-item theme-option" data-theme="dark">Dark</li>
                         <li class="submenu-item theme-option" data-theme="auto">Auto</li>
                     </ul>
+                </div>
+                <div class="menu-item" id="openModalBtn">
+                    Background
                 </div>
             </div>
 
@@ -108,6 +111,9 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
                         <button data-action="toggle-active-tabs">Toggle Active Tabs</button>
                     </div>
                         <div class="bookmarks-wrapper">
+                            <div id="tab-groups-container" class="tab-groups-container">
+                                <!-- Tab groups will be dynamically loaded here -->
+                            </div>
                             <div id="bookmarks-container" class="bookmarks-container">
                                 <!-- Bookmarks will be dynamically loaded here -->
                         </div>
@@ -117,14 +123,8 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
                 <!-- Journey Page -->
                 <div class="page" id="journey">
                     <h2>JOURNEY</h2>
-                    <div class="drawer-controls">
-                        <button data-action="refresh-tab-groups" id="refresh-tab-groups-btn">Refresh</button>
-                    </div>
-                    <div class="tab-groups-wrapper">
-                        <div id="tab-groups-container" class="tab-groups-container">
-                            <!-- Tab groups will be dynamically loaded here -->
-                        </div>
-                    </div>
+
+                    
                 </div>
 
             </div>
@@ -139,7 +139,117 @@ Role: Main extension UI with header, content areas, slots for widgets/shortcuts,
             <button id="prev-page" class="page-nav-btn">Previous</button>
             <button id="next-page" class="page-nav-btn">Next</button>
         </footer>
+<!-- Background overlay (for brightness effect) -->
+<div id="backgroundOverlay" class="background-overlay"></div>
 
+<!-- Attribution footer (for Unsplash images) -->
+<div id="attributionFooter" class="attribution-footer" style="display: none;">
+    <div class="attribution-content">
+        Photo: "<span id="photoTitle"></span>" by 
+        <a id="photographerLink" href="#" target="_blank" rel="noopener"></a> on 
+        <a id="unsplashLink" href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>
+    </div>
+</div>
     </main>
+
+
+    <!-- Background Manager Modal -->
+<div id="colorModal" class="modal">
+    <div class="modal-content">
+        <h2>Background Customization</h2>
+        
+        <div class="background-options">
+            <!-- Option 1: Solid Color -->
+            <div class="option">
+                <input type="radio" id="solidColorOption" name="backgroundType" value="color" checked>
+                <label for="solidColorOption">Solid Color</label>
+                <div class="option-content" id="colorContent">
+                    <select id="colorSelect">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Option 2: Image URL -->
+            <div class="option">
+                <input type="radio" id="imageUrlOption" name="backgroundType" value="image">
+                <label for="imageUrlOption">Image URL</label>
+                <div class="option-content" id="urlContent" style="display: none;">
+                    <input type="url" id="imageUrlInput" placeholder="https://example.com/image.jpg">
+                    <div class="error-message" id="urlError"></div>
+                </div>
+            </div>
+
+            <!-- Option 3: Upload Image -->
+            <div class="option">
+                <input type="radio" id="uploadImageOption" name="backgroundType" value="upload">
+                <label for="uploadImageOption">Upload Image</label>
+                <div class="option-content" id="uploadContent" style="display: none;">
+                    <input type="file" id="imageUpload" accept="image/jpeg, image/png">
+                    <p class="upload-requirements">Requirements: JPEG or PNG, minimum 1280×720px</p>
+                    <p id="uploadStatus"></p>
+                </div>
+            </div>
+
+            <!-- Option 4: Unsplash Random Image -->
+            <div class="option">
+                <input type="radio" id="unsplashOption" name="backgroundType" value="unsplash">
+                <label for="unsplashOption">Random Unsplash Image</label>
+                <div class="option-content" id="unsplashContent" style="display: none;">
+                    <div class="unsplash-controls">
+                        <div class="control-group">
+                            <label for="unsplashCategories">Categories:</label>
+                            <select id="unsplashCategories" multiple size="5">
+                                <option value="nature" selected>Nature</option>
+                                <option value="city">City</option>
+                                <option value="technology">Technology</option>
+                                <option value="architecture">Architecture</option>
+                                <option value="abstract">Abstract</option>
+                            </select>
+                            <p class="help-text">Hold Ctrl/Cmd to select multiple</p>
+                        </div>
+                        
+                        <div class="control-group auto-refresh">
+                            <label for="autoRefreshInterval">Auto-refresh:</label>
+                            <select id="autoRefreshInterval">
+                                <option value="0">Disabled</option>
+                                <option value="300">Every 5 minutes</option>
+                                <option value="600">Every 10 minutes</option>
+                                <option value="1800">Every 30 minutes</option>
+                                <option value="3600">Every hour</option>
+                                <option value="86400">Daily</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brightness Control -->
+        <div class="brightness-control">
+            <label for="brightnessSlider">Brightness / Shade</label>
+            <div class="slider-container">
+                <span class="slider-label">Darker</span>
+                <input type="range" id="brightnessSlider" min="-100" max="100" value="0" step="5">
+                <span class="slider-label">Brighter</span>
+            </div>
+            <div class="brightness-labels">
+                <span>-100</span>
+                <span>0</span>
+                <span>+100</span>
+            </div>
+            <div id="brightnessValue">Current: 0</div>
+        </div>
+
+        <!-- Modal Buttons -->
+        <div class="modal-buttons">
+            <button id="cancelBtn">Cancel</button>
+            <button id="applyBtn">Apply</button>
+        </div>
+    </div>
+</div>
+
+
+
 </body>
 </html>

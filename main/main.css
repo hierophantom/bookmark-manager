@@ -147,10 +147,6 @@ body {
 }
 
 main {
-  /*background: linear-gradient(var(--container-bright-0), var(--container-bright-0)), url("https://picsum.photos/1920/1080");*/
-  background-color: var(--black-60);
-  background-repeat: no-repeat;
-  background-size: cover;
   width: 100%;
   height: 100%;
   display: flex;
@@ -171,6 +167,7 @@ header {
   backdrop-filter: blur(7px);
   gap: 20px;
   align-items: center;
+  z-index: 400;
 }
 
 .content {
@@ -184,6 +181,7 @@ header {
   flex: 1;
   overflow-y: hidden;
   color: var(--content-bright-100);
+  z-index: 300;
 }
 
 .pages-container {
@@ -247,14 +245,8 @@ footer {
   color: var(--content-bright-100);
   backdrop-filter: blur(7px);
   border-radius: 12px 12px 0px 0px;
-  gap: 16px; /* Added gap for better spacing between elements */
-}
-
-/* –––––––––––––––––––––––––––
-  HEADER STYLES
-––––––––––––––––––––––––––– */
-header {
-  z-index: 9000;
+  gap: 16px;
+  z-index: 400;
 }
 
 /* –––––––––––––––––––––––––––
@@ -403,7 +395,7 @@ header {
     backdrop-filter: blur(7px);
     border-right: 1px solid var(--container-bright-20);
     position: relative;
-    z-index: 1000;
+    z-index: 900;
     transition: all 0.3s ease-in-out;
     flex-shrink: 0;
 }
@@ -443,7 +435,7 @@ header {
     top: 40px;
     width: 20px;
     height: calc(100% - 92px);
-    z-index: 999;
+    z-index: 1000;
 }
 
 .drawer-hover-zone.left {
@@ -464,7 +456,7 @@ header {
     cursor: pointer;
     opacity: 0.7;
     transition: opacity 0.2s;
-    z-index: 1001;
+    z-index: 1100;
 }
 
 .pin-button:hover {
@@ -735,3 +727,4 @@ main {
     background-color 0.3s ease,
     background-image 0.3s ease;
 }
+
