@@ -37,21 +37,16 @@ Updated: Empty slots now hidden by default, shown only during drag operations
     gap: 15px;
     padding: 20px;
     background-color: var(--container-dim-10);
-    border-radius: 16px;
     backdrop-filter: blur(3px);
+    border-radius: 16px;
     position: relative;
     box-sizing: border-box;
-  -webkit-user-select: none; /* Safari */
-  -ms-user-select: none; /* IE 10 and IE 11 */
-  user-select: none; /* Standard syntax */
-}
 }
 
 .folder-section:hover {
     background-color: var(--container-dim-20);
-    border-radius: 16px;
     backdrop-filter: blur(7px);
-    transition: background-color 0.3s, backdrop-filter 0.3s; 
+    transition: all 0.3s ease;
 }
 
 .folder-header {
@@ -159,7 +154,7 @@ Updated: Empty slots now hidden by default, shown only during drag operations
 
 .folder-action-btn:hover svg {
     fill: var(--content-bright-100);
-    transition: fill 0.3s;
+    transition: all 0.3s ease;
 }
 
 .add-folder {
@@ -180,7 +175,7 @@ Updated: Empty slots now hidden by default, shown only during drag operations
     justify-content: center;
     align-items: center;
     position: relative;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     background-color: var(--container-bright-80);
     cursor: pointer;
 }
@@ -278,7 +273,7 @@ Updated: Empty slots now hidden by default, shown only during drag operations
     height: 16px;
     cursor: move;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: all 0.3s ease;
     fill: var(--content-dim-30);
 }
 

@@ -199,25 +199,7 @@ header {
   order: 0;
 }
 
-#homepage {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 20px;
-  justify-content: flex-start;
-}
-
-#bookmarks {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 20px;
-  justify-content: flex-start;
-}
-
-#journey {
+.page-section { /* New common class */
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -284,15 +266,20 @@ footer {
 }
 
 /* Menu */
-.action-menu {
-  display: none;
+.menu-base {
   min-width: 100px;
-  position: absolute;
-  margin-top: 4px;
-  padding: 8px;
   background: var(--container-dim-60);
   border-color: var(--container-dim-30);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
   border-radius: 8px;
+}
+
+.action-menu {
+  display: none;
+  position: absolute;
+  margin-top: 4px;
   top: 50px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
@@ -302,14 +289,18 @@ footer {
 }
 
 /* Menu items */
-.menu-item {
+
+.menu-item-base {
   position: relative;
   padding: 8px 16px;
   font-size: 16px;
   cursor: pointer;
-  padding: 8px;
   color: var(--container-bright-80);
   border-radius: 8px;
+}
+
+.menu-item {
+  padding: 8px;
 }
 
 .menu-item:hover {
@@ -318,31 +309,14 @@ footer {
 
 /* Submenu */
 .submenu {
-  min-width: 100px;
   display: none;
   position: absolute;
   top: -8px;
   left: 100px;
-  background: var(--container-dim-60);
-  border-color: var(--container-dim-30);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
 }
 
 .menu-item:hover .submenu {
     display: block;
-}
-
-.submenu-item {
-  position: relative;
-  padding: 8px 16px;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px;
-  color: var(--container-bright-80);
-  border-radius: 8px;
 }
 
 .submenu-item:hover {
@@ -367,6 +341,12 @@ footer {
   width: 100%;
   height: 100%;
   transition: opacity 1s ease 0.1s;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 20px;
+  justify-content: flex-start;
 }
 
 .page.active {
@@ -728,4 +708,3 @@ main {
     background-color 0.3s ease,
     background-image 0.3s ease;
 }
-

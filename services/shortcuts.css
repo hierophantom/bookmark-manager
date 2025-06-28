@@ -16,7 +16,7 @@ Role: Core slot system styles including layout, drag/drop states, animations, an
   border-radius: 8px;
   width: 120px;
   height: 120px;
-  transition: background-color 0.3s, border-color 0.3s;
+  transition: all 0.3s ease;
   justify-content: center;
   align-items: center;
   position: relative;
@@ -47,13 +47,12 @@ Role: Core slot system styles including layout, drag/drop states, animations, an
   touch-action: none;
   position: absolute;
   background-color: var(--container-bright-80);
-  transition: transform 0.1s, box-shadow 0.3s;
+  transition: all 0.3s ease;
 }
 
 .shortcut:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transition: transform 0.1s, background-color 0.1s, box-shadow 0.3s;
 }
 
 .shortcut:hover .shortcut-controls {
@@ -111,7 +110,7 @@ Role: Core slot system styles including layout, drag/drop states, animations, an
   height: 16px;
   cursor: move;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s ease;
   fill: var(--content-dim-30);
 }
 
@@ -141,7 +140,7 @@ Role: Core slot system styles including layout, drag/drop states, animations, an
   font-size: 0.85rem;
   border: 2px dashed var(--container-dim-30);
   border-radius: 4px;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .shortcut-slot:hover .shortcut-placeholder {

@@ -49,7 +49,6 @@ Role: Generic modal styles for all SAC (Slots And Cubes) systems including overl
   transform: scale(0.9) translateY(20px);
   transition: transform 0.3s ease;
   border: 1px solid var(--container-dim-20);
-  overflow-y: hidden;
 }
 
 .modal-overlay.active .modal-content {
@@ -97,7 +96,7 @@ Role: Generic modal styles for all SAC (Slots And Cubes) systems including overl
 .modal-body {
   padding: 0px 24px;
   max-height: 60vh;
-  overflow: hidden;
+  overflow: scroll;
 }
 
 .modal-actions {

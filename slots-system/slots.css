@@ -27,9 +27,8 @@ Role: Pinned URLs shortcuts styles including containers, slots, shortcut items w
 
 .slot-container:hover {
   background-color: var(--container-dim-20);
-  border-radius: 16px;
   backdrop-filter: blur(7px);
-  transition: background-color 0.3s, backdrop-filter 0.3s;
+  transition: all 0.3s ease;
 }
 
 .slot-container:hover .slot-controls{
