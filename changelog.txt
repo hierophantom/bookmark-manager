@@ -1,3 +1,9 @@
+1.151
+tabGroups - Acceptable state. Few bugs need to be fixed
+
+1.15
+Added auto refresh
+
 1.142
 Generic CSS alignment
 

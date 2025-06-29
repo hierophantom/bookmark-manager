@@ -238,6 +238,7 @@ Updated: Empty slots now hidden by default, shown only during drag operations
     visibility: hidden;
 }
 
+.folder-item:hover .slot-actions,
 .bookmark-item:hover .slot-actions {
     opacity: 1;
     visibility: visible;

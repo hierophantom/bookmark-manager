@@ -1,20 +1,32 @@
 /*
 File name & path: root/services/tab-groups.js
 Role: Simplified Chrome tab groups system
-Architecture: 
+Architecture:
 - TabGroupSectionManager: Handles tab group section creation and management
 - TabItemPopulator: Handles creation and population of tab items
 - TabGroupsService: Main orchestrator that coordinates all systems
 */
 
 /* –––––––––––––––––––––––––––
-  TAB GROUP SECTION MANAGER
+ TAB GROUP SECTION MANAGER
 ––––––––––––––––––––––––––– */
 
 class TabGroupSectionManager {
     constructor(tabGroupsService) {
         this.tabGroupsService = tabGroupsService;
         this.tabGroupSections = new Map();
+        // Define a map of colors to their hex values for dynamic styling
+        this.colorMap = {
+            'grey': '#5f6368',
+            'blue': '#1a73e8',
+            'red': '#d93025',
+            'yellow': '#fbbc04',
+            'green': '#34a853',
+            'pink': '#ff69b4',
+            'purple': '#9c27b0',
+            'cyan': '#00bcd4',
+            'orange': '#ff9800'
+        };
     }
 
     createTabGroupSection(groupId, title, color) {
@@ -23,6 +35,10 @@ class TabGroupSectionManager {
         groupDiv.className = 'tab-group-section active';
 
         const displayTitle = title || 'Untitled Group';
+
+        // Get the hex color from the map, or default to grey
+        const borderColor = this.colorMap[color] || this.colorMap['grey'];
+        groupDiv.style.borderColor = borderColor; // Apply the border color dynamically
 
         groupDiv.innerHTML = `
             <div class="tab-group-header">
@@ -44,7 +60,7 @@ class TabGroupSectionManager {
                         </svg>
                     </span>
                     <span class="tab-group-action-btn delete-group tooltip-top" data-tooltip="Delete group" aria-expanded="false">
-                        <svg width="16" height="16">
+                        <svg width="12">
                             <use href="#delete-icon" />
                         </svg>
                     </span>
@@ -65,19 +81,19 @@ class TabGroupSectionManager {
         const deleteGroupBtn = groupDiv.querySelector('.delete-group');
 
         if (addTabBtn) {
-            addTabBtn.addEventListener('click', () => 
+            addTabBtn.addEventListener('click', () =>
                 this.tabGroupsService.showAddTabDialog(groupId)
             );
         }
 
         if (editGroupBtn) {
-            editGroupBtn.addEventListener('click', () => 
+            editGroupBtn.addEventListener('click', () =>
                 this.tabGroupsService.editTabGroup(groupId)
             );
         }
 
         if (deleteGroupBtn) {
-            deleteGroupBtn.addEventListener('click', () => 
+            deleteGroupBtn.addEventListener('click', () =>
                 this.tabGroupsService.deleteTabGroup(groupId)
             );
         }
@@ -89,7 +105,7 @@ class TabGroupSectionManager {
 }
 
 /* –––––––––––––––––––––––––––
-  TAB ITEM POPULATOR
+ TAB ITEM POPULATOR
 ––––––––––––––––––––––––––– */
 
 class TabItemPopulator {
@@ -103,21 +119,21 @@ class TabItemPopulator {
         slotItem.dataset.tabId = tab.id;
         slotItem.dataset.url = tab.url;
         slotItem.title = tab.title || 'Untitled Tab';
-        
+
         const faviconHtml = this.buildFaviconHtml(tab.url, tab.title, tab.favIconUrl);
-        
+
         slotItem.innerHTML = `
             <div class="slot-icon">${faviconHtml}</div>
             <div class="slot-name">${tab.title || 'Untitled Tab'}</div>
             <div class="slot-actions">
-                <span class="slot-action delete-btn" title="Remove from group">
-                    <svg width="8">
-                        <use href="#close-icon" />
+                <span class="slot-action delete-btn"  data-tooltip="Remove from group">
+                    <svg viewBox="-2.5 -2.5 16 16">
+                        <use href="#unlink-icon" />
                     </svg>
                 </span>
             </div>
         `;
-        
+
         this.setupTabActions(slotItem, tab, groupId);
         return slotItem;
     }
@@ -129,10 +145,10 @@ class TabItemPopulator {
                 this.tabGroupsService.switchToTab(tab);
             }
         });
-        
+
         // Action handlers
         const deleteBtn = slotItem.querySelector('.delete-btn');
-        
+
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             this.tabGroupsService.removeTabFromGroup(tab.id, groupId, slotItem);
@@ -144,26 +160,26 @@ class TabItemPopulator {
         if (window.FaviconUtils) {
             return window.FaviconUtils.createFaviconHtml(url, title);
         }
-        
+
         // Strategy 2: Use Chrome's provided favicon if available
         if (favIconUrl) {
             const fallbackIcon = `<svg width="40" height="40"><use href="#globe-icon" /></svg>`;
             const uniqueId = `favicon-${Math.random().toString(36).substr(2, 9)}`;
-            
+
             return `<img id="${uniqueId}" src="${favIconUrl}" alt="${title}" data-chrome-favicon="true">
                     <span class="favicon-fallback" style="display:none;">${fallbackIcon}</span>`;
         }
-        
+
         // Strategy 3: Extract hostname and try Google favicon service
         const hostname = this.extractHostname(url);
         if (hostname === 'invalid-url') {
             return `<svg width="40" height="40"><use href="#globe-icon" /></svg>`;
         }
-        
+
         const faviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
         const fallbackIcon = `<svg width="40" height="40"><use href="#globe-icon" /></svg>`;
         const uniqueId = `favicon-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         return `<img id="${uniqueId}" src="${faviconUrl}" alt="${title}" data-google-favicon="true">
                 <span class="favicon-fallback" style="display:none;">${fallbackIcon}</span>`;
     }
@@ -185,11 +201,11 @@ class TabItemPopulator {
             let testUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
             const urlObj = new URL(testUrl);
             let hostname = urlObj.hostname.toLowerCase();
-            
+
             if (hostname.startsWith('www.')) {
                 hostname = hostname.substring(4);
             }
-            
+
             if (hostname.includes('.') && /^[a-zA-Z0-9.-]+$/.test(hostname)) {
                 return hostname;
             }
@@ -201,17 +217,17 @@ class TabItemPopulator {
 }
 
 /* –––––––––––––––––––––––––––
-  MAIN TAB GROUPS SERVICE
+ MAIN TAB GROUPS SERVICE
 ––––––––––––––––––––––––––– */
 
 class TabGroupsService {
     constructor() {
         this.tabGroupsContainer = null;
         this.chromeTabGroups = new Map();
-        
+
         this.tabGroupSectionManager = new TabGroupSectionManager(this);
         this.tabItemPopulator = new TabItemPopulator(this);
-        
+
         this.init();
     }
 
@@ -245,7 +261,7 @@ class TabGroupsService {
         if (chrome.tabGroups && chrome.tabGroups.onUpdated) {
             chrome.tabGroups.onUpdated.addListener(() => this.loadTabGroups());
         }
-        
+
         // Listen for tab changes
         if (chrome.tabs) {
             chrome.tabs.onCreated.addListener(() => this.loadTabGroups());
@@ -272,15 +288,15 @@ class TabGroupsService {
 
             const tabGroups = await chrome.tabGroups.query({});
             this.chromeTabGroups.clear();
-            
+
             for (const group of tabGroups) {
                 const tabs = await chrome.tabs.query({ groupId: group.id });
-                
+
                 const groupData = {
                     ...group,
                     tabs: tabs
                 };
-                
+
                 this.chromeTabGroups.set(group.id, groupData);
             }
         } catch (error) {
@@ -294,7 +310,7 @@ class TabGroupsService {
 
         // Only render active tab groups
         const activeGroups = Array.from(this.chromeTabGroups.values());
-            
+
         for (const group of activeGroups) {
             await this.renderTabGroup(group);
         }
@@ -307,7 +323,7 @@ class TabGroupsService {
             group.color
         );
         this.tabGroupsContainer.appendChild(groupElement);
-        
+
         await this.populateTabGroup(group.id, group.tabs || []);
     }
 
@@ -317,15 +333,9 @@ class TabGroupsService {
 
         container.innerHTML = '';
 
-        // Handle empty tabs array
-        if (!tabs || tabs.length === 0) {
-            container.innerHTML = '<div class="empty-group-message">No tabs in this group</div>';
-            return;
-        }
-
         const tabsContainer = document.createElement('div');
         tabsContainer.className = 'tabs-grid';
-        
+
         for (const tab of tabs) {
             const tabItem = await this.tabItemPopulator.createTabItem(tab, groupId);
             tabsContainer.appendChild(tabItem);
@@ -524,7 +534,7 @@ class TabGroupsService {
         if (confirm('Are you sure you want to delete this tab group?')) {
             try {
                 const group = this.chromeTabGroups.get(parseInt(groupId));
-                
+
                 if (group) {
                     // Ungroup all tabs in the active group
                     const tabs = await chrome.tabs.query({ groupId: parseInt(groupId) });
@@ -532,7 +542,7 @@ class TabGroupsService {
                         await chrome.tabs.ungroup(tabs.map(tab => tab.id));
                     }
                 }
-                
+
                 // Reload to update display
                 await this.loadTabGroups();
             } catch (error) {

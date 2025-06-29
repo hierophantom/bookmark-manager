@@ -236,7 +236,7 @@ class ItemPopulator {
                 </span>
                 <span class="slot-action delete-btn" title="Delete bookmark">
                     <svg width="8">
-                        <use href="#close-icon" />
+                        <use href="#delete-icon" />
                     </svg>
                 </span>
             </div>

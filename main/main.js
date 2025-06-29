@@ -154,6 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize main menu
   initializeMainMenu();
+
+  // Auto-refresh every 5 minutes
+  if (!localStorage.getItem('refreshSet')) {
+    localStorage.setItem('refreshSet', '1');
+    setInterval(() => location.reload(), 3600000);
+  }
 });
 
 // Make services globally available for debugging and cross-component access
