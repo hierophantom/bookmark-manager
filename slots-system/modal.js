@@ -5,6 +5,80 @@ Method: Creates dynamic modal HTML, manages modal lifecycle (open/close), handle
 */
 
 /* –––––––––––––––––––––––––––
+ MODAL API USAGE INSTRUCTIONS
+––––––––––––––––––––––––––– */
+
+/*
+MODAL API MODUS OPERANDI:
+
+1. ASSESSMENT RULE:
+  - Simple confirm/alert dialogs → Use SIMPLE PATTERN with onSave callback
+  - Complex forms with validation → Use COMPLEX PATTERN with ModalContentProvider
+
+2. INITIALIZATION RULE:
+  - ModalManager creates DOM elements in constructor
+  - ALWAYS instantiate AFTER DOM is ready (in init() or after DOMContentLoaded)
+  - NEVER create in constructor if DOM might not be ready
+
+3. SIMPLE PATTERN (for confirm/alert dialogs):
+  modalManager.open({
+    title: 'Confirm Action',
+    content: '<p>Are you sure?</p>',
+    saveLabel: 'Yes',
+    cancelLabel: 'No',
+    onSave: async () => {
+      // Do the action here
+      return true; // or false to prevent closing
+    }
+  });
+
+4. COMPLEX PATTERN (for forms with validation):
+  class MyModalProvider extends ModalContentProvider {
+    getContent() { return '<form>...</form>'; }
+    onModalOpen(bodyElement) { /* setup event listeners, focus *//* }
+    async validate() { return true/false; }
+    async onSave() { return true/false; }
+  }
+  
+  const provider = new MyModalProvider();
+  modalManager.open({
+    title: 'My Modal',
+    content: provider.getContent(),
+    contentProvider: provider
+  });
+
+5. REPLACEMENT RULE (confirm() → modal):
+  // OLD: if (confirm('message')) { doAction(); }
+  // NEW:
+  modalManager.open({
+    title: 'Confirm',
+    content: '<p>message</p>',
+    saveLabel: 'OK',
+    cancelLabel: 'Cancel',
+    onSave: async () => {
+      // doAction() code here
+      return true;
+    }
+  });
+
+6. ERROR HANDLING RULE:
+  - onSave must return true (success/close) or false (error/stay open)
+  - Use try/catch in onSave and return false on errors
+  - Never throw exceptions from onSave
+
+7. BUTTON CUSTOMIZATION:
+  - Destructive actions: saveLabel: 'Delete'
+  - Confirmations: saveLabel: 'Yes' or 'OK'
+  - Always set appropriate saveLabel and cancelLabel
+
+8. CONTENT INJECTION:
+  - Simple text: content: '<p>message</p>'
+  - Forms: content: '<div class="form-group">...</div>'
+  - Always wrap in proper HTML tags
+*/
+
+
+/* –––––––––––––––––––––––––––
   GENERIC MODAL MANAGER
 ––––––––––––––––––––––––––– */
 
